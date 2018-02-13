@@ -37,6 +37,7 @@ There is also an entry point to provide a primitive interpreter session, and
 package.
 """
 
+from .ast import *
 from .interpreter import *
 from .lexer import *
 from .parser import *

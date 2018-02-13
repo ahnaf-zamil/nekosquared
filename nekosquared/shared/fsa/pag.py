@@ -61,7 +61,6 @@ class LinedPag(Pag):
 
         while len(lines) > 0:
             ln = lines.pop(0)
-            print(existing(), ln)
             if existing() >= self.max_lines:
                 print(self.max_lines)
                 self.close_page()

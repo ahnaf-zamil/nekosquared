@@ -128,11 +128,20 @@ class TokenType(enum.IntFlag):
 
 class Token:
     """Token placeholder."""
-    __slots__ = ('type', 'value')
+    __slots__ = ('type', 'value', 'index', 'row', 'col')
 
-    def __init__(self, token_type: TokenType, **kwargs):
+    def __init__(self,
+                 *,
+                 token_type: TokenType,
+                 value=None,
+                 index,
+                 row,
+                 col):
         self.type = token_type
-        self.value = kwargs.pop('value', token_type.name)
+        self.value = value
+        self.index = index
+        self.row = row
+        self.col = col
 
     def __eq__(self, other):
         """
@@ -150,10 +159,12 @@ class Token:
             return self.value == other.value and self.type == other.type
 
     def __repr__(self):
-        return f'<Token type={self.type.name!r}, value={self.value!r}>'
+        return (
+            f'<Token type={self.type.name!r}, value={self.value!r}, '
+            f'index={self.index!r}, row={self.row!r}, col={self.col!r}>')
 
     def __str__(self):
-        return f'{self.type.name} token with value {self.value!r}'
+        return f'{self.type.name} token {self.value!r} at {self.row}:{self.col}'
 
 
 # This pair of two-way ordered mappings aid in defining which string sequences
@@ -247,6 +258,7 @@ OPS = util.ReversingOrderedDict({
     TokenType.LESS_THAN: '<',
     TokenType.GREATER_THAN: '>',
     TokenType.DOT: '.',
+    TokenType.COMMA: ',',
     TokenType.SEMI: ';',
     TokenType.COLON: ':',
     TokenType.LEFT_PAREN: '(',

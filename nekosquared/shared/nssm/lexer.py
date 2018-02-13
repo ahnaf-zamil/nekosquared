@@ -66,13 +66,17 @@ class NssmBadSyntax(RuntimeError):
 
 class Lexer:
     """Iterable lexer. This will yield token objects."""
-    __slots__ = ('input', 'row', 'col', 'index', '_has_yielded_eof')
+    __slots__ = ('input', 'row', 'col', '_col_s', 'index', '_has_yielded_eof')
 
     def __init__(self, src: str):
         """Initialise the lexer."""
         self.input = src
         self.row = 1
         self.col = 1
+        # Same as col, but isn't updated until the following pass. This is
+        # to allow us to determine where the start of the token was, rather than
+        # the end.
+        self._col_s = 1
         self.index = 0
         self._has_yielded_eof = False
 
@@ -85,6 +89,7 @@ class Lexer:
         # Skip whitespace
         self._get_while(lambda c: c in ' \t\n\r')
 
+        self._col_s = self.col
         # Check if we are at EOF. If we are, first yield an EOF, then raise
         # the StopIteration.
         if self.index >= len(self.input):
@@ -92,7 +97,7 @@ class Lexer:
                 raise StopIteration
             else:
                 self._has_yielded_eof = True
-                return Token(TokenType.END_OF_FILE, value='EOF')
+                return self._token(TokenType.END_OF_FILE, '')
         elif self._rest[:1] in '\'"':
             return self._parse_str()
         elif self._is_next_a_num():
@@ -110,14 +115,14 @@ class Lexer:
         self._ensure_then_step('0b', '0B')
         bin_str = self._get_while(lambda c: c in BINARY_DIGITS, 1)
         num = int(bin_str, 2)
-        return Token(TokenType.NUMBER, value=num)
+        return self._token(TokenType.NUMBER, num)
 
     def __parse_oct(self):
         """Parses an unsigned octal integer."""
         self._ensure_then_step('0o', '0O')
         oct_str = self._get_while(lambda c: c in OCTAL_DIGITS, 1)
         num = int(oct_str, 8)
-        return Token(TokenType.NUMBER, value=num)
+        return self._token(TokenType.NUMBER, num)
 
     def __parse_dec(self):
         """Parses some form of decimal number. This may be a real or an int."""
@@ -131,7 +136,7 @@ class Lexer:
         # This indicates a range. If we get this, we should return whatever
         # we have already.
         if self._rest.startswith('..'):
-            return Token(TokenType.NUMBER, value=int(number_str))
+            return self._token(TokenType.NUMBER, int(number_str))
 
         if curr == '.':
             number_str += '.'
@@ -155,16 +160,16 @@ class Lexer:
         if not len(number_str):
             self._raise_syntax_error('Expected at least one digit')
         elif any(c in 'eE+-.' for c in number_str):
-            return Token(TokenType.NUMBER, value=float(number_str))
+            return self._token(TokenType.NUMBER, float(number_str))
         else:
-            return Token(TokenType.NUMBER, value=int(number_str))
+            return self._token(TokenType.NUMBER, int(number_str))
 
     def __parse_hex(self):
         """Parses an unsigned hexadecimal integer."""
         self._ensure_then_step('0x', '0X')
         hex_str = self._get_while(lambda c: c in HEXADECIMAL_DIGITS, 1)
         num = int(hex_str, 16)
-        return Token(TokenType.NUMBER, value=num)
+        return self._token(TokenType.NUMBER, num)
 
     def _parse_num(self):
         """Parses an unsigned floating point literal, or an integer."""
@@ -254,7 +259,7 @@ class Lexer:
         self._step()
 
         # Return the parsed string.
-        return Token(TokenType.STRING, value=string)
+        return self._token(TokenType.STRING, string)
 
     def _parse_id_or_rw(self):
         """
@@ -266,7 +271,7 @@ class Lexer:
         for op_type, op_str in OPS.items():
             if self._rest.startswith(op_str):
                 self._step(len(op_str))
-                return Token(op_type, value=op_str)
+                return self._token(op_type, op_str)
 
         # Next check to see if it is a reserve word
         for rw_type, rw_str in RWS.items():
@@ -277,7 +282,7 @@ class Lexer:
                 next_c = self._rest[len(rw_str)][0:1]
                 if not next_c.isalnum() and next_c not in ('$', '_', ''):
                     self._step(len(rw_str))
-                    return Token(rw_type, value=rw_str)
+                    return self._token(rw_type, rw_str)
 
         # Else, parse it as a custom identifier.
         # The first char must be an alpha, or underscore only.
@@ -289,7 +294,7 @@ class Lexer:
 
         string += self._get_while(lambda c: c.isalnum() or c in '_$')
 
-        return Token(TokenType.IDENTIFIER, value=string)
+        return self._token(TokenType.IDENTIFIER, string)
 
     def _is_next_a_num(self):
         """
@@ -369,3 +374,11 @@ class Lexer:
         # Extract the current line using string voodoo.
         line, _, _ = self.input[self.index - self.col + 1:].partition('\n')
         raise NssmBadSyntax(self.row, self.col, self.index, line, reason)
+
+    def _token(self, token_type, value):
+        """Saves typing."""
+        return Token(token_type=token_type,
+                     value=value,
+                     index=self.index,
+                     col=self._col_s,
+                     row=self.row)

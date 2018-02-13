@@ -3,9 +3,14 @@ from nekosquared.shared import fsa
 from nekosquared.shared import nssm
 
 
-class Cog:
-    @commands.command()
-    async def test_lex(self, ctx, *, src):
+class NssmSandboxCog:
+    @commands.command(
+        brief='Tokenises the given input source code.',
+        usage='<code>')
+    async def tokenise(self, ctx, *, src):
+        """
+        Tokenises the given input source code and outputs the generated tokens.
+        """
         lex = nssm.Lexer(src)
         pag = fsa.LinedPag()
         for token in lex:
@@ -21,4 +26,4 @@ class Cog:
 
 
 def setup(bot):
-    bot.add_cog(Cog())
+    bot.add_cog(NssmSandboxCog())
