@@ -56,8 +56,3 @@ class SqlQuery:
         """
         return self.text, *args
 
-    def __get__(self, instance, owner):
-        """
-        Accessor descriptor. Behaves in the same way as the call operator.
-        """
-        return self()
