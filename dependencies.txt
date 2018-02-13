@@ -1,0 +1,5 @@
+aiofiles
+aiohttp
+asyncpg
+cached_property
+pyyaml

@@ -1,0 +1,23 @@
+# Python cache.
+__pycache__
+**/__pycache__
+
+# IntelliJ stuff.
+*.iml
+.idea
+
+# Virtual environments
+venv
+
+# Log files.
+*.log
+**/*.log
+
+# Any configuration files
+config
+
+# Nano temp files.
+*.sav
+
+# Stuff pip puts in that I don't want
+*.egg-info
