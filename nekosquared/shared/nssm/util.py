@@ -27,7 +27,7 @@ class ReversingOrderedDict:
     reverse mapping so that each element in said collection maps to the same
     key. This will not occur for tuples, or frozen sets.
     """
-    def __init__(self, **pairs):
+    def __init__(self, pairs):
         self._forwards = collections.OrderedDict()
         self._backwards = collections.OrderedDict()
 

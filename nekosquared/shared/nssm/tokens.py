@@ -12,7 +12,6 @@ identifiers, reserve words, and operators. These are hard coded into the
 interpreter module from here.
 """
 import enum
-import typing
 
 from . import util
 
@@ -31,7 +30,6 @@ class TokenType(enum.IntFlag):
 
     # Reserve words
     FOR = enum.auto()               # for
-    END = enum.auto()               # end
     IF = enum.auto()                # if
     ELSE_IF = enum.auto()           # elif
     ELSE = enum.auto()              # else
@@ -41,11 +39,12 @@ class TokenType(enum.IntFlag):
     BREAK = enum.auto()             # break
     CONTINUE = enum.auto()          # continue
     LOOP = enum.auto()              # loop
-    DIV = enum.auto()               # div
-    MOD = enum.auto()               # mod
-    AND = enum.auto()               # and
-    OR = enum.auto()                # or
-    NOT = enum.auto()               # not
+    TRUE = enum.auto()              # true
+    FALSE = enum.auto()             # false
+    NULL = enum.auto()              # null
+    DO = enum.auto()                # do
+    TO = enum.auto()                # to
+    IN = enum.auto()                # in
 
     # Operators
     PLUS = enum.auto()              # +
@@ -76,6 +75,8 @@ class TokenType(enum.IntFlag):
     UNSIGNED_BSR = enum.auto()      # >>>
     LAMBDA = enum.auto()            # =>
     DOT = enum.auto()               # .
+    DOTDOT = enum.auto()            # ..
+    DOTDOTDOT = enum.auto()         # ...
     COMMA = enum.auto()             # ,
     SEMI = enum.auto()              # ;
     COLON = enum.auto()             # :
@@ -100,15 +101,15 @@ class TokenType(enum.IntFlag):
     UNSIGNED_BSR_ASS = enum.auto()  # >>>=
 
     # Misc
-    LINE_BREAK = enum.auto()        # \n
     END_OF_FILE = enum.auto()       # Literal end of input.
 
     # Flag combinations for easier generic classification.
     VALUE_TYPE = NUMBER | STRING | IDENTIFIER
 
     RESERVE_WORD = (
-        FOR | END | IF | ELSE_IF | ELSE | WHILE | UNTIL | RETURN | BREAK |
-        CONTINUE | LOOP | DIV | MOD | AND | OR | NOT)
+        FOR | IF | ELSE_IF | ELSE | WHILE | UNTIL | RETURN | BREAK |
+        CONTINUE | LOOP | TRUE | FALSE | NULL |
+        IN | TO | DO)
 
     OPERATOR = (
         PLUS | DBL_PLUS | MINUS | DBL_MINUS | ASTERISK | DBL_ASTERISK |
@@ -119,9 +120,10 @@ class TokenType(enum.IntFlag):
         SEMI | COLON | LEFT_PAREN | RIGHT_PAREN | LEFT_BRACE | RIGHT_BRACE |
         LEFT_SQ | RIGHT_SQ | PLUS_ASS | MINUS_ASS | ASTERISK_ASS |
         DBL_ASTERISK_ASS | SOLIDUS_ASS | PERCENT_ASS | AMPERSAND_ASS |
-        PIPE_ASS | CARET_ASS | BSL_ASS | SIGNED_BSR_ASS | UNSIGNED_BSR_ASS)
+        PIPE_ASS | CARET_ASS | BSL_ASS | SIGNED_BSR_ASS | UNSIGNED_BSR_ASS |
+        DOTDOT | DOTDOTDOT)
 
-    MISC = NOP | LINE_BREAK | END_OF_FILE
+    MISC = NOP | END_OF_FILE
 
 
 class Token:
@@ -151,7 +153,7 @@ class Token:
         return f'<Token type={self.type.name!r}, value={self.value!r}>'
 
     def __str__(self):
-        return f'{self.type.name} token with value {self.value}'
+        return f'{self.type.name} token with value {self.value!r}'
 
 
 # This pair of two-way ordered mappings aid in defining which string sequences
@@ -164,7 +166,7 @@ class Token:
 # ignored and parsed as an identifier.
 # Longer strings must come first before shorter strings that are a substring
 # of the start of the longer string, otherwise they will be misinterpreted.
-RWS = util.ReversingOrderedDict(**{
+RWS = util.ReversingOrderedDict({
     # 8 chars
     TokenType.CONTINUE: 'continue',
 
@@ -173,32 +175,33 @@ RWS = util.ReversingOrderedDict(**{
 
     # 5 chars
     TokenType.BREAK: 'break',
-    TokenType.WHILE: 'while',
+    TokenType.FALSE: 'false',
     TokenType.UNTIL: 'until',
+    TokenType.WHILE: 'while',
 
     # 4 chars
     TokenType.ELSE_IF: 'elif',
     TokenType.ELSE: 'else',
     TokenType.LOOP: 'loop',
+    TokenType.NULL: 'null',
+    TokenType.TRUE: 'true',
 
     # 3 chars
-    TokenType.AND: 'and',
-    TokenType.DIV: 'div',
-    TokenType.END: 'end',
     TokenType.FOR: 'for',
-    TokenType.MOD: 'mod',
-    TokenType.NOT: 'not',
 
     # 2 chars
+    TokenType.DO: 'do',
     TokenType.IF: 'if',
-    TokenType.OR: 'or'
+    TokenType.IN: 'in',
+    TokenType.TO: 'to',
 })
 
-OPS = util.ReversingOrderedDict(**{
+OPS = util.ReversingOrderedDict({
     # 4 chars
     TokenType.UNSIGNED_BSR_ASS: '>>>=',
 
     # 3 chars
+    TokenType.DOTDOTDOT: '...',
     TokenType.UNSIGNED_BSR: '>>>',
     TokenType.BSL_ASS: '<<=',
     TokenType.SIGNED_BSR_ASS: '>>=',
@@ -206,6 +209,7 @@ OPS = util.ReversingOrderedDict(**{
     TokenType.DBL_SOLIDUS_ASS: '//=',
 
     # 2 chars
+    TokenType.DOTDOT: '..',
     TokenType.DBL_PLUS: '++',
     TokenType.DBL_MINUS: '--',
     TokenType.DBL_ASTERISK: '**',
@@ -217,7 +221,7 @@ OPS = util.ReversingOrderedDict(**{
     TokenType.GREATER_OR_EQUAL: '>=',
     TokenType.UNEQUAL: '!=',
     TokenType.BSL: '<<',
-    TokenType.BSR: '>>',
+    TokenType.SIGNED_BSR: '>>',
     TokenType.LAMBDA: '=>',
     TokenType.PLUS_ASS: '+=',
     TokenType.MINUS_ASS: '-=',
@@ -251,5 +255,4 @@ OPS = util.ReversingOrderedDict(**{
     TokenType.RIGHT_BRACE: '}',
     TokenType.LEFT_SQ: '[',
     TokenType.RIGHT_SQ: ']',
-    TokenType.LINE_BREAK: '\n'
 })

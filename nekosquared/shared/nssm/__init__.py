@@ -36,3 +36,7 @@ There is also an entry point to provide a primitive interpreter session, and
 ``util.py`` which holds some shared utilities between the modules in this
 package.
 """
+
+from .interpreter import *
+from .lexer import *
+from .parser import *

@@ -55,15 +55,17 @@ class LinedPag(Pag):
         lines = line.split('\n')
 
         def existing():
-            return self.pages[-1].count('\n') if self.pages else 0
+            return self._current_page.count('\n') if self._current_page else 0
 
         del line
 
         while len(lines) > 0:
             ln = lines.pop(0)
+            print(existing(), ln)
             if existing() >= self.max_lines:
+                print(self.max_lines)
                 self.close_page()
-            self.add_line(ln)
+            super().add_line(ln.rstrip())
 
 
 def generate_default_pagination_buttons() -> typing.List[button.Button]:
@@ -452,7 +454,7 @@ class PagMessage(AbstractPagFsa):
         try:
             text = await self.get_page()
 
-            page_numbering = f'**Page {self.index + 1} of {len(self)}**\n\n'
+            page_numbering = f'**Page {self.index + 1} of {len(self)}**'
 
             if len(text) + len(page_numbering) < 2000:
                 text = page_numbering + text

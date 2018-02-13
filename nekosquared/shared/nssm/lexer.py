@@ -12,10 +12,11 @@ Lexical analyser/tokenizer/lexer
 Takes string input and outputs tokens.
 """
 import typing
+import unicodedata
 
 from .tokens import *
 
-__all__ = ()
+__all__ = ('NssmBadSyntax', 'Lexer')
 
 
 # Used for reference later. Some may not be used.
@@ -23,6 +24,19 @@ BINARY_DIGITS = '01'
 OCTAL_DIGITS = BINARY_DIGITS + '234567'
 DECIMAL_DIGITS = OCTAL_DIGITS + '89'
 HEXADECIMAL_DIGITS = DECIMAL_DIGITS + 'ABCDEFabcdef'
+
+STR_ESC_CHARS = {
+    'a': '\a',   # Bell/alarm/blink
+    'b': '\b',   # Backspace
+    'f': '\f',   # Form feed
+    'n': '\n',   # New line
+    'r': '\r',   # Carriage return
+    't': '\t',   # Horizontal tab
+    'v': '\v',   # Vertical tab
+    '\'': '\'',  # Single quotes
+    '\\': '\\',  # Backslash
+    '"': '"'     # Double quote
+}
 
 
 class NssmBadSyntax(RuntimeError):
@@ -68,6 +82,9 @@ class Lexer:
 
     def __next__(self):
         """Returns the next token."""
+        # Skip whitespace
+        self._get_while(lambda c: c in ' \t\n\r')
+
         # Check if we are at EOF. If we are, first yield an EOF, then raise
         # the StopIteration.
         if self.index >= len(self.input):
@@ -75,110 +92,213 @@ class Lexer:
                 raise StopIteration
             else:
                 self._has_yielded_eof = True
-                return Token(TokenType.END_OF_FILE, 'EOF')
+                return Token(TokenType.END_OF_FILE, value='EOF')
+        elif self._rest[:1] in '\'"':
+            return self._parse_str()
+        elif self._is_next_a_num():
+            return self._parse_num()
         else:
-            rest = self._rest
-
-            if rest[0] in '\'"':
-                return self._parse_str()
-            elif self._is_next_a_num():
-                return self._parse_num()
+            return self._parse_id_or_rw()
 
     @property
     def _rest(self):
         """Gets the slice rest of the string."""
         return self.input[self.index:]
 
-    def _parse_bin(self):
+    def __parse_bin(self):
         """Parses an unsigned binary integer."""
         self._ensure_then_step('0b', '0B')
         bin_str = self._get_while(lambda c: c in BINARY_DIGITS, 1)
         num = int(bin_str, 2)
-        return Token(TokenType.NUMBER, num)
+        return Token(TokenType.NUMBER, value=num)
 
-    def _parse_oct(self):
+    def __parse_oct(self):
         """Parses an unsigned octal integer."""
         self._ensure_then_step('0o', '0O')
         oct_str = self._get_while(lambda c: c in OCTAL_DIGITS, 1)
         num = int(oct_str, 8)
-        return Token(TokenType.NUMBER, num)
+        return Token(TokenType.NUMBER, value=num)
 
-    def _parse_int(self):
-        """Parses an unsigned decimal integer."""
-        int_str = self._get_while(str.isdigit, 1)
-        return Token(TokenType.NUMBER, int(int_str))
-
-    def _parse_dec(self):
+    def __parse_dec(self):
         """Parses some form of decimal number. This may be a real or an int."""
         number_str = ''
-        curr = self._rest
+        curr = self._rest[:1]
+
         if curr.isdigit():
-            number_str += self._parse_int()
-            curr = self._rest
+            number_str += self._get_while(str.isdigit, 1)
+            curr = self._rest[:1]
+
+        # This indicates a range. If we get this, we should return whatever
+        # we have already.
+        if self._rest.startswith('..'):
+            return Token(TokenType.NUMBER, value=int(number_str))
 
         if curr == '.':
             number_str += '.'
             self._step()
-            curr = self._rest
+            curr = self._rest[:1]
 
         if curr.isdigit():
-            number_str += self._parse_int()
-            curr = self._rest
+            number_str += self._get_while(str.isdigit, 1)
+            curr = self._rest[:1]
 
         if curr in 'eE':
             number_str += 'e'
             self._step()
-            curr = self._rest
+            curr = self._rest[:1]
 
             if curr in '+-':
-                number_str += curr
+                number_str += curr[:1]
                 self._step()
-            number_str += self._parse_int()
+            number_str += self._get_while(str.isdigit, 1)
 
         if not len(number_str):
             self._raise_syntax_error('Expected at least one digit')
         elif any(c in 'eE+-.' for c in number_str):
-            return Token(TokenType.NUMBER, float(number_str))
+            return Token(TokenType.NUMBER, value=float(number_str))
         else:
-            return Token(TokenType.NUMBER, int(number_str))
+            return Token(TokenType.NUMBER, value=int(number_str))
 
-    def _parse_hex(self):
+    def __parse_hex(self):
         """Parses an unsigned hexadecimal integer."""
-        self._ensure_then_step('0o', '0O')
+        self._ensure_then_step('0x', '0X')
         hex_str = self._get_while(lambda c: c in HEXADECIMAL_DIGITS, 1)
         num = int(hex_str, 16)
-        return Token(TokenType.NUMBER, num)
+        return Token(TokenType.NUMBER, value=num)
 
     def _parse_num(self):
         """Parses an unsigned floating point literal, or an integer."""
         curr = self._rest
         if any(curr.startswith(x) for x in ('0b', '0B')):
-            return self._parse_bin()
+            return self.__parse_bin()
         elif any(curr.startswith(x) for x in ('0o', '0O')):
-            return self._parse_oct()
+            return self.__parse_oct()
         elif any(curr.startswith(x) for x in ('0x', '0X')):
-            return self._parse_hex()
+            return self.__parse_hex()
         else:
-            return self._parse_dec()
+            return self.__parse_dec()
 
     def _parse_str(self):
-        raise NotImplementedError
+        """Parses a string."""
+        quote = self._rest[:1]
+        if quote not in '"\'':
+            self._raise_syntax_error(
+                f'Expected a single or double quotation; got {quote!r} instead.'
+            )
+        else:
+            self._step()
+        string = ''
+
+        while True:
+            if self.index >= len(self.input):
+                self._raise_syntax_error('String was not closed before EOF.')
+
+            curr = self._rest[:1]
+
+            # Handle an escape character
+            if curr == '\\':
+                self._step()
+                curr = self._rest[:1]
+
+                if curr in STR_ESC_CHARS:
+                    string += STR_ESC_CHARS[curr]
+                    self._step()
+
+                # Parses utf escape. This is up to 8 UTF-8 characters.
+                elif curr == 'u':
+                    self._step()
+                    char_seq = self._get_while(
+                        lambda c: c in HEXADECIMAL_DIGITS, 1)
+
+                    # Parse the char sequence as UTF-8.
+                    try:
+                        char_seq = chr(int(char_seq, 16))
+                    except ValueError:
+                        # Raised if out of the range 0 <= i <= 0x10FFFF
+                        self._raise_syntax_error(
+                            f'Unicode literal with value {char_seq:d} was out '
+                            'of range of allowed values [0,0x10ffff]')
+                    else:
+                        string += char_seq
+                elif curr == 'N':
+                    self._step(2)
+                    descriptor = self._get_while(
+                        lambda c: c != '}', 1)
+
+                    if self._rest[:1] != '}':
+                        self._raise_syntax_error(
+                            'Unicode description was not closed before EOF.')
+
+                    try:
+                        descriptor = unicodedata.lookup(descriptor)
+
+                        # Skip the '}'
+                        self._step()
+                        string += descriptor
+                    except KeyError as err:
+                        self._raise_syntax_error(str(err))
+
+                else:
+                    self._raise_syntax_error(
+                        f'Unexpected escape sequence `\\{self._rest[:1]}`'
+                    )
+            elif curr != quote:
+                string += curr
+                # Proceed forwards.
+                self._step()
+            else:
+                # We have reached the end of the string, and it is valid.
+                break
+
+        # Skip the end quote.
+        self._step()
+
+        # Return the parsed string.
+        return Token(TokenType.STRING, value=string)
 
     def _parse_id_or_rw(self):
         """
         Handles parsing identifiers or reserve words. This includes operators
         and misc symbols.
         """
-        raise NotImplementedError
+
+        # First check to see if it is an operator.
+        for op_type, op_str in OPS.items():
+            if self._rest.startswith(op_str):
+                self._step(len(op_str))
+                return Token(op_type, value=op_str)
+
+        # Next check to see if it is a reserve word
+        for rw_type, rw_str in RWS.items():
+            if self._rest.startswith(rw_str):
+                # Check the next char after the apparent
+                # reserve word and ensure it is not an alpha,
+                # numeric, underscore, or dollar.
+                next_c = self._rest[len(rw_str)][0:1]
+                if not next_c.isalnum() and next_c not in ('$', '_', ''):
+                    self._step(len(rw_str))
+                    return Token(rw_type, value=rw_str)
+
+        # Else, parse it as a custom identifier.
+        # The first char must be an alpha, or underscore only.
+        string = self._rest[0:1]
+        if not string.isalpha() and string != '_':
+            self._raise_syntax_error(f'Unexpected symbol {string!r}')
+        else:
+            self._step()
+
+        string += self._get_while(lambda c: c.isalnum() or c in '_$')
+
+        return Token(TokenType.IDENTIFIER, value=string)
 
     def _is_next_a_num(self):
         """
         We should parse a number if the given string starts with any of:
-        0b, 0B, 0o, 0O, 0x, OX, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, or a period ``.``
+        0b, 0B, 0o, 0O, 0x, OX, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9.
         :return: true if we should parse the next token as a number.
         """
         return any(self._rest.startswith(x) for x in (
-            '0b', '0B', '0o', '0O', '0x', '0X', *DECIMAL_DIGITS, '.'))
+            '0b', '0B', '0o', '0O', '0x', '0X', *DECIMAL_DIGITS))
 
     def _step(self, offset=1):
         """Steps to the next character, or an offset if provided."""
@@ -192,6 +312,7 @@ class Lexer:
                 self.col += 1
 
             self.index += 1
+            offset -= 1
 
     def _ensure_then_step(self, first: str, *rest: str):
         """
@@ -218,7 +339,7 @@ class Lexer:
             self._raise_syntax_error(f'Expected {string}, got {rest!r}')
 
     # noinspection PyUnresolvedReferences
-    def _get_while(self, pred: typing.Callable[[str], bool], at_least=0):
+    def _get_while(self, predicate: typing.Callable[[str], bool], at_least=0):
         """
         Keeps extracting characters while the predicate is true, or until we
         reach EOF. The extracted substring is returned. This iterates over each
@@ -232,7 +353,8 @@ class Lexer:
         bucket = ''
 
         # EOF
-        while self.index < len(self.input) and pred(self.input[self.index]):
+        while self.index < len(self.input) \
+                and predicate(self.input[self.index]):
             # Append current char and increment.
             bucket += self.input[self.index]
             self._step()
