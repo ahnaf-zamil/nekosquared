@@ -14,9 +14,11 @@ class SqlQuery:
     This is designed to support enter and aenter methods, so use as a context
     manager is also permitted if you like that sort of thing. In this case,
     it would literally just be something like::
+ 
+    sql = SqlQuery('foobar.sql')
 
-    async with db.acquire() as conn, sql() as query:
-        await conn.fetch(query, 1, 'foobar', 'baz', None)
+    async with db.acquire() as conn:
+        await conn.fetch(sql(query, 1, 'foobar', 'baz', None))
     """
     def __init__(self, file_name, *, relative_to_here=True):
         """
@@ -30,6 +32,9 @@ class SqlQuery:
             file_name = io.in_here(file_name, nested_by=1)
 
         with open(file_name) as fp:
+            # Could use read, but this seems to be more
+            # compatible with any type of stream.
+            # TODO: confirm.
             query = '\n'.join(fp.readlines())
 
         self.text = query
@@ -51,8 +56,3 @@ class SqlQuery:
         """
         return self.text, *args
 
-    def __get__(self, instance, owner):
-        """
-        Accessor descriptor. Behaves in the same way as the call operator.
-        """
-        return self()
