@@ -58,6 +58,7 @@ async def __handle_error(*, bot, cog=None, ctx=None, error, event_method=None):
     if isinstance(error, dpyext_errors.CommandInvokeError) and error.__cause__:
         error = error.__cause__
 
+    is_discord = isinstance(error, dpy_errors.HTTPException)
     is_assert = isinstance(error, AssertionError)
     is_deprecation = isinstance(error, (FutureWarning,
                                         DeprecationWarning,
@@ -113,6 +114,8 @@ async def __handle_error(*, bot, cog=None, ctx=None, error, event_method=None):
         reply = f'\N{LEFT-POINTING MAGNIFYING GLASS} {error}'
     elif check_failed:
         reply = '\N{NO ENTRY SIGN} You cannot do that here'
+    elif is_discord:
+        reply = f'\N{RAISED BACK OF HAND} Discord said: `{error}`'
     elif is_warning:
         reply = ('\N{WARNING SIGN} '
                  + str(error) if str(error) else type(error).__name__)

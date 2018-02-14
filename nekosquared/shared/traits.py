@@ -4,26 +4,23 @@ Various thread and process pool templates.
 import asyncio   # Asyncio coroutines, ensuring futures
 import concurrent.futures as futures   # Thread and Process pool executors.
 import logging   # Logging utils.
-import os   # File system access
+import os   # File system access.
+import typing   # Type hints.
 
-import aiohttp   # Asynchronous HTTP/HTTPs
+import aiohttp   # Asynchronous HTTP/HTTPs.
 import aiofiles   # Asynchronous file I/O.
 import asyncpg   # Asynchronous PostgreSQL integration.
 
-from nekosquared.engine import shutdown   # Shutdown hooks
-from nekosquared.shared import configfiles   # Config file utils.
+from nekosquared.engine import shutdown   # Shutdown hooks.
+from nekosquared.shared import configfiles   # Config file support.
+from nekosquared.shared import faketypes   # Fake type hints.
 
 
 __all__ = ('Scribe', 'CpuBoundPool', 'IoBoundPool', 'FsPool',
            'HttpPool', 'PostgresPool')
 
 
-class _FakeCtx:
-    def __init__(self, getter):
-        self.__enter__ = lambda _: getter()
-        self.__aenter__ = asyncio.coroutine(self.__enter__)
-        self.__exit__ = lambda _: None
-        self.__aexit__ = asyncio.coroutine(self.__exit__)
+T = typing.TypeVar('T')
 
 
 class Scribe:
@@ -150,13 +147,31 @@ class FsPool(IoBoundPool, Scribe):
             executor=_io_pool)
 
 
+class ConnectionContextManager:
+    """Fake context manager for an aiohttp client session global instance."""
+    def __init__(self, conn):
+        self.conn = conn
+
+    def __enter__(self) -> faketypes.ClientSessionT:
+        return self.conn
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+
 class HttpPool(Scribe):
     """
     Allows you to acquire an HTTP pool to use. This returns a context manager
-    that can be used either in asynchronous or non asynchronous ``with`` blocks.
+    that can only be used in non-async blocks.
+
+    with (await self.acquire_http()) as conn:
+        resp = await conn.get('https://google.com')
+
+    Todo: try to fix this to work with asynchronous blocks instead.
     """
+
     @classmethod
-    async def acquire_http(cls) -> aiohttp.ClientSession:
+    async def acquire_http(cls) -> ConnectionContextManager:
         """
         :return: the client session.
         """
@@ -172,7 +187,7 @@ class HttpPool(Scribe):
             cls.logger.info(f'Acquiring existing HTTP pool.')
 
         # noinspection PyTypeChecker
-        return _FakeCtx(lambda: cls._http_pool).__enter__
+        return ConnectionContextManager(cls._http_pool)
 
 
 class PostgresPool(Scribe):
@@ -200,6 +215,3 @@ class PostgresPool(Scribe):
             cls.logger.info(f'Acquiring existing PostgreSQL pool.')
 
         return await cls.__postgres_pool.acquire(timeout=timeout)
-
-
-del _FakeCtx

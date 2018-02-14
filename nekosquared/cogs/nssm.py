@@ -24,6 +24,5 @@ class NssmSandboxCog:
 
         await fsm.run()
 
-
 def setup(bot):
     bot.add_cog(NssmSandboxCog())
