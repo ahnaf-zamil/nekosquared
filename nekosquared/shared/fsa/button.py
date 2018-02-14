@@ -73,7 +73,8 @@ class Button:
     @classmethod
     def from_coro(cls, emoji: str, name: str=None):
         """
-        Decorates a co-routine and returns the Button object it is represented by.
+        Decorates a co-routine and returns the Button object it is represented
+        by.
         :param emoji: the emote to use for the button.
         :param name: the name of the button (optional).
         """

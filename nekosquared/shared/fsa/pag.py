@@ -40,6 +40,14 @@ class Pag(commands.Paginator):
     def __init__(self, prefix='', suffix='', max_size=2000):
         super().__init__(prefix=prefix, suffix=suffix, max_size=max_size)
 
+    def dump_to_embeds(self) -> typing.List[discord.Embed]:
+        """Dumps the pages to a series of embed objects which are yielded."""
+        if self.max_size > 2000:
+            raise ValueError(
+                'Embeds cannot have fields greater than 2000 chars.')
+
+        return list(discord.Embed(description=page) for page in self.pages)
+
 
 class LinedPag(Pag):
     """
@@ -55,14 +63,11 @@ class LinedPag(Pag):
         lines = line.split('\n')
 
         def existing():
-            return self._current_page.count('\n') if self._current_page else 0
-
-        del line
+            return '\n'.join(self._current_page).count('\n')
 
         while len(lines) > 0:
             ln = lines.pop(0)
             if existing() >= self.max_lines:
-                print(self.max_lines)
                 self.close_page()
             super().add_line(ln.rstrip())
 
@@ -71,9 +76,9 @@ def generate_default_pagination_buttons() -> typing.List[button.Button]:
     """Generates a set of default pagination buttons."""
     buttons = []
 
-    def new_btn(*args):
+    def new_btn(*args, **kwargs):
         def decorator(coro):
-            b = button.Button.from_coro(*args)(coro)
+            b = button.Button.from_coro(*args, **kwargs)(coro)
             buttons.append(b)
             return b
 
@@ -414,6 +419,14 @@ class AbstractPagFsa(abstractmachines.FiniteStateAutomaton, abc.ABC):
             await self.clear_buttons()
             raise StopAsyncIteration
 
+    async def run(self):
+        try:
+            await super().run()
+        finally:
+            await self.clear_buttons()
+            # Shows me that something broke.
+            await self._reply_message.add_reaction('\N{BROKEN HEART}')
+
 
 class PagMessage(AbstractPagFsa):
     """
@@ -549,7 +562,7 @@ class PagEmbed(AbstractPagFsa):
         self.pages.extend(pages)
 
     @classmethod
-    def from_embeds(cls, *embeds: discord.Embed, **kwargs):
+    def from_embeds(cls, embeds: typing.List[discord.Embed], **kwargs):
         """
         Takes an existing list of embeds, and generates a skeleton paginated
         object. Each embed is added to the object's pages, and then the object
@@ -615,7 +628,7 @@ class FocusedPagMessage(PagMessage, _FocusedPagMixin):
         _FocusedPagMixin.__init__(self, predicate)
 
 
-class FocusedPagEmbed(PagMessage, _FocusedPagMixin):
+class FocusedPagEmbed(PagEmbed, _FocusedPagMixin):
     """Focused Paginator for textual messages within embeds."""
     def __init__(self,
                  bot: discord.Client,
@@ -623,5 +636,5 @@ class FocusedPagEmbed(PagMessage, _FocusedPagMixin):
                  timeout: float,
                  buttons: typing.Iterable[button.Button] = None,
                  predicate: predicate_t = None):
-        PagMessage.__init__(self, bot, invoked_by, timeout, buttons)
+        PagEmbed.__init__(self, bot, invoked_by, timeout, buttons)
         _FocusedPagMixin.__init__(self, predicate)

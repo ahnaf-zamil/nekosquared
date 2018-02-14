@@ -99,16 +99,11 @@ class FiniteStateAutomaton(abc.ABC):
         Runs the finite state machine, awaiting it to terminate before
         returning.
 
-        This is the same as just doing::
+        This is basically the same as just doing::
             async for _ in your_fsa: pass
+
+        ...except errors should be handled in derived implementations for you
+        here automatically.
         """
         async for _ in self:
             pass
-
-    def run_nowait(self) -> asyncio.Future:
-        """
-        Runs the finite state machine, but does not await it. This will
-        return a future that has been ensured. You can do what you wish with
-        this. This just ensures the future of ``FiniteStateAutomaton.run``.
-        """
-        return asyncio.ensure_future(self.run())
