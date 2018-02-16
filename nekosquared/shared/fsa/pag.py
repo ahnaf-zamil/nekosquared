@@ -142,7 +142,6 @@ def generate_default_pagination_buttons() -> typing.List[button.Button]:
     @new_btn('\N{SQUARED OK}')
     async def remove_buttons(_btn, fsa, _user):
         """Closes the pagination and keeps the current message."""
-        await fsa.clear_buttons()
         fsa.stop()
 
     @new_btn('\N{PUT LITTER IN ITS PLACE SYMBOL}')
@@ -420,12 +419,15 @@ class AbstractPagFsa(abstractmachines.FiniteStateAutomaton, abc.ABC):
             raise StopAsyncIteration
 
     async def run(self):
+        # noinspection PyBroadException
         try:
             await super().run()
+        except BaseException:
+            import traceback
+            traceback.print_exc()
+            await self._reply_message.add_reaction('\N{BROKEN HEART}')
         finally:
             await self.clear_buttons()
-            # Shows me that something broke.
-            await self._reply_message.add_reaction('\N{BROKEN HEART}')
 
 
 class PagMessage(AbstractPagFsa):
