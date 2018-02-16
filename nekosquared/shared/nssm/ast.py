@@ -133,7 +133,7 @@ class Composite(Ast, abc.ABC):
         return frozenset((k, v) for k, v in members if isinstance(v, Ast))
 
 
-class PrefixUnaryOperator(Composite):
+class PrefixUnaryOperation(Composite):
     """Prefixed unary operator."""
     def __init__(self, operator: Operator, value: Value):
         assert isinstance(operator, Operator)
@@ -143,7 +143,7 @@ class PrefixUnaryOperator(Composite):
         self.value = value
 
 
-class PostfixUnaryOperator(Composite):
+class PostfixUnaryOperation(Composite):
     """Post-fixed unary operator."""
     def __init__(self, value: Value, operator: Operator):
         assert isinstance(operator, Operator)
@@ -153,7 +153,7 @@ class PostfixUnaryOperator(Composite):
         self.value = value
 
 
-class BinaryOperator(Composite):
+class BinaryOperation(Composite):
     """Binary operator."""
     def __init__(self, lvalue: Value, operator: Operator, rvalue: Value):
         assert isinstance(lvalue, Value)
@@ -165,7 +165,7 @@ class BinaryOperator(Composite):
         self.rvalue = rvalue
 
 
-class AssignmentOperator(Composite):
+class AssignmentOperation(Composite):
     """Binary assignment operator."""
     def __init__(self,
                  identifier: Identifier,
