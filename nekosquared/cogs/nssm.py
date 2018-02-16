@@ -21,8 +21,30 @@ class NssmSandboxCog:
             bot=ctx.bot,
             invoked_by=ctx.message,
             timeout=60)
-
         await fsm.run()
+
+    @commands.command(
+        brief='Builds an AST',
+        usage='<code>')
+    async def ast(self, ctx, *, src):
+        """
+        Tokenises and then generates an AST from parsing the token stream.
+        """
+        lex = nssm.Lexer(src)
+        parser = nssm.Parser(token for token in lex)
+
+        pag = fsa.LinedPag()
+
+        for root_node in parser():
+            pag.add_line(repr(root_node));
+
+        fsm = fsa.FocusedPagMessage.from_paginator(
+            pag=pag,
+            bot=ctx.bot,
+            invoked_by=ctx.message,
+            timeout=60)
+        await fsm.run()
+
 
 def setup(bot):
     bot.add_cog(NssmSandboxCog())

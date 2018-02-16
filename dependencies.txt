@@ -3,4 +3,4 @@ aiohttp
 asyncpg
 cached_property
 pyyaml
-lxml
+beautifulsoup4

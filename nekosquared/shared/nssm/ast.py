@@ -32,6 +32,14 @@ class Ast(abc.ABC):
         pass
 
 
+class NullOp(Ast):
+    def __str__(self):
+        return 'Null operation'
+
+    def __repr__(self):
+        return f'<Ast class={type(self).__name__!r}>'
+
+
 ################################################################################
 # Atoms.                                                                       #
 ################################################################################
@@ -126,6 +134,47 @@ class Composite(Ast, abc.ABC):
 
 
 class PrefixUnaryOperator(Composite):
+    """Prefixed unary operator."""
     def __init__(self, operator: Operator, value: Value):
+        assert isinstance(operator, Operator)
+        assert isinstance(value, Value)
+
+        self.operator = operator
+        self.value = value
+
+
+class PostfixUnaryOperator(Composite):
+    """Post-fixed unary operator."""
+    def __init__(self, value: Value, operator: Operator):
+        assert isinstance(operator, Operator)
+        assert isinstance(value, Value)
+
+        self.operator = operator
+        self.value = value
+
+
+class BinaryOperator(Composite):
+    """Binary operator."""
+    def __init__(self, lvalue: Value, operator: Operator, rvalue: Value):
+        assert isinstance(lvalue, Value)
+        assert isinstance(operator, Operator)
+        assert isinstance(rvalue, Value)
+
+        self.lvalue = lvalue
+        self.operator = operator
+        self.rvalue = rvalue
+
+
+class AssignmentOperator(Composite):
+    """Binary assignment operator."""
+    def __init__(self,
+                 identifier: Identifier,
+                 operator: Operator,
+                 value: Value):
+        assert isinstance(identifier, Identifier)
+        assert isinstance(operator, Operator)
+        assert isinstance(value, Value)
+
+        self.identifier = identifier
         self.operator = operator
         self.value = value

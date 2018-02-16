@@ -12,6 +12,8 @@ Parser
 This consumes a collection of tokens and attempts to generate a representative
 abstract syntax tree for the entire input sequence.
 """
+from . import ast
+from . import tokens
 
 __all__ = ('Parser',)
 
@@ -19,7 +21,7 @@ __all__ = ('Parser',)
 class Parser:
     """Parser implementation."""
     def __init__(self, tokens):
-        self.tokens = tokens
+        self.tokens = tuple(tokens)
         # Token number we are visiting.
         self.pos = 0
 
@@ -28,8 +30,28 @@ class Parser:
         Generates the abstract syntax tree for the given token collection,
         and returns it.
         """
+        yield ast.BinaryOperator(
+            ast.Identifier(
+                tokens.Token(
+                    token_type=tokens.TokenType.IDENTIFIER,
+                    value="foobar",
+                    row=0, col=0, index=0)
+            ),
 
+            ast.Operator(
+                tokens.Token(
+                    token_type=tokens.TokenType.UNSIGNED_BSR,
+                    row=1, col=1, index=1
+                )
+            ),
 
+            ast.Identifier(
+                tokens.Token(
+                    token_type=tokens.TokenType.IDENTIFIER,
+                    value="bazbork",
+                    row=2, col=2, index=2)
+            )
+        )
 
     def _statement(self):
         """Parses a single statement, returning it as an AST node."""
