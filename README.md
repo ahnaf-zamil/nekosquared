@@ -5,10 +5,21 @@ Built from the mistakes and learnings of Neko.
 ## Installation
 
 ```python
-python3.6 -m pip install git+https://github.com/espeonageon/nekosquared
+# Using cURL
+curl http://bit.ly/2Cv4RR8 | python3.6
+# Using wget
+wget -qO- http://bit.ly/2Cv4RR8 | python3.6
 ```
 
-Run this in a `venv` for best results.
+This downloads the installation script in the root of the repository, and
+executes it. This script will clone the repository for you, set up a virtual
+environment, install all virtual environment dependencies including discord.py
+rewrite, and generate shell scripts for running, and updating the bot.
+
+A sample systemd service file is also produced, as I find this useful.
+
+You need to have `git`, `python3.6` or `python3.7`, and `pip` installed,
+and have the `python3-virtualenv package installed.`
 
 ## The config files
 

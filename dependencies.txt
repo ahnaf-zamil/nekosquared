@@ -1,6 +1,0 @@
-aiofiles
-aiohttp
-asyncpg
-cached_property
-pyyaml
-beautifulsoup4

@@ -21,3 +21,9 @@ config
 
 # Stuff pip puts in that I don't want
 *.egg-info
+
+# Stuff that the install script might generate
+neko2.service
+neko2.sh
+enable.sh
+update.sh
