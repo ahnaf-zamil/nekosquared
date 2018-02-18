@@ -19,6 +19,8 @@ from discord.ext.commands.core import *
 from discord.ext.commands.converter import *
 # noinspection PyUnresolvedReferences
 from discord.ext.commands.cooldowns import *
+# noinspection PyUnresolvedReferences
+from discord.ext.commands.errors import *
 
 
 class CommandMixin:
