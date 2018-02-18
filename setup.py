@@ -2,20 +2,18 @@
 """
 Installation script.
 """
-import os           # OS path traversal, testing if inodes are dirs.
-import pip          # Installs packages.
-import re           # Regex for getting attrs from __init__.py
-import setuptools   # My setuptools bindings.
-import shutil       # Checking for executables in $PATH env.
-import subprocess   # Invoking git to inspect the commits.
-import sys          # Accessing the stderr stream.
+import os            # OS path traversal, testing if inodes are dirs.
+import pip           # Installs packages.
+import re            # Regex for getting attrs from __init__.py
+import setuptools    # My setuptools bindings.
+import shutil        # Checking for executables in $PATH env.
+import subprocess    # Invoking git to inspect the commits.
+import sys           # Accessing the stderr stream.
+import dependencies  # Any package dependencies.
 
 
-import dependencies
-
-
-PKG = 'nekosquared'
-OTHER_PKGS = ('cogs4sqd',)
+PKG = 'neko2'
+OTHER_PKGS = ()
 GIT_DIR = '.git'
 
 
@@ -94,12 +92,14 @@ def recurse(p):
 
 # Calculate all packages to get.
 attrs['name'] = PKG
-attrs['packages'] = recurse(PKG), *[recurse(p) for p in OTHER_PKGS]
+attrs['packages'] = *recurse(PKG), *[recurse(p) for p in OTHER_PKGS]
 
 print('>Installing the following packages:', 
       *attrs['packages'],
       sep='\n •  ',
       file=sys.stderr,
       end='\n\n')
+
+print(attrs)
 
 setuptools.setup(**attrs)

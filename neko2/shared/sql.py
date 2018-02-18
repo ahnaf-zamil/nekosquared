@@ -1,7 +1,7 @@
 """
 A cached Sequel statement that we gather from disk.
 """
-from nekosquared.shared import io   # in_here
+from neko2.shared import io   # in_here
 
 __all__ = ('SqlQuery',)
 

@@ -7,8 +7,8 @@ cogs which are holders of logic.
 import logging   # Loggers.
 import traceback   # Traceback utils.
 
-from nekosquared.shared import alg    # Timing.
-from nekosquared.shared import configfiles   # Config file utils.
+from neko2.shared import alg    # Timing.
+from neko2.shared import configfiles   # Config file utils.
 
 
 __all__ = ('FILE', 'auto_load_modules')

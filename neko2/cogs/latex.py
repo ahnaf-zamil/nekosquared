@@ -6,7 +6,7 @@ import re
 
 import discord
 
-from nekosquared.engine import commands
+from neko2.engine import commands
 
 # URL endpoint to use.
 end_point = 'http://latex.codecogs.com/'

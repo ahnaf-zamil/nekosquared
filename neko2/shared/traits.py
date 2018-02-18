@@ -11,9 +11,9 @@ import aiohttp   # Asynchronous HTTP/HTTPs.
 import aiofiles   # Asynchronous file I/O.
 import asyncpg   # Asynchronous PostgreSQL integration.
 
-from nekosquared.engine import shutdown   # Shutdown hooks.
-from nekosquared.shared import configfiles   # Config file support.
-from nekosquared.shared import faketypes   # Fake type hints.
+from neko2.engine import shutdown   # Shutdown hooks.
+from neko2.shared import configfiles   # Config file support.
+from neko2.shared import faketypes   # Fake type hints.
 
 
 __all__ = ('Scribe', 'CpuBoundPool', 'IoBoundPool', 'FsPool',

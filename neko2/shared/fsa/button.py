@@ -12,7 +12,7 @@ import typing
 
 import discord
 
-from nekosquared.shared.fsa import abstractmachines
+from neko2.shared.fsa import abstractmachines
 
 
 __all__ = ('Button',)

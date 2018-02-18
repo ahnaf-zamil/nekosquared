@@ -1,9 +1,9 @@
 """
 Application entry point.
 """
-from nekosquared.engine import autoloader
-from nekosquared.engine import client
-from nekosquared.shared import configfiles
+from neko2.engine import autoloader
+from neko2.engine import client
+from neko2.shared import configfiles
 
 
 cfg_file = configfiles.get_config_holder('discord.yaml')

@@ -11,9 +11,9 @@ import cached_property  # Cached properties.
 import discord   # Basic discord.py bits and pieces.
 from discord.ext import commands   # Discord.py extensions.
 
-from nekosquared.engine import errorhandler   # Error handling routine.
-from nekosquared.engine import shutdown   # Hook to call on shutdown.
-from nekosquared.shared import traits   # Cog and class traits.
+from neko2.engine import errorhandler   # Error handling routine.
+from neko2.engine import shutdown   # Hook to call on shutdown.
+from neko2.shared import traits   # Cog and class traits.
 
 __all__ = ('BotInterrupt', 'Bot')
 

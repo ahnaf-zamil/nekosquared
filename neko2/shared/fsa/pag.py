@@ -15,8 +15,8 @@ import typing
 import discord
 from discord.ext import commands
 
-from nekosquared.shared.fsa import abstractmachines
-from nekosquared.shared.fsa import button
+from neko2.shared.fsa import abstractmachines
+from neko2.shared.fsa import button
 
 
 __all__ = (

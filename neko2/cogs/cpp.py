@@ -10,10 +10,10 @@ from urllib import parse
 import bs4
 import discord
 
-from nekosquared.engine import commands
-from nekosquared.shared import errors
-from nekosquared.shared import fsa
-from nekosquared.shared import traits
+from neko2.engine import commands
+from neko2.shared import errors
+from neko2.shared import fsa
+from neko2.shared import traits
 
 
 result_path = re.compile(r'^/w/c(pp)?/', re.I)
