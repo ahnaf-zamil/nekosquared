@@ -61,8 +61,6 @@ class GitCog(traits.Scribe, traits.CpuBoundPool):
                 # Might deadlock?
                 out_s.write((await process.stdout.read()).decode())
                 out_s.write((await process.stderr.read()).decode())
-                await process.terminate()
-                await process.wait()
                 out_s.write(f'Terminated with code {process.returncode}\n')
 
 
