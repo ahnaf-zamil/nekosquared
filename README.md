@@ -6,9 +6,9 @@ Built from the mistakes and learnings of Neko.
 
 ```python
 # Using cURL
-curl http://bit.ly/2Cv4RR8 | python3.6
+curl https://raw.githubusercontent.com/Espeonageon/nekosquared/master/install.py | python3.6
 # Using wget
-wget -qO- http://bit.ly/2Cv4RR8 | python3.6
+wget -qO- https://raw.githubusercontent.com/Espeonageon/nekosquared/master/install.py | python3.6
 ```
 
 This downloads the installation script in the root of the repository, and
