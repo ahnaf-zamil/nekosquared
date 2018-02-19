@@ -49,7 +49,7 @@ class CppCog(traits.HttpPool):
                 resp = await resp.text()
 
         # Parse the HTML response.
-        tree = bs4.BeautifulSoup(resp, 'html5lib')
+        tree = bs4.BeautifulSoup(resp)
 
         search_result_lists: typing.List[bs4.Tag] = tree.find_all(
             name='div',
