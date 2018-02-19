@@ -1,15 +1,17 @@
 """
 Various thread and process pool templates.
 """
-import asyncio   # Asyncio coroutines, ensuring futures
+import asyncio   # Asyncio co-routines, ensuring futures
 import concurrent.futures as futures   # Thread and Process pool executors.
+from functools import partialmethod, partial  # Partials
+import inspect  # Inspection
 import logging   # Logging utils.
 import os   # File system access.
 import typing   # Type hints.
 
 import aiohttp   # Asynchronous HTTP/HTTPs.
 import aiofiles   # Asynchronous file I/O.
-import asyncpg   # Asynchronous PostgreSQL integration.
+import asyncpg   # Asynchronous Postgres integration.
 
 from neko2.engine import shutdown   # Shutdown hooks.
 from neko2.shared import configfiles   # Config file support.
@@ -26,7 +28,7 @@ T = typing.TypeVar('T')
 class Scribe:
     """Adds functionality to a class to allow it to log information."""
     logging.basicConfig(level='INFO')
-    logger: logging.Logger
+
 
     def __init_subclass__(cls, **_):
         cls.logger: logging.Logger = logging.getLogger(cls.__name__)
@@ -104,7 +106,34 @@ async def _terminate_children():
 del _processes, _threads, _magic_number
 
 
-class CpuBoundPool:
+class AsyncExecutor:
+    """
+    Trait that provides a method to invoke the given task in the given
+    execution service on the given asyncio event loop.
+    """
+    @staticmethod
+    async def _invoke_in_executor(executor: futures.Executor,
+                                  func: typing.Callable,
+                                  args: typing.Iterable=None,
+                                  kwargs: typing.Mapping[str, typing.Any]=None,
+                                  *,
+                                  loop: asyncio.AbstractEventLoop=None):
+        if loop is None:
+            loop = asyncio.get_event_loop()
+        if args is None:
+            args = []
+        if kwargs is None:
+            kwargs = {}
+
+        partial_t = partialmethod if inspect.ismethod(func) else partial
+
+        # Generate the partial.
+        func_partial = partial_t(func, *args, **kwargs)
+
+        return await loop.run_in_executor(executor, func_partial)
+
+
+class CpuBoundPool(AsyncExecutor):
     """
     Trait that implements a process pool execution service for CPU-bound work.
 
@@ -113,12 +142,28 @@ class CpuBoundPool:
     are cancellable. Generally this should only be used if work is very slow and
     consists mainly of CPU-based work.
     """
+    _cpu_pool = _cpu_pool
+
     @property
     def cpu_pool(self) -> futures.Executor:
-        return _cpu_pool
+        return self._cpu_pool
+
+    @classmethod
+    async def run_in_cpu_pool(cls,
+                              func: typing.Callable,
+                              args: typing.Iterable=None,
+                              kwargs: typing.Mapping=None,
+                              *,
+                              loop: asyncio.AbstractEventLoop=None):
+        return await cls._invoke_in_executor(
+            cls._cpu_pool,
+            func,
+            args,
+            kwargs,
+            loop=loop)
 
 
-class IoBoundPool:
+class IoBoundPool(AsyncExecutor):
     """
     Trait that implements a thread pool execution service for IO-bound work.
 
@@ -126,9 +171,25 @@ class IoBoundPool:
     and are locked into the same affinity as the thread they are spawned by.
     There is also an issue of taking into account thread safety.
     """
+    _io_pool = _io_pool
+
     @property
     def io_pool(self) -> futures.Executor:
-        return _io_pool
+        return self._io_pool
+
+    @classmethod
+    async def run_in_io_pool(cls,
+                             func: typing.Callable,
+                             args: typing.Iterable=None,
+                             kwargs: typing.Mapping=None,
+                             *,
+                             loop: asyncio.AbstractEventLoop=None):
+        return await cls._invoke_in_executor(
+            cls._io_pool,
+            func,
+            args,
+            kwargs,
+            loop=loop)
 
 
 class FsPool(IoBoundPool, Scribe):
@@ -137,6 +198,8 @@ class FsPool(IoBoundPool, Scribe):
     the local file system. This runs in the same pool of workers as the
     IoBoundPool uses.
     """
+    logger: logging.Logger
+
     @classmethod
     async def acquire_fp(cls, file, mode='r', buffering=-1, encoding=None,
                          errors=None, newline=None, closefd=True, opener=None):
@@ -169,6 +232,7 @@ class HttpPool(Scribe):
 
     Todo: try to fix this to work with asynchronous blocks instead.
     """
+    logger: logging.Logger
 
     @classmethod
     async def acquire_http(cls) -> ConnectionContextManager:

@@ -24,8 +24,10 @@ dependencies = {
     'cached_property': 'cached_property',
     'yaml': 'pyyaml',
     'bs4': 'beautifulsoup4',
+    'PIL': 'pillow',
 
-    # Intentionally is incorrect. Don't alter.
+    # Intentionally is incorrect. Don't alter until Danny releases
+    # the rewrite properly.
     'discord.py': 'git+https://github.com/rapptz/discord.py@rewrite'
 }
 
