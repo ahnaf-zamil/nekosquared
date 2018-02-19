@@ -57,13 +57,13 @@ class GitCog(traits.Scribe, traits.CpuBoundPool):
                     cmd,
                     stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.PIPE)
-                out_s.write(f'Invoked PID {process.pid}')
+                out_s.write(f'Invoked PID {process.pid}\n')
                 # Might deadlock?
-                out_s.write(await process.stdout.read().decode())
-                out_s.write(await process.stderr.read().decode())
+                out_s.write((await process.stdout.read()).decode())
+                out_s.write((await process.stderr.read()).decode())
                 await process.terminate()
                 await process.wait()
-                out_s.write(f'Terminated with code {process.returncode}')
+                out_s.write(f'Terminated with code {process.returncode}\n')
 
 
             try:
