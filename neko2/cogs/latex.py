@@ -51,8 +51,7 @@ def generate_url(content,
                  font: str='Latin Modern',
                  bg_colour: str='transparent',
                  fg_colour: str='black',
-                 dpi: int=200,
-                 sanitise: bool=True) -> str:
+                 dpi: int=200) -> str:
     """
     Generates the URL containing the LaTeX preview for the given content.
     :param content: content to render.
@@ -66,7 +65,6 @@ def generate_url(content,
         for acceptable values. This is case sensitive, for at least some of the
         time.
     :param dpi: default dots per inch. Must be a non-zero positive integer.
-    :param sanitise: whether or not to sanitise the URL first. Defaults to true.
     :returns: a formatted URL pointing to the image resource.
     """
     if engine not in engines:
@@ -86,8 +84,8 @@ def generate_url(content,
         raise ValueError('DPI must be positive.')
     else:
         def san(string):
-            if sanitise:
-                string = string.replace(' ', '&space;')
+            string = string.replace(' ', '&space;')
+            string = string.replace('\n', '&space;')
             return string
 
         raw_str = ''
@@ -95,36 +93,9 @@ def generate_url(content,
         raw_str += san(f'{backgrounds[bg_colour]}')
         raw_str += san(f'{fonts[font]}')
         raw_str += san(f'{sizes[size]}')
-        raw_str += san(f'{{\\color{{{fg_colour}}} {content}}}')
+        raw_str += san(f'\\color{{{fg_colour}}} {content}')
+
         return f'{end_point}{engine}.latex?{raw_str}'
-
-
-def reformat_inline(content: str):
-    """Does some string manipulation to make the content appear in-lined."""
-    content = content.strip()
-    inline_str = ''
-
-    # Converts \$ to %24 (html $).
-    content = re.sub(r'(^|(?:[^\\]))\\\$', ' %24 ', content)
-
-    if not content.startswith('$'):
-        is_math = False
-    else:
-        is_math = True
-
-    content = content.split('$')
-
-    for block in content:
-        if all(c in '\n\r\t ' for c in block):
-            continue
-        if not is_math:
-            inline_str += f'\\text{{{block}}} '
-        else:
-            inline_str += block + ' '
-
-        is_math = not is_math
-
-    return inline_str.replace(' %24 ', '\\$ ')
 
 
 class LatexCog:
@@ -133,23 +104,12 @@ class LatexCog:
         brief='Attempts to parse the given LaTeX string and display a '
               'preview.')
     async def latex_cmd(self, ctx, *, content: str):
-        """
-        Pass the `-inl` flag as the first argument to enable inline rendering
-        mode.
-        """
-        inline_flag = '-inl'
-
-        if content == inline_flag:
-            raise commands.MissingRequiredArgument('content')
-        elif content.startswith(inline_flag + ' '):
-            content = reformat_inline(content[len(inline_flag) + 1:])
-
-        url = generate_url(content,
-                           fg_colour='RoyalBlue',
+        url = generate_url(f'\\\\{content}',
+                           bg_colour='white',
                            size=10)
-
-        embed = discord.Embed()
+        embed = discord.Embed(color=0)
         embed.set_image(url=url)
+        embed.set_footer(text=content)
         await ctx.send(embed=embed)
 
 
