@@ -36,7 +36,7 @@ class GitCog(traits.Scribe, traits.CpuBoundPool):
 
         did_fail = False
 
-        async with msg.channel.typing():
+        async with msg.channel.typing(), ctx.author:
 
             if not git_path:
                 return await ctx.author.send('I can\'t seem to find git!')
@@ -58,6 +58,7 @@ class GitCog(traits.Scribe, traits.CpuBoundPool):
                         shell = '?? '
 
                 async def call(cmd):
+                    nonlocal did_fail
                     out_s.write(f'{shell} -c {cmd}')
                     process = await asyncio.create_subprocess_shell(
                         cmd,
