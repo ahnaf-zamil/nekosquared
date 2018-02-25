@@ -32,7 +32,7 @@ class GitCog(traits.Scribe, traits.CpuBoundPool):
         # Ensure git is installed first
         git_path = shutil.which('git')
 
-        msg = await ctx.author.send('Starting an update!')
+        msg = await ctx.send('Starting an update! *slides into DMs*...')
 
         did_fail = False
 
