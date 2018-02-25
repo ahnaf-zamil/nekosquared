@@ -13,9 +13,6 @@ venv
 *.log
 **/*.log
 
-# Any configuration files
-config
-
 # Nano temp files.
 *.sav
 
