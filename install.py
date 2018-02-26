@@ -205,5 +205,5 @@ shell_do('chmod -v +x neko2.sh enable.sh update.sh')
 
 print(
     'Done. All you need to do now is add your configurations into the config '
-    'dir inside `nekosquared\'. See the `ex-config\' directory for examples.'
+    'dir inside `nekosquared\'. See the `example-config\' directory for examples.'
 )
