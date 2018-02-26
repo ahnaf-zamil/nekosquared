@@ -15,8 +15,7 @@ import asyncpg   # Asynchronous Postgres integration.
 
 from neko2.engine import shutdown   # Shutdown hooks.
 from neko2.shared import configfiles   # Config file support.
-from neko2.shared import faketypes   # Fake type hints.
-
+from neko2.shared.other import faketypes
 
 __all__ = ('Scribe', 'CpuBoundPool', 'IoBoundPool', 'FsPool',
            'HttpPool', 'PostgresPool')

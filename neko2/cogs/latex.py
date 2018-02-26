@@ -1,3 +1,5 @@
+#!/usr/bin/env python3.6
+# -*- coding: utf-8 -*-
 """
 Formats and makes use of the code-cogs equation editor API to generate
 previews for LaTeX strings.

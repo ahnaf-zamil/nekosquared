@@ -1,3 +1,5 @@
+#!/usr/bin/env python3.6
+# -*- coding: utf-8 -*-
 """
 (c) Espeonageon 2018.
 Licensed under the Mozilla Public License V2.0

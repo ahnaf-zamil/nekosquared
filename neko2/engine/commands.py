@@ -1,3 +1,5 @@
+#!/usr/bin/env python3.6
+# -*- coding: utf-8 -*-
 """
 Provides some bits and pieces that are overridden from the default command
 definitions provided by Discord.py.

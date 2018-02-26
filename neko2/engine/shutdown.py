@@ -1,3 +1,5 @@
+#!/usr/bin/env python3.6
+# -*- coding: utf-8 -*-
 """
 Holds callbacks for when we are about to shut the bot down. These can be
 either futures or

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3.6
+# -*- coding: utf-8 -*-
 """
 Algorithm stuff, and general bits and pieces that don't belong elsewhere, or
 that generally operate on a wide variety of data.

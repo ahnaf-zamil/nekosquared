@@ -1,3 +1,5 @@
+#!/usr/bin/env python3.6
+# -*- coding: utf-8 -*-
 """
 Allows the bot owner to update the bot using Git, if it is installed.
 """

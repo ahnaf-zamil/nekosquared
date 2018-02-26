@@ -1,13 +1,14 @@
+#!/usr/bin/env python3.6
+# -*- coding: utf-8 -*-
 import logging   # Logging uitls.
 import traceback   # Traceback utils.
 
 import discord.errors as dpy_errors   # Errors for dpy base.
 import discord.ext.commands.errors as dpyext_errors   # Errors for ext.
 
-from neko2.shared import excuses   # Random excuses
+from neko2.shared.other import excuses
 
 __all__ = ('handle_error',)
-
 __error_logger = logging.getLogger(__name__)
 
 
