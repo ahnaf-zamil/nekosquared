@@ -38,8 +38,7 @@ class GitCog(traits.Scribe, traits.CpuBoundPool):
 
         did_fail = False
 
-        async with msg.channel.typing(), ctx.author.typing():
-
+        async with msg.channel.typing():
             if not git_path:
                 return await ctx.author.send('I can\'t seem to find git!')
 

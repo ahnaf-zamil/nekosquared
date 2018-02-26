@@ -1,0 +1,4 @@
+database: "postgres"
+host: "discordbots.local"
+user: "nekozilla"
+password: "nekozillabot"
