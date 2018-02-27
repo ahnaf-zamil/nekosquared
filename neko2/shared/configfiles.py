@@ -11,7 +11,7 @@ import aiofiles
 
 # Overwrite this variable to alter where we look for config files if you
 # need to.
-CONFIG_DIRECTORY = 'config'
+CONFIG_DIRECTORY = '../neko2config'
 
 
 class ConfigFile:
