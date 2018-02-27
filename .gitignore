@@ -24,3 +24,6 @@ neko2.service
 neko2.sh
 enable.sh
 update.sh
+
+# Important shit
+config
