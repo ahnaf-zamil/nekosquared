@@ -14,8 +14,10 @@ import aiofiles   # Asynchronous file I/O.
 import asyncpg   # Asynchronous Postgres integration.
 
 from neko2.engine import shutdown   # Shutdown hooks.
+from neko2.shared import classtools   # Class monkey-patching.
 from neko2.shared import configfiles   # Config file support.
-from neko2.shared.other import faketypes
+from neko2.shared.other import faketypes  # Fake type annotations.
+from neko2.shared import scribe  # Logger (I moved it)
 
 __all__ = ('Scribe', 'CpuBoundPool', 'IoBoundPool', 'FsPool',
            'HttpPool', 'PostgresPool')
@@ -24,13 +26,7 @@ __all__ = ('Scribe', 'CpuBoundPool', 'IoBoundPool', 'FsPool',
 T = typing.TypeVar('T')
 
 
-class Scribe:
-    """Adds functionality to a class to allow it to log information."""
-    logging.basicConfig(level='INFO')
-
-
-    def __init_subclass__(cls, **_):
-        cls.logger: logging.Logger = logging.getLogger(cls.__name__)
+Scribe = scribe.Scribe
 
 
 def _magic_number(*, cpu_bound=False):
@@ -231,7 +227,6 @@ class HttpPool(Scribe):
 
     Todo: try to fix this to work with asynchronous blocks instead.
     """
-    logger: logging.Logger
 
     @classmethod
     async def acquire_http(cls) -> ConnectionContextManager:
@@ -278,3 +273,16 @@ class PostgresPool(Scribe):
             cls.logger.info(f'Acquiring existing PostgreSQL pool.')
 
         return await cls.__postgres_pool.acquire(timeout=timeout)
+
+
+class Disabled:
+    """Sentinel used by the bot to mark a cog as being disabled."""
+    __slots__ = ()
+
+
+def disable(klass: type) -> type:
+    @classtools.patches(klass)
+    class Derived(klass, Disabled):
+        pass
+
+    return Derived

@@ -26,6 +26,7 @@ dependencies = {
     'yaml': 'pyyaml',
     'bs4': 'beautifulsoup4',
     'PIL': 'pillow',
+    'aioprocessing': 'aioprocessing',
 
     # Intentionally is incorrect. Don't alter until Danny releases
     # the rewrite properly.

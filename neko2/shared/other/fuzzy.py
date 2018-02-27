@@ -126,6 +126,31 @@ def best_partial(a: str, b: str) -> int:
     return float_to_ratio(max_float_ratio)
 
 
+def deep_ratio(a: str, b: str) -> int:
+    """
+    A rather slow search that takes into account all four other matching
+    ratio algorithms along with approximately how accurate they are.
+
+    This works by reducing the percentage of scores as follows:
+
+    - Partial = 60%
+    - Ratio = 25%
+    - Quick = 10%
+    - Real Quick = 5%
+
+    These are then summed to get the actual score.
+    """
+
+    partial = best_partial(a, b)
+    normal = ratio(a, b)
+    quick = quick_ratio(a, b)
+    real_quick = real_quick_ratio(a, b)
+
+    score = 0.6 * partial + 0.25 * normal + 0.1 * quick + 0.05 * real_quick
+
+    return int(round(score))
+
+
 def sorted_token_ratio(a: str, b: str, scorer: _scorer=quick_ratio) -> int:
     """
     Returns the ``scorer`` for a and b when the tokens are in lexicographical

@@ -156,10 +156,22 @@ class LatexCog(traits.IoBoundPool, traits.HttpPool, traits.CpuBoundPool):
         await cls.run_in_io_pool(cpu_work)
 
     @commands.command(
-        name='tex', aliases=['latex'],
+        name='tex', aliases=['latex', 'texd', 'latexd'],
         brief='Attempts to parse the given LaTeX string and display a '
               'preview.')
     async def latex_cmd(self, ctx, *, content: str):
+        """
+        Add the `d` prefix to the command to delete your message before the
+        response is shown.
+        """
+
+        if ctx.invoked_with.endswith('d'):
+            # noinspection PyBroadException
+            try:
+                await ctx.message.delete()
+            except BaseException:
+                pass
+
         async with ctx.typing():
             # Append a tex newline to the start to force the content to
             # left-align.

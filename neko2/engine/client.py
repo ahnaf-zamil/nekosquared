@@ -175,6 +175,11 @@ class Bot(commands.Bot, traits.Scribe):
         """
         try:
             self.logger.info(f'Loading cog {type(cog).__name__!r}')
+
+            if isinstance(cog, traits.Disabled):
+                self.logger.warning(f'Skipping {cog} as it is marked disabled.')
+                return
+
             super().add_cog(cog)
             self.dispatch('add_cog', cog)
         except BaseException as ex:

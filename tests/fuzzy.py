@@ -1,36 +1,43 @@
 #!/usr/bin/env python3.6
 # -*- encoding: utf-8 -*-
-from neko2.shared.other import fuzzywuzzy, excuses
+from neko2.shared.other import fuzzy, excuses
 
 
 while True:
     query = input('Query: ')
 
-    partial = fuzzywuzzy.extract(
+    partial = fuzzy.extract(
         query,
         excuses.excuses,
-        scoring_algorithm=fuzzywuzzy.best_partial,
+        scoring_algorithm=fuzzy.best_partial,
         max_results=3,
         min_score=50)
 
-    normal = fuzzywuzzy.extract(
+    normal = fuzzy.extract(
         query,
         excuses.excuses,
-        scoring_algorithm=fuzzywuzzy.ratio,
+        scoring_algorithm=fuzzy.ratio,
         max_results=3,
         min_score=50)
 
-    quick = fuzzywuzzy.extract(
+    quick = fuzzy.extract(
         query,
         excuses.excuses,
-        scoring_algorithm=fuzzywuzzy.quick_ratio,
+        scoring_algorithm=fuzzy.quick_ratio,
         max_results=3,
         min_score=50)
 
-    real_quick = fuzzywuzzy.extract(
+    real_quick = fuzzy.extract(
         query,
         excuses.excuses,
-        scoring_algorithm=fuzzywuzzy.real_quick_ratio,
+        scoring_algorithm=fuzzy.real_quick_ratio,
+        max_results=3,
+        min_score=50)
+
+    deep = fuzzy.extract(
+        query,
+        excuses.excuses,
+        scoring_algorithm=fuzzy.deep_ratio,
         max_results=3,
         min_score=50)
 
@@ -38,4 +45,5 @@ while True:
     print('Normal:', normal)
     print('Quick:', quick)
     print('Real Quick:', real_quick)
+    print('Deep:', deep)
     print()

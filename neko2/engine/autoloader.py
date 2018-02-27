@@ -45,4 +45,4 @@ def auto_load_modules(bot, *, config_file=FILE):
                 logger.fatal(f'FAILED TO LOAD {module}. SEE TRACEBACK BELOW.')
                 traceback.print_exc()
             else:
-                logger.info(f'Loaded {module} in {time * 1000:,.2f}ms')
+                logger.info(f'Loaded module {module} in {time * 1000:,.2f}ms')
