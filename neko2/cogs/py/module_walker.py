@@ -14,7 +14,7 @@ ModuleType = type(builtins)
 MemberTypes = typing.Iterator[typing.Tuple[str, object]]
 
 
-class InspectionWalker(scribe.Scribe):
+class ModuleWalker(scribe.Scribe):
     """
     Walks across all members exposed in a module directly or indirectly, and
     yields tuples of their fully qualified name, and the actual object
@@ -28,7 +28,7 @@ class InspectionWalker(scribe.Scribe):
     def __init__(self,
                  module: str,
                  relative_to: str=None,
-                 skip_protected: bool=False):
+                 skip_protected: bool=False) -> None:
         """
         Init the walker.
         :param module: the module name to explore.
@@ -77,16 +77,16 @@ class InspectionWalker(scribe.Scribe):
             already_indexed.add(root)
 
             for name, member in inspect.getmembers(root):
-                qname = f'{root_name}.{name}'
+                q_name = f'{root_name}.{name}'
 
                 if name.startswith('__'):
-                    self.logger.debug(f'Skipping private member {qname}')
+                    self.logger.debug(f'Skipping private member {q_name}')
                     continue
                 elif name.startswith('_') and self._skip_protected:
-                    self.logger.debug(f'Skipping protected member {qname}')
+                    self.logger.debug(f'Skipping protected member {q_name}')
                     continue
                 else:
-                    self.logger.debug(f'Inspecting {qname}')
+                    self.logger.debug(f'Inspecting {q_name}')
 
                 # noinspection PyBroadException
                 try:
@@ -95,17 +95,17 @@ class InspectionWalker(scribe.Scribe):
                         module = member.__module__
                         if module.startswith(self.start.__name__):
                             yield from self._traverse(
-                                qname, member, already_indexed)
-                            yield (qname, member)
+                                q_name, member, already_indexed)
+                            yield (q_name, member)
                     elif inspect.ismodule(member):
                         self.logger.debug(f'{root_name}.{name} is a class')
                         parent = member.__spec__.parent
                         if parent.startswith(self._root):
                             yield from self._traverse(
-                                qname, member, already_indexed)
-                            yield (qname, member)
+                                q_name, member, already_indexed)
+                            yield (q_name, member)
                     else:
-                        yield (qname, member)
+                        yield (q_name, member)
 
                 except BaseException as ex:
                     self.logger.debug(f'ERROR {ex}')

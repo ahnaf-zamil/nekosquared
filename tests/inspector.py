@@ -1,12 +1,15 @@
-from neko2.cogs.py.inspector import InspectionWalker
+from neko2.cogs.py.module_walker import ModuleWalker
+from neko2.cogs.py import module_hasher
 import sys
 
+
+"""
 modules = ['discord', 'discord.ext.commands', 'discord.utils']
 
 
 tot_size = 0
 for m in modules:
-    walker = [r for r in InspectionWalker(m)]
+    walker = [r for r in ModuleWalker(m)]
     tot_size += sys.getsizeof(m)
     tot_size += sys.getsizeof(walker)
 
@@ -19,3 +22,8 @@ for m in modules:
 for var, obj in list(locals().items()):
     tot_size += sys.getsizeof(obj)
 print(tot_size)
+"""
+
+import discord
+
+print(module_hasher.get_module_hash(discord))

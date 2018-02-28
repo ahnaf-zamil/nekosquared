@@ -27,6 +27,7 @@ dependencies = {
     'bs4': 'beautifulsoup4',
     'PIL': 'pillow',
     'aioprocessing': 'aioprocessing',
+    'dataclasses': 'dataclasses',
 
     # Intentionally is incorrect. Don't alter until Danny releases
     # the rewrite properly.
@@ -38,6 +39,7 @@ python_command = 'python3'
 # Should we force update?
 args = sys.argv[1:]
 update_flag = '-U' if 'update' in args or 'upgrade' in args else None
+just_deps = '-D' if 'onlydeps' in args else None
 
 
 def shell_do(command):
@@ -60,51 +62,53 @@ except AssertionError:
     traceback.print_exc()
     exit(2)
 
-
-# Try to get virtualenv package, install it if it does not exist.
-try:
-    import venv
-except ImportError:
-    print('Attempting to install venv')
+if not just_deps:
+    # Try to get virtualenv package, install it if it does not exist.
     try:
-        assert getpass.getuser() == 'root', 'You must be root to install venv'
-        pip.main(['install', '-U', 'python3-venv'])
         import venv
-        print('Now reinvoke this command again, but not as root!')
-        exit(0)
-    except BaseException as ex:
-        traceback.print_exception(type(ex), ex, ex.__traceback__)
-        print('Please install venv (virtualenv) manually.')
-        exit(3 if type(ex) == AssertionError else 4)
+    except ImportError:
+        print('Attempting to install venv')
+        try:
+            assert getpass.getuser() == 'root', 'You must be root to install ' \
+                                                'venv '
+            pip.main(['install', '-U', 'python3-venv'])
+            import venv
+            print('Now reinvoke this command again, but not as root!')
+            exit(0)
+        except BaseException as ex:
+            traceback.print_exception(type(ex), ex, ex.__traceback__)
+            print('Please install venv (virtualenv) manually.')
+            exit(3 if type(ex) == AssertionError else 4)
 
-# First git clone
-if os.path.exists('nekosquared'):
-    print('Nekosquared directory already exists...')
-    exit(5)
+    # First git clone
+    if os.path.exists('nekosquared'):
+        print('Nekosquared directory already exists...')
+        exit(5)
 
-shell_do('git clone https://github.com/espeonageon/nekosquared')
-os.chdir('./nekosquared')
+    shell_do('git clone https://github.com/espeonageon/nekosquared')
+    os.chdir('./nekosquared')
 
-# Make the VENV if needbe.
-if os.path.exists('venv'):
-    try:
-        assert os.path.isdir('venv'), 'venv exists, but it isn\'t a directory!'
-    except AssertionError:
-        exit(6)
+    # Make the VENV if needbe.
+    if os.path.exists('venv'):
+        try:
+            assert os.path.isdir('venv'), 'venv exists, but it isn\'t a ' \
+                                          'directory! '
+        except AssertionError:
+            exit(6)
+        else:
+            print('venv directory already exists.')
     else:
-        print('venv directory already exists.')
-else:
-    try:
-        print('Creating venv...')
-        venv.create('venv',
-                    prompt='(neko²)',
-                    system_site_packages=True)
-        assert os.path.isdir('venv'), 'Unknown error'
-    except BaseException as ex:
-        traceback.print_exception(type(ex), ex, ex.__traceback__)
-        exit(7)
+        try:
+            print('Creating venv...')
+            venv.create('venv',
+                        prompt='(neko²)',
+                        system_site_packages=True)
+            assert os.path.isdir('venv'), 'Unknown error'
+        except BaseException as ex:
+            traceback.print_exception(type(ex), ex, ex.__traceback__)
+            exit(7)
 
-# Ensure bash is installed. Atm I cba to try and get this to work on Windows.
+    # Ensure bash is installed. Atm I cba to try and get this to work on Windows
 bash_path = shutil.which('bash')
 
 try:
@@ -148,61 +152,64 @@ with open('temp-install-script.sh', 'w') as script_file:
 
 shell_do(f'./temp-install-script.sh && rm -v temp-install-script.sh')
 
-print('Completed. Generating run script and sample service script.')
+print('Completed.')
 
-run_script = f'''#!/bin/bash
-source venv/bin/activate
-{python_command} -m neko2
-'''
+if not just_deps:
+    print('Generating run script and sample service script.')
 
-service_script = f'''[Unit]
-Description=Nekozilla^2 generated systemd Service
+    run_script = f'''#!/bin/bash
+    source venv/bin/activate
+    {python_command} -m neko2
+    '''
 
-[Service]
-Type=simple
-PIDFile=/var/run/neko2.pid
-ExecStart={os.path.join(os.getcwd(), "neko2.sh")}
-Restart=always
-User={getpass.getuser()}
-WorkingDirectory={os.getcwd()}
+    service_script = f'''[Unit]
+    Description=Nekozilla^2 generated systemd Service
+    
+    [Service]
+    Type=simple
+    PIDFile=/var/run/neko2.pid
+    ExecStart={os.path.join(os.getcwd(), "neko2.sh")}
+    Restart=always
+    User={getpass.getuser()}
+    WorkingDirectory={os.getcwd()}
+    
+    [Install]
+    WantedBy=multi-user.target
+    '''
 
-[Install]
-WantedBy=multi-user.target
-'''
+    enable_script = '''#!/bin/bash
+    sudo cp neko2.service /etc/systemd/system -v
+    sudo systemctl daemon-reload
+    sudo systemctl enable neko2
+    
+    echo "Run 'sudo systemctl start neko2' to start the service."
+    '''
 
-enable_script = '''#!/bin/bash
-sudo cp neko2.service /etc/systemd/system -v
-sudo systemctl daemon-reload
-sudo systemctl enable neko2
+    update_script = '''#!/bin/bash
+    git fetch --all && git reset --hard origin/master
+    '''
 
-echo "Run 'sudo systemctl start neko2' to start the service."
-'''
+    with open('neko2.sh', 'w') as run_file:
+        print(f'Run script: {os.path.join(os.getcwd(), "neko2.sh")}')
+        print(run_script)
+        run_file.write(run_script)
 
-update_script = '''#!/bin/bash
-git fetch --all && git reset --hard origin/master
-'''
+    with open('neko2.service', 'w') as service_file:
+        print(f'Sample service: {os.path.join(os.getcwd(), "neko2.service")}')
+        print(service_script)
+        service_file.write(service_script)
 
-with open('neko2.sh', 'w') as run_file:
-    print(f'Run script: {os.path.join(os.getcwd(), "neko2.sh")}')
-    print(run_script)
-    run_file.write(run_script)
+    with open('enable.sh', 'w') as enable_file:
+        print(f'Enable script: {os.path.join(os.getcwd(), "enable.sh")}')
+        print(enable_script)
+        enable_file.write(enable_script)
 
-with open('neko2.service', 'w') as service_file:
-    print(f'Sample service: {os.path.join(os.getcwd(), "neko2.service")}')
-    print(service_script)
-    service_file.write(service_script)
+    with open('update.sh', 'w') as update_file:
+        print(f'Update script: {os.path.join(os.getcwd(), "update.sh")}')
+        print(update_script)
+        update_file.write(update_script)
 
-with open('enable.sh', 'w') as enable_file:
-    print(f'Enable script: {os.path.join(os.getcwd(), "enable.sh")}')
-    print(enable_script)
-    enable_file.write(enable_script)
-
-with open('update.sh', 'w') as update_file:
-    print(f'Update script: {os.path.join(os.getcwd(), "update.sh")}')
-    print(update_script)
-    update_file.write(update_script)
-
-shell_do('chmod -v +x neko2.sh enable.sh update.sh')
+    shell_do('chmod -v +x neko2.sh enable.sh update.sh')
 
 print(
     'Done. All you need to do now is add your configurations into the config '
