@@ -11,7 +11,7 @@ from neko2.shared import scribe
 
 
 ModuleType = type(builtins)
-MemberTypes = typing.Iterator[typing.Tuple[str, object]]
+MemberTypes = typing.Iterator[typing.Tuple[str, str, object]]
 
 
 class ModuleWalker(scribe.Scribe):
@@ -41,12 +41,16 @@ class ModuleWalker(scribe.Scribe):
         self._root = self.start.__spec__.name
         self._skip_protected = skip_protected
 
-        # self.logger.setLevel('DEBUG')
+        self.logger.setLevel('DEBUG')
 
     def __iter__(self) -> MemberTypes:
         """
         Gets an iterator across all members discovered and yields them as
-        tuples of names and the respective object.
+        tuples of apparent names, real qualified names, and the respective
+        object. The apparent name is respectful to the reference, while the
+        real qualified name is what the reference points to. This enables us
+        to differentiate between a type definition and a reference to a type in
+        another module, say.
         """
         yield from self._traverse(self.start.__name__, self.start)
 
@@ -63,7 +67,7 @@ class ModuleWalker(scribe.Scribe):
         Each child is a tuple of the fully qualified member name, and the
         representative object.
 
-        Due to this algorithm, this returns results in a bottom-up order.
+        This should return members in a mostly top-down manner.
 
         (``already_indexed`` is only provided on recursive calls to this. This
         is a set of all modules already indexed, that way, we do not reference
@@ -77,16 +81,25 @@ class ModuleWalker(scribe.Scribe):
             already_indexed.add(root)
 
             for name, member in inspect.getmembers(root):
-                q_name = f'{root_name}.{name}'
+
+                # Ensure we are in the defining module and it is not just a
+                # reference.
+                apparent_q_name = f'{root_name}.{name}'
+                real_q_name = apparent_q_name
+
+                try:
+                    real_q_name = member.__module__ + '.' + member.__qualname__
+                except:
+                    pass
 
                 if name.startswith('__'):
-                    self.logger.debug(f'Skipping private member {q_name}')
+                    self.logger.debug(f'Skipping private member {name}')
                     continue
                 elif name.startswith('_') and self._skip_protected:
-                    self.logger.debug(f'Skipping protected member {q_name}')
+                    self.logger.debug(f'Skipping protected member {name}')
                     continue
                 else:
-                    self.logger.debug(f'Inspecting {q_name}')
+                    self.logger.debug(f'Inspecting {name}')
 
                 # noinspection PyBroadException
                 try:
@@ -94,18 +107,25 @@ class ModuleWalker(scribe.Scribe):
                         self.logger.debug(f'{root_name}.{name} is a class')
                         module = member.__module__
                         if module.startswith(self.start.__name__):
+                            yield (apparent_q_name, real_q_name, member)
                             yield from self._traverse(
-                                q_name, member, already_indexed)
-                            yield (q_name, member)
+                                real_q_name, member, already_indexed)
                     elif inspect.ismodule(member):
                         self.logger.debug(f'{root_name}.{name} is a class')
                         parent = member.__spec__.parent
                         if parent.startswith(self._root):
+                            yield (apparent_q_name, real_q_name, member)
                             yield from self._traverse(
-                                q_name, member, already_indexed)
-                            yield (q_name, member)
-                    else:
-                        yield (q_name, member)
+                                real_q_name, member, already_indexed)
+                    elif inspect.isfunction(member):
+                        # This ensures that decorated functions are undecorated
+                        # first. Otherwise, for example, the presence of
+                        # @asyncio.coroutine on a function would cause the
+                        # function to report wrongly being defined in asyncio,
+                        # not the actual file.
+                        member = inspect.unwrap(member)
+
+                    yield (apparent_q_name, real_q_name, member)
 
                 except BaseException as ex:
                     self.logger.debug(f'ERROR {ex}')

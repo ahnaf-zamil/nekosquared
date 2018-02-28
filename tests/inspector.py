@@ -1,5 +1,6 @@
 from neko2.cogs.py.module_walker import ModuleWalker
 from neko2.cogs.py import module_hasher
+from neko2.cogs.py import module_cacher
 import sys
 
 
@@ -24,6 +25,7 @@ for var, obj in list(locals().items()):
 print(tot_size)
 """
 
-import discord
+mc = module_cacher.ModuleCacher('neko2')
 
-print(module_hasher.get_module_hash(discord))
+with open('neko2.json', 'w') as fp:
+    mc.make_cache(fp)

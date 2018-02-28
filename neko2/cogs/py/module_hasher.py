@@ -6,6 +6,7 @@ module or a file-based module.
 """
 import builtins
 import hashlib
+import importlib
 import inspect
 import os
 import typing
@@ -83,10 +84,12 @@ def __hash_directory(path: str) -> bytes:
     return hashlib.new(hash_alg, data).digest()
 
 
-def get_module_hash(module: ModuleType) -> bytes:
+def get_module_hash(module: typing.Union[str, ModuleType],
+                    rel: str=None) -> bytes:
     """
     Hashes an entire module.
-    :param module: the module to hash.
+    :param module: the module to hash, or the name of the module to import.
+    :param rel: relative location. Only used if ``module`` is a string.
     :return: a hash. If this is not possible, 0 bytes are output. This allows
     us to still fill a hash field in the serialised cache. If we cannot resolve
     a module for whatever reason, but we do have a valid path, we hash that
@@ -96,6 +99,9 @@ def get_module_hash(module: ModuleType) -> bytes:
     hash. If they have, we know to regenerate the cache for that module.
     
     """
+    if isinstance(module, str):
+        module = importlib.import_module(module, rel)
+
     try:
         path = find_path(module)
         try:

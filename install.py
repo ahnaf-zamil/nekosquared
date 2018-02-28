@@ -21,14 +21,14 @@ import traceback
 dependencies = {
     'aiofiles': 'aiofiles',
     'aiohttp': 'aiohttp',
-    'asyncpg': 'asyncpg',
-    'cached_property': 'cached_property',
-    'yaml': 'pyyaml',
-    'bs4': 'beautifulsoup4',
-    'PIL': 'pillow',
     'aioprocessing': 'aioprocessing',
+    'asyncpg': 'asyncpg',
+    'bs4': 'beautifulsoup4',
+    'cached_property': 'cached_property',
     'dataclasses': 'dataclasses',
-
+    'PIL': 'pillow',
+    'wordnik': 'wordnik-py3',
+    'yaml': 'pyyaml',
     # Intentionally is incorrect. Don't alter until Danny releases
     # the rewrite properly.
     'discord.py': 'git+https://github.com/rapptz/discord.py@rewrite'

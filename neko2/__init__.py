@@ -3,6 +3,10 @@
 """
 Implementation of the Neko² bot engine.
 """
+import neko2.shared
+import neko2.cogs
+import neko2.engine
+
 
 __author__ = 'Espeonageon'
 __license__ = 'Mozilla Public License Version 2.0'
