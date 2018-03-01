@@ -16,7 +16,6 @@ import asyncpg   # Asynchronous Postgres integration.
 from neko2.engine import shutdown   # Shutdown hooks.
 from neko2.shared import classtools   # Class monkey-patching.
 from neko2.shared import configfiles   # Config file support.
-from neko2.shared.other import faketypes  # Fake type annotations.
 from neko2.shared import scribe  # Logger (I moved it)
 
 __all__ = ('Scribe', 'CpuBoundPool', 'IoBoundPool', 'FsPool',
@@ -193,8 +192,6 @@ class FsPool(IoBoundPool, Scribe):
     the local file system. This runs in the same pool of workers as the
     IoBoundPool uses.
     """
-    logger: logging.Logger
-
     @classmethod
     async def acquire_fp(cls, file, mode='r', buffering=-1, encoding=None,
                          errors=None, newline=None, closefd=True, opener=None):
@@ -205,31 +202,12 @@ class FsPool(IoBoundPool, Scribe):
             executor=_io_pool)
 
 
-class ConnectionContextManager:
-    """Fake context manager for an aiohttp client session global instance."""
-    def __init__(self, conn):
-        self.conn = conn
-
-    def __enter__(self) -> faketypes.ClientSessionT:
-        return self.conn
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
-
-
 class HttpPool(Scribe):
     """
-    Allows you to acquire an HTTP pool to use. This returns a context manager
-    that can only be used in non-async blocks.
-
-    with (await self.acquire_http()) as conn:
-        resp = await conn.get('https://google.com')
-
-    Todo: try to fix this to work with asynchronous blocks instead.
+    Allows you to acquire an HTTP pool to use.
     """
-
     @classmethod
-    async def acquire_http(cls) -> ConnectionContextManager:
+    async def acquire_http(cls):
         """
         :return: the client session.
         """
@@ -245,7 +223,7 @@ class HttpPool(Scribe):
             cls.logger.info(f'Acquiring existing HTTP pool.')
 
         # noinspection PyTypeChecker
-        return ConnectionContextManager(cls._http_pool)
+        return cls._http_pool
 
 
 class PostgresPool(Scribe):
@@ -253,26 +231,16 @@ class PostgresPool(Scribe):
     Allows you to acquire a connection to the database from the connection pool.
     """
     @classmethod
-    async def acquire_db(cls, timeout=None) -> asyncpg.Connection:
-        """
-        :param timeout: optional timeout.
-        :return: connection.
-        """
-
-        if not hasattr(cls, f'__{cls.__name__}_postgres_pool'):
-            cls.logger.info('Initialising PostgreSQL pool from config.')
-            cfg = configfiles.get_config_holder('database.yaml')
-            cls.__postgres_pool = await asyncpg.create_pool(
-                **await cfg.async_get())
+    async def acquire_db(cls, timeout=None):
+        if not hasattr(cls, '_postgres_pool'):
+            config = await configfiles.get_config_data_async('database.yaml')
+            cls._postgres_pool = await asyncpg.create_pool(**config)
 
             @shutdown.on_shutdown
-            async def shutdown_callback():
-                cls.logger.info('Closing PostgreSQL pool.')
-                await cls.__postgres_pool.close()
-        else:
-            cls.logger.info(f'Acquiring existing PostgreSQL pool.')
+            async def on_shutdown():
+                await cls._postgres_pool.close()
 
-        return await cls.__postgres_pool.acquire(timeout=timeout)
+        return cls._postgres_pool.acquire(timeout=timeout)
 
 
 class Disabled:
