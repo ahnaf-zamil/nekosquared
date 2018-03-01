@@ -193,10 +193,12 @@ class GitCog(traits.Scribe, traits.CpuBoundPool):
                 try:
                     await call(f'{git_path} fetch --all')
                     await call(f'{git_path} diff --stat HEAD origin/master')
-                    await call(f'{git_path} status --porcelain --ignored --verbose')
+                    await call(f'{git_path} status --porcelain --ignored '
+                               f'--verbose')
 
                     await call(f'{git_path} reset --hard origin/master')
-                    await call(f'{git_path} stash list && {git_path} stash drop')
+                    await call(f'{git_path} stash list && {git_path} stash '
+                               'drop')
                 except BaseException as ex:
                     err = traceback.format_exception(
                         type(ex), ex, ex.__traceback__)

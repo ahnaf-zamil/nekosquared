@@ -16,3 +16,8 @@ by inspection. This will be done by spawning processes that run in the
 background and traverse the module trees. They will then cache results in
 files on disk, where possible.
 """
+from . import admin_cog
+
+
+def setup(bot):
+    bot.add_cog(admin_cog.PyAdminCog())

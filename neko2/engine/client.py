@@ -3,6 +3,7 @@
 """
 Holds the bot implementation.
 """
+import asyncio  # Asyncio utilities.
 import copy  # Deep and shallow copies of objects.
 import os   # Access to FS.
 import signal   # Access to kernel signals.
@@ -21,6 +22,11 @@ __all__ = ('BotInterrupt', 'Bot')
 
 # Sue me.
 BotInterrupt = KeyboardInterrupt
+
+
+# Set to false to disable the global "development" message being set on
+# startup.
+is_development = True
 
 
 ################################################################################
@@ -96,6 +102,19 @@ class Bot(commands.Bot, traits.Scribe):
 
         # Used to prevent recursively calling logout.
         self._logged_in = False
+
+        if is_development:
+            @self.listen()
+            async def on_connect():
+                while True:
+                    await self.change_presence(
+                        status=discord.Status.do_not_disturb,
+                        game=discord.Game(name='in development'))
+                    await asyncio.sleep(120)
+                    await self.change_presence(
+                        status=discord.Status.do_not_disturb,
+                        game=discord.Game(name='may be unstable'))
+                    await asyncio.sleep(120)
 
     @cached_property.cached_property
     def invite(self):

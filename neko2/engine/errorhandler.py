@@ -38,7 +38,7 @@ async def __handle_error(*, bot, cog=None, ctx=None, error, event_method=None):
     else:
         rel_log = __error_logger
 
-    rel_log.error('An error occurred and was handled.\n' + ''.join(tb).strip())
+    rel_log.warning('An error was handled.\n' + ''.join(tb).strip())
 
     # CommandInvokeErrors tend to wrap other errors. If we have a
     # command invoke error wrapping something else, then get that

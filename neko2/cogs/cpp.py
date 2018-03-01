@@ -43,12 +43,13 @@ class CppCog(traits.HttpPool):
         """Gathers the results for the given search terms from Cppreference."""
         params = {'search': '|'.join(terms)}
 
-        with (await cls.acquire_http()) as conn:
-            resp = await conn.get(search_cppr, params=params)
-            if resp.status != 200:
-                raise errors.HttpError(resp)
-            else:
-                resp = await resp.text()
+        conn = await cls.acquire_http()
+
+        resp = await conn.get(search_cppr, params=params)
+        if resp.status != 200:
+            raise errors.HttpError(resp)
+        else:
+            resp = await resp.text()
 
         # Parse the HTML response.
         tree = bs4.BeautifulSoup(resp)

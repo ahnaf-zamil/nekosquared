@@ -19,13 +19,21 @@ import traceback
 
 # Maps import name to pypi name.
 dependencies = {
+    # Async file io
     'aiofiles': 'aiofiles',
+    # Async http io
     'aiohttp': 'aiohttp',
+    # Async multiprocessing
     'aioprocessing': 'aioprocessing',
+    # Async postgresql wrapper.
     'asyncpg': 'asyncpg',
+    # Beautiful soup 4 HTML parser
     'bs4': 'beautifulsoup4',
+    # Cached property
     'cached_property': 'cached_property',
+    # Python3.7 cached property backport.
     'dataclasses': 'dataclasses',
+    # PILLOW image manip lib
     'PIL': 'pillow',
     'wordnik': 'wordnik-py3',
     'yaml': 'pyyaml',

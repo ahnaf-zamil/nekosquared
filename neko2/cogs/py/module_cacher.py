@@ -4,12 +4,9 @@
 Here be dragons.
 
 This deals with inspecting each module given by a module walker, before
-serialising the metadata we extract and dumping it to the given stream.
-
-
+outputting any data as a dict.
 """
 import inspect
-import json
 import re
 import typing
 
@@ -97,9 +94,9 @@ class ModuleCacher:
 
         return result
 
-    def make_cache(self, fp: typing.IO) -> None:
+    def make_cache(self) -> typing.Dict[str, typing.Any]:
         """
-        Writes the cache serialization to the given IO stream.
+        Creates a cache dict and returns it.
         """
         walker = module_walker.ModuleWalker(self._name, self._rel)
         module_hash = str(module_hasher.get_module_hash(walker.start))
@@ -178,4 +175,6 @@ class ModuleCacher:
 
             attr_meta[apparent_name] = attr
 
-        json.dump(data, fp, indent=2)
+        return data
+
+

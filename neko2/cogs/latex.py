@@ -178,9 +178,11 @@ class LatexCog(traits.IoBoundPool, traits.HttpPool, traits.CpuBoundPool):
             url = self.generate_url(f'\\\\{content}',
                                     bg_colour='white',
                                     size=10)
-            with await self.acquire_http() as conn:
-                resp = await conn.get(url)
-                data = await resp.read()
+
+            conn = await self.acquire_http()
+
+            resp = await conn.get(url)
+            data = await resp.read()
 
             with io.BytesIO(data) as in_data, io.BytesIO() as out_data:
                 in_data.seek(0)
