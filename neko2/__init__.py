@@ -8,9 +8,9 @@ import neko2.cogs
 import neko2.engine
 
 
-__author__ = 'Espeonageon'
+__author__ = '404'
 __license__ = 'Mozilla Public License Version 2.0'
-__url__ = 'https://github.com/espeonageon/nekosquared'
+__url__ = 'https://github.com/neko404notfound/nekosquared'
 __version__ = '0.0.0'
 __repository__ = __url__
 __contributors__ = (__author__,)
