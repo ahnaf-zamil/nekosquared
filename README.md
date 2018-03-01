@@ -52,4 +52,4 @@ come from both PyPi and non-PyPi sources.
 
 ## Looking for the old version?
 
-Check it out [here](https://github.com/espeonageon/neko).
+Check it out [here](https://github.com/neko404notfound/neko).
