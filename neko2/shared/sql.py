@@ -4,23 +4,18 @@
 A cached Sequel statement that we gather from disk.
 """
 from neko2.shared import io   # in_here
+from neko2.shared import traits  # Logging
 
 __all__ = ('SqlQuery',)
 
 
-class SqlQuery:
+class SqlQuery(traits.Scribe):
     """
-    This acts as a SQL query object that is callable with any arguments. This
-    just returns a tuple ready to dump into asyncpg.
+    This reads a SQL query from disk at the given path and acts as a descriptor
+    returning the raw SQL query text.
 
-    This is designed to support enter and aenter methods, so use as a context
-    manager is also permitted if you like that sort of thing. In this case,
-    it would literally just be something like::
- 
-    sql = SqlQuery('foobar.sql')
-
-    async with db.acquire() as conn:
-        await conn.fetch(sql(query, 1, 'foobar', 'baz', None))
+    This is designed to be embedded in class-scope and then accessed by an
+    instance of that class.
     """
     def __init__(self, file_name, *, relative_to_here=True):
         """
@@ -28,33 +23,18 @@ class SqlQuery:
 
         :param file_name: file name to open.
         :param relative_to_here: defaults to true. If true, we consider the file
-                to be in the same
+                to be in the same directory as the caller.
         """
         if relative_to_here:
-            file_name = io.in_here(file_name, nested_by=1)
+            self._file_name = io.in_here(file_name, nested_by=1)
+        else:
+            self._file_name = file_name
 
-        with open(file_name) as fp:
-            # Could use read, but this seems to be more
-            # compatible with any type of stream.
-            # TODO: confirm.
-            query = '\n'.join(fp.readlines())
+        with open(self._file_name) as fp:
+            self.content = '\n'.join(fp.readlines())
 
-        self.text = query
-        self.file_name = file_name
+        self.logger.info(f'Deserialized {file_name}')
 
-    def __str__(self):
-        """Return the raw SQL query as it is in-file."""
-        return self.text
-
-    def __repr__(self):
-        """Return machine readable representation."""
-        return (f'<SqlQuery file={self.file_name!r}, '
-                f'content={self.text!r}')
-
-    def __call__(self, *args):
-        """
-        Returns a 2-tuple of the SQL query, and the arguments. This can then
-        be passed directly into your desired parametrisation method.
-        """
-        return self.text, *args
-
+    def __get__(self, *_):
+        """This acts as the descriptor."""
+        return self.content

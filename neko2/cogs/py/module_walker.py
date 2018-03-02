@@ -6,12 +6,15 @@ Handles extracting anything exposed by a module.
 import builtins
 import importlib
 import inspect
+import re
 import typing
 from neko2.shared import scribe
 
 
 ModuleType = type(builtins)
 MemberTypes = typing.Iterator[typing.Tuple[str, str, object]]
+
+class_regex = re.compile(r'-> (.*)>$')
 
 
 class ModuleWalker(scribe.Scribe):
@@ -28,20 +31,20 @@ class ModuleWalker(scribe.Scribe):
     def __init__(self,
                  module: str,
                  relative_to: str=None,
-                 skip_protected: bool=False) -> None:
+                 skip_protected: bool=True) -> None:
         """
         Init the walker.
         :param module: the module name to explore.
         :param relative_to: the relative module path.
         :param skip_protected: true if we should ignore protected members.
-                Defaults to false.
+                Defaults to true, as it saves space.
         """
 
         self.start = importlib.import_module(module, relative_to)
         self._root = self.start.__spec__.name
         self._skip_protected = skip_protected
 
-        self.logger.setLevel('DEBUG')
+        # self.logger.setLevel('DEBUG')
 
     def __iter__(self) -> MemberTypes:
         """
@@ -90,7 +93,8 @@ class ModuleWalker(scribe.Scribe):
                 try:
                     real_q_name = member.__module__ + '.' + member.__qualname__
                 except:
-                    pass
+                    if inspect.isclass(member):
+                        real_q_name = class_regex.match(str(member)).group(1)
 
                 if name.startswith('__'):
                     self.logger.debug(f'Skipping private member {name}')
@@ -113,7 +117,15 @@ class ModuleWalker(scribe.Scribe):
                     elif inspect.ismodule(member):
                         self.logger.debug(f'{root_name}.{name} is a class')
                         parent = member.__spec__.parent
-                        if parent.startswith(self._root):
+
+                        # Ensure this is where the module is defined; not just
+                        # a reference to something elsewhere. Likewise, do not
+                        # bother following it if it points to something external
+                        # to our root.
+                        is_concrete = real_q_name == apparent_q_name
+                        is_internal = parent.startswith(self._root)
+
+                        if is_concrete and is_internal:
                             yield (apparent_q_name, real_q_name, member)
                             yield from self._traverse(
                                 real_q_name, member, already_indexed)
@@ -124,8 +136,9 @@ class ModuleWalker(scribe.Scribe):
                         # function to report wrongly being defined in asyncio,
                         # not the actual file.
                         member = inspect.unwrap(member)
-
-                    yield (apparent_q_name, real_q_name, member)
+                        yield (apparent_q_name, real_q_name, member)
+                    else:
+                        yield (apparent_q_name, real_q_name, member)
 
                 except BaseException as ex:
                     self.logger.debug(f'ERROR {ex}')

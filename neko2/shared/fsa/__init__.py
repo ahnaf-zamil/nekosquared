@@ -18,3 +18,4 @@ interaction in a stateful way using async iterators.
 from .button import *
 from .abstractmachines import *
 from .pag import *
+from .options import *

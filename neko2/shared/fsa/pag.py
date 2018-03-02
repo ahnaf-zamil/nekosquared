@@ -25,7 +25,7 @@ __all__ = (
     'MESSAGE_MAX', 'EMBED_DESCRIPTION_MAX', 'EMBED_FIELD_MAX',
     'Pag', 'LinedPag', 'generate_default_pagination_buttons',
     'AbstractPagFsa', 'PagMessage', 'PagEmbed', 'FocusedPagMessage',
-    'FocusedPagEmbed'
+    'FocusedPagEmbed', 'FocusedPagMixin', 'predicate_t'
 )
 
 
@@ -144,6 +144,7 @@ def generate_default_pagination_buttons() -> typing.List[button.Button]:
     @new_btn('\N{SQUARED OK}')
     async def remove_buttons(_btn, fsa, _user):
         """Closes the pagination and keeps the current message."""
+        await fsa.clear_buttons()
         fsa.stop()
 
     @new_btn('\N{PUT LITTER IN ITS PLACE SYMBOL}')
@@ -290,10 +291,15 @@ class AbstractPagFsa(abstractmachines.FiniteStateAutomaton, abc.ABC):
         """Gets the current page."""
         pass
 
-    @abc.abstractmethod
     async def update_page(self):
         """Should be called to update the content on Discord."""
-        pass
+        message = await self.get_message()
+
+        try:
+            text = await self.get_page()
+            await message.edit(content=text)
+        except IndexError:
+            await message.edit(content='No content.')
 
     async def _refresh_reply(self):
         """This recaches the message object holding our reply."""
@@ -357,7 +363,14 @@ class AbstractPagFsa(abstractmachines.FiniteStateAutomaton, abc.ABC):
 
     async def clear_buttons(self):
         """Attempt to clear the buttons."""
-        self.nowait(self._reply_message.clear_reactions())
+        async def safe_future():
+            try:
+                await self._reply_message.clear_reactions()
+            finally:
+                # Discard ex.
+                return
+
+        self.nowait(safe_future())
 
     def react_predicate(self,
                         reaction: discord.Reaction,
@@ -580,7 +593,7 @@ class PagEmbed(AbstractPagFsa):
         return obj
 
 
-class _FocusedPagMixin(abc.ABC):
+class FocusedPagMixin(abc.ABC):
     """
     Mixin class for paginator FSAs to provide customisable focus. This is a
     customisable predicate to allow only specific users the ability to change
@@ -620,7 +633,7 @@ class _FocusedPagMixin(abc.ABC):
         return decorator
 
 
-class FocusedPagMessage(PagMessage, _FocusedPagMixin):
+class FocusedPagMessage(PagMessage, FocusedPagMixin):
     """Focused Paginator for textual messages."""
     def __init__(self,
                  bot: discord.Client,
@@ -629,10 +642,10 @@ class FocusedPagMessage(PagMessage, _FocusedPagMixin):
                  buttons: typing.Iterable[button.Button] = None,
                  predicate: predicate_t = None):
         PagMessage.__init__(self, bot, invoked_by, timeout, buttons)
-        _FocusedPagMixin.__init__(self, predicate)
+        FocusedPagMixin.__init__(self, predicate)
 
 
-class FocusedPagEmbed(PagEmbed, _FocusedPagMixin):
+class FocusedPagEmbed(PagEmbed, FocusedPagMixin):
     """Focused Paginator for textual messages within embeds."""
     def __init__(self,
                  bot: discord.Client,
@@ -641,4 +654,4 @@ class FocusedPagEmbed(PagEmbed, _FocusedPagMixin):
                  buttons: typing.Iterable[button.Button] = None,
                  predicate: predicate_t = None):
         PagEmbed.__init__(self, bot, invoked_by, timeout, buttons)
-        _FocusedPagMixin.__init__(self, predicate)
+        FocusedPagMixin.__init__(self, predicate)

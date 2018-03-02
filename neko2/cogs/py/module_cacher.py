@@ -28,7 +28,7 @@ _param_default_re = re.compile(r'.*=\s*(\w+)')
 # When we stringify a signature, we get
 # <Signature (params here) -> annotation>
 # This regex should extract the ``annotation`` part of the string.
-_sig_annot_regex = re.compile(r'^.*->\s*(.+)>$')
+_sig_annot_regex = re.compile(r'-> (.+)')
 
 
 class ModuleCacher:
@@ -72,7 +72,10 @@ class ModuleCacher:
     @staticmethod
     def _get_return_annotation(signature: inspect.Signature):
         # Gets the return type annotation of a signature, if there is one.
-        return _sig_annot_regex.findall(str(signature))
+        try:
+            return _sig_annot_regex.match(str(signature)).group(1)
+        except:
+            return None
 
     @staticmethod
     def _get_param_meta(parameter: inspect.Parameter):
@@ -115,7 +118,11 @@ class ModuleCacher:
         for apparent_name, real_name, obj in attrs:
             parent, _, name = apparent_name.rpartition('.')
 
-            file = self._resolve_path(real_name, obj)
+            try:
+                file = self._resolve_path(real_name, obj)
+                file = file[file.find(walker.start.__name__):]
+            except:
+                file = None
 
             if file:
                 self._filename_cache[apparent_name] = file

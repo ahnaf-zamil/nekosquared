@@ -39,7 +39,11 @@ dependencies = {
     'yaml': 'pyyaml',
     # Intentionally is incorrect. Don't alter until Danny releases
     # the rewrite properly.
-    'discord.py': 'git+https://github.com/rapptz/discord.py@rewrite'
+    'discord.py': 'git+https://github.com/rapptz/discord.py@rewrite',
+
+    # These are used only for caching purposes in the Py module :)
+    'psycopg2': 'psycopg2',
+    'requests': 'requests',
 }
 
 python_command = 'python3'

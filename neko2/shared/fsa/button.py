@@ -17,7 +17,7 @@ import discord
 from neko2.shared.fsa import abstractmachines
 
 
-__all__ = ('Button',)
+__all__ = ('Button', 'as_button')
 
 
 class Button:
@@ -83,3 +83,6 @@ class Button:
         def decorator(coro):
             return Button(coro, emoji=emoji, name=name)
         return decorator
+
+
+as_button = Button.from_coro

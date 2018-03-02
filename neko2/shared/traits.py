@@ -100,34 +100,7 @@ async def _terminate_children():
 del _processes, _threads, _magic_number
 
 
-class AsyncExecutor:
-    """
-    Trait that provides a method to invoke the given task in the given
-    execution service on the given asyncio event loop.
-    """
-    @staticmethod
-    async def _invoke_in_executor(executor: futures.Executor,
-                                  func: typing.Callable,
-                                  args: typing.Iterable=None,
-                                  kwargs: typing.Mapping[str, typing.Any]=None,
-                                  *,
-                                  loop: asyncio.AbstractEventLoop=None):
-        if loop is None:
-            loop = asyncio.get_event_loop()
-        if args is None:
-            args = []
-        if kwargs is None:
-            kwargs = {}
-
-        partial_t = partialmethod if inspect.ismethod(func) else partial
-
-        # Generate the partial.
-        func_partial = partial_t(func, *args, **kwargs)
-
-        return await loop.run_in_executor(executor, func_partial)
-
-
-class CpuBoundPool(AsyncExecutor):
+class CpuBoundPool:
     """
     Trait that implements a process pool execution service for CPU-bound work.
 
@@ -146,18 +119,14 @@ class CpuBoundPool(AsyncExecutor):
     async def run_in_cpu_pool(cls,
                               func: typing.Callable,
                               args: typing.Iterable=None,
-                              kwargs: typing.Mapping=None,
                               *,
-                              loop: asyncio.AbstractEventLoop=None):
-        return await cls._invoke_in_executor(
+                              loop=asyncio.get_event_loop()):
+        return await loop.run_in_executor(
             cls._cpu_pool,
             func,
-            args,
-            kwargs,
-            loop=loop)
+            args)
 
-
-class IoBoundPool(AsyncExecutor):
+class IoBoundPool:
     """
     Trait that implements a thread pool execution service for IO-bound work.
 
@@ -173,17 +142,14 @@ class IoBoundPool(AsyncExecutor):
 
     @classmethod
     async def run_in_io_pool(cls,
-                             func: typing.Callable,
-                             args: typing.Iterable=None,
-                             kwargs: typing.Mapping=None,
-                             *,
-                             loop: asyncio.AbstractEventLoop=None):
-        return await cls._invoke_in_executor(
+                              func: typing.Callable,
+                              args: typing.Iterable=None,
+                              *,
+                              loop=asyncio.get_event_loop()):
+        return await loop.run_in_executor(
             cls._io_pool,
             func,
-            args,
-            kwargs,
-            loop=loop)
+            args)
 
 
 class FsPool(IoBoundPool, Scribe):
