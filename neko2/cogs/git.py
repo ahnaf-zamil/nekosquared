@@ -87,7 +87,7 @@ class GitCog(traits.Scribe, traits.CpuBoundPool):
                     await call(
                         f'{git_path} pull --all --squash --verbose --stat\n')
                     await call(f'{git_path} stash pop\n')
-                    await call(f'{git_path} diff HEAD HEAD~1 --stat\n')
+                    await call(f'{git_path} diff HEAD~1 HEAD --stat\n')
                 except BaseException as ex:
                     err = traceback.format_exception(
                         type(ex), ex, ex.__traceback__)
