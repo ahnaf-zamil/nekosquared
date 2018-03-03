@@ -44,6 +44,10 @@ dependencies = {
     # These are used only for caching purposes in the Py module :)
     'psycopg2': 'psycopg2',
     'requests': 'requests',
+
+    # Sphinx and docutils for cogs.py
+    'sphinx': 'sphinx',
+    'docutils': 'docutils'
 }
 
 python_command = 'python3'
