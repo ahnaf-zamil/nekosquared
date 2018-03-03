@@ -278,171 +278,177 @@ class ModuleCacher:
         }
 
         for apparent_name, real_name, obj in attrs:
-            parent, _, name = apparent_name.rpartition('.')
-
+            # This is best effort. Some components may well error as we traverse
+            # them. In this case, it is better to just skip them and try the
+            # next one.
             try:
-                _file = self._resolve_path(real_name, obj)
-                file = _file[_file.find(walker.start.__name__):]
+                parent, _, name = apparent_name.rpartition('.')
 
-                assert file != 'y'
-            except:
-                file = None
-
-            if file:
-                self._filename_cache[apparent_name] = file
-                self._filename_cache[real_name] = file
-
-            docstring = inspect.getdoc(obj)
-            if docstring:
-                docstring = inspect.cleandoc(docstring)
-            else:
-                docstring = ''
-
-            try:
-                lines = inspect.getsourcelines(obj)
-
-                start_line = lines[1] + 1
-                end_line = start_line + len(lines[0])
-            except:
-                start_line = 1
-                end_line = 1
-
-            # Data that is stored in an attr no matter the type.
-            attr = {
-                'category': None,
-                'name': name,
-                'parent': parent,
-                'fqn': apparent_name,
-                'actual_fqn': real_name,
-                'file': file,
-                'start_line': start_line,
-                'end_line': end_line
-            }
-
-            docstring_data = self._parse_docstring(docstring)
-
-            attr['docstring'] = docstring_data['body']
-
-            if inspect.ismodule(obj):
-                attr['category'] = 'module'
-
-                if hasattr(obj, '__all__'):
-                    attr['all'] = obj.__all__
-
-                attr['attrs'] = dir(obj)
-
-            elif inspect.isclass(obj):
-                obj: type = obj
-                if issubclass(obj, enum.IntFlag):
-                    attr['category'] = 'intflag enum'
-                elif issubclass(obj, enum.IntEnum):
-                    attr['category'] = 'int enum'
-                elif issubclass(obj, enum.Flag):
-                    attr['category'] = 'flag enum'
-                elif issubclass(obj, (enum.Enum, enum.EnumMeta)):
-                    attr['category'] = 'enum'
-                else:
-                    attr['category'] = 'class'
-
-                is_desc = any(f(obj) for f in
-                              (inspect.isdatadescriptor,
-                               inspect.isgetsetdescriptor,
-                               inspect.ismemberdescriptor,
-                               inspect.ismethoddescriptor))
-
-                if is_desc:
-                    attr['category'] = attr['category'] + ' descriptor'
-
-                if inspect.isabstract(obj):
-                    attr['category'] = 'abstract ' + attr['category']
-
-                if inspect.isawaitable(obj):
-                    attr['category'] = 'awaitable ' + attr['category']
-
-                attr['bases'] = [self._qual_name(b) for b in obj.__bases__]
-
-                class_attrs = {}
-
-                for attr_name, kind, _, _ in inspect.classify_class_attrs(obj):
-                    if not attr_name.startswith('__'):
-                        class_attrs[attr_name] = kind
-
-                ops = _get_operators(obj)
-                if ops:
-                    attr['ops'] = ops
-
-                if hasattr(obj, '__slots__'):
-                    attr['slots'] = obj.__slots__
-
-                attr['attrs'] = class_attrs
-                mcs = type(obj)
-                attr['metaclass'] = f'{mcs.__module__}.{mcs.__qualname__}'
-            elif inspect.isfunction(obj):
-                cat = 'method' if inspect.ismethod(obj) else 'function'
-                attr['category'] = cat
-
-                if inspect.iscoroutinefunction(obj):
-                    attr['category'] = 'coroutine ' + attr['category']
-                    async = True
-                else:
-                    async = False
-
-                if inspect.isabstract(obj):
-                    attr['category'] = 'abstract ' + attr['category']
-
-                s = inspect.signature(obj)
-                attr['hint'] = self._get_return_annotation(s)
-
-                sig = f'def {name} {inspect.signature(obj)!s}'
-
-                if async:
-                    sig = 'async ' + sig
-
-                attr['sig'] = sig
-
-                if docstring_data['returns']:
-                    attr['returns'] = docstring_data['returns']
-                if docstring_data['raises']:
-                    attr['raises'] = docstring_data['raises']
-
-                param_strings = docstring_data.get('params', {})
-
-                params = {}
-
-                for param in s.parameters.values():
-                    p_str = str(param)
-                    name = param.name
-
-                    annotation = _param_annotation_re.match(p_str)
-                    annotation = annotation.group(1) if annotation else None
-                    default = _param_default_re.match(p_str)
-                    default = default.group(1) if default else None
-
-                    result = {
-                        'name': name,
-                        'annotation': annotation,
-                        'default': default,
-                        # Type: _ParameterKind enum -> str
-                        'kind': param.kind.name.replace('_', ' ').lower(),
-                        'docstring': param_strings.get(name, ''),
-                    }
-
-                    params[name] = result
-
-                # Store params
-                attr['params'] = params
-            else:
-                # General attribute.
-                attr['category'] = 'attribute'
                 try:
-                    attr['str'] = str(obj)
-                    attr['repr'] = repr(obj)
+                    _file = self._resolve_path(real_name, obj)
+                    file = _file[_file.find(walker.start.__name__):]
+
+                    assert file != 'y'
                 except:
-                    pass
+                    file = None
 
-                type_t = type(obj)
-                attr['type'] = f'{type_t.__module__}.{type_t.__qualname__}'
+                if file:
+                    self._filename_cache[apparent_name] = file
+                    self._filename_cache[real_name] = file
 
-            attr_meta[apparent_name] = attr
+                docstring = inspect.getdoc(obj)
+                if docstring:
+                    docstring = inspect.cleandoc(docstring)
+                else:
+                    docstring = ''
+
+                try:
+                    lines = inspect.getsourcelines(obj)
+
+                    start_line = lines[1] + 1
+                    end_line = start_line + len(lines[0])
+                except:
+                    start_line = 1
+                    end_line = 1
+
+                # Data that is stored in an attr no matter the type.
+                attr = {
+                    'category': None,
+                    'name': name,
+                    'parent': parent,
+                    'fqn': apparent_name,
+                    'actual_fqn': real_name,
+                    'file': file,
+                    'start_line': start_line,
+                    'end_line': end_line
+                }
+
+                docstring_data = self._parse_docstring(docstring)
+
+                attr['docstring'] = docstring_data['body']
+
+                if inspect.ismodule(obj):
+                    attr['category'] = 'module'
+
+                    if hasattr(obj, '__all__'):
+                        attr['all'] = obj.__all__
+
+                    attr['attrs'] = dir(obj)
+
+                elif inspect.isclass(obj):
+                    obj: type = obj
+                    if issubclass(obj, enum.IntFlag):
+                        attr['category'] = 'intflag enum'
+                    elif issubclass(obj, enum.IntEnum):
+                        attr['category'] = 'int enum'
+                    elif issubclass(obj, enum.Flag):
+                        attr['category'] = 'flag enum'
+                    elif issubclass(obj, (enum.Enum, enum.EnumMeta)):
+                        attr['category'] = 'enum'
+                    else:
+                        attr['category'] = 'class'
+
+                    is_desc = any(f(obj) for f in
+                                  (inspect.isdatadescriptor,
+                                   inspect.isgetsetdescriptor,
+                                   inspect.ismemberdescriptor,
+                                   inspect.ismethoddescriptor))
+
+                    if is_desc:
+                        attr['category'] = attr['category'] + ' descriptor'
+
+                    if inspect.isabstract(obj):
+                        attr['category'] = 'abstract ' + attr['category']
+
+                    if inspect.isawaitable(obj):
+                        attr['category'] = 'awaitable ' + attr['category']
+
+                    attr['bases'] = [self._qual_name(b) for b in obj.__bases__]
+
+                    class_attrs = {}
+
+                    for attr_n, kind, _, _ in inspect.classify_class_attrs(obj):
+                        if not attr_n.startswith('__'):
+                            class_attrs[attr_n] = kind
+
+                    ops = _get_operators(obj)
+                    if ops:
+                        attr['ops'] = ops
+
+                    if hasattr(obj, '__slots__'):
+                        attr['slots'] = obj.__slots__
+
+                    attr['attrs'] = class_attrs
+                    mcs = type(obj)
+                    attr['metaclass'] = f'{mcs.__module__}.{mcs.__qualname__}'
+                elif inspect.isfunction(obj):
+                    cat = 'method' if inspect.ismethod(obj) else 'function'
+                    attr['category'] = cat
+
+                    if inspect.iscoroutinefunction(obj):
+                        attr['category'] = 'coroutine ' + attr['category']
+                        async = True
+                    else:
+                        async = False
+
+                    if inspect.isabstract(obj):
+                        attr['category'] = 'abstract ' + attr['category']
+
+                    s = inspect.signature(obj)
+                    attr['hint'] = self._get_return_annotation(s)
+
+                    sig = f'def {name} {inspect.signature(obj)!s}'
+
+                    if async:
+                        sig = 'async ' + sig
+
+                    attr['sig'] = sig
+
+                    if docstring_data['returns']:
+                        attr['returns'] = docstring_data['returns']
+                    if docstring_data['raises']:
+                        attr['raises'] = docstring_data['raises']
+
+                    param_strings = docstring_data.get('params', {})
+
+                    params = {}
+
+                    for param in s.parameters.values():
+                        p_str = str(param)
+                        name = param.name
+
+                        annotation = _param_annotation_re.match(p_str)
+                        annotation = annotation.group(1) if annotation else None
+                        default = _param_default_re.match(p_str)
+                        default = default.group(1) if default else None
+
+                        result = {
+                            'name': name,
+                            'annotation': annotation,
+                            'default': default,
+                            # Type: _ParameterKind enum -> str
+                            'kind': param.kind.name.replace('_', ' ').lower(),
+                            'docstring': param_strings.get(name, ''),
+                        }
+
+                        params[name] = result
+
+                    # Store params
+                    attr['params'] = params
+                else:
+                    # General attribute.
+                    attr['category'] = 'attribute'
+                    try:
+                        attr['str'] = str(obj)
+                        attr['repr'] = repr(obj)
+                    except:
+                        pass
+
+                    type_t = type(obj)
+                    attr['type'] = f'{type_t.__module__}.{type_t.__qualname__}'
+
+                attr_meta[apparent_name] = attr
+            except:
+                pass
 
         return data

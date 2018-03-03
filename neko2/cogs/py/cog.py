@@ -47,7 +47,7 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
     get_members = sql.SqlQuery('get_members.sql')
     get_members_fqn = sql.SqlQuery('get_members_fqn.sql')
     get_modules = sql.SqlQuery('get_modules.sql')
-    list_modules = sql.SqlQuery('list_modules.sql')
+    list_all_modules = sql.SqlQuery('list_modules.sql')
     schema_definition = sql.SqlQuery('generate_schema.sql')
 
     ############################################################################
@@ -64,7 +64,7 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
         Searches for documentation on the given module for the given
         attribute.
         """
-        async with await self.acquire_db() as conn:
+        async with await self.acquire_db() as conn, ctx.typing():
 
             # Type hinting in PyCharm :P
             conn: asyncpg.Connection = conn
@@ -80,8 +80,7 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
 
                 # Get all members for that module. This may take a few seconds,
                 # so we show typing.
-                async with ctx.typing():
-                    members = await conn.fetch(self.get_members, pk)
+                members = await conn.fetch(self.get_members, pk)
             else:
                 members = await conn.fetch(self.get_members_fqn, module)
 
@@ -136,7 +135,7 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
     @py_group.command(name='modules', brief='Lists any modules documented.')
     async def list_modules(self, ctx):
         async with await self.acquire_db() as conn:
-            result = await conn.fetch(self.list_modules)
+            result = await conn.fetch(self.list_all_modules)
             await ctx.send(', '.join(f'`{r["module_name"]}`' for r in result))
 
     @commands.is_owner()
@@ -166,10 +165,9 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
 
         # noinspection PyUnusedLocal
         async with await self.acquire_db() as conn, ctx.typing():
-            conn: asyncpg.Connection
-
             self.logger.warning(f'{ctx.author} invoked re-cache operation.')
-            await status.edit(content='Connected. Ensuring schema exists.')
+            asyncio.ensure_future(
+                status.edit(content='Connected. Ensuring schema exists.'))
 
             await conn.execute(self.schema_definition)
 
@@ -192,8 +190,10 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
                         deferrable=False):
 
                     try:
-                        await status.edit(
-                            content=f'[{i+1}/{tot}] Caching `{module}`...')
+                        asyncio.ensure_future(status.edit(
+                            content=f'[{i+1}/{tot}] Caching `{module}`... '
+                                    f'collecting required data from source code'
+                                    f'...'))
 
                         cache = await self.run_in_io_pool(cache_task, module)
 
@@ -215,7 +215,7 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
                             if not j or j % 250 == 249:
                                 asyncio.ensure_future(status.edit(
                                     content=f'[{i+1}/{tot}] In `{module}`:'
-                                            f' Caching attribute [{j+1}'
+                                            f' Storing attribute [{j+1}'
                                             f'/{len(attrs)}] - `{attr["fqn"]}`')
                                 )
 
