@@ -434,8 +434,11 @@ class ModuleCacher:
             else:
                 # General attribute.
                 attr['category'] = 'attribute'
-                attr['str'] = str(obj)
-                attr['repr'] = repr(obj)
+                try:
+                    attr['str'] = str(obj)
+                    attr['repr'] = repr(obj)
+                except:
+                    pass
 
                 type_t = type(obj)
                 attr['type'] = f'{type_t.__module__}.{type_t.__qualname__}'
