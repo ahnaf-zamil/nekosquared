@@ -59,6 +59,10 @@ class OptionPicker(fsa.AbstractPagFsa):
         for emoji, (option_str, option_obj) in options.items():
             buttons.append(make_button_scoped(emoji, option_str, option_obj))
 
+        buttons.append(make_button_scoped(
+            '\N{PUT LITTER IN ITS PLACE SYMBOL}', 'Cancel', None
+        ))
+
         self.options = options
 
         super().__init__(bot, invoked_by, buttons, timeout)
@@ -70,7 +74,7 @@ class OptionPicker(fsa.AbstractPagFsa):
         lines = ['Please pick an option:']
 
         for emoji, (option_str, option_obj) in self.options.items():
-            lines.append(f'{emoji} - {option_str}')
+            lines.append(f'{emoji} - `{option_str}`')
         return '\n'.join(lines)
 
     def __len__(self) -> int:

@@ -6,9 +6,16 @@ Here be dragons.
 This deals with inspecting each module given by a module walker, before
 outputting any data as a dict.
 """
+import enum
 import inspect
 import re
 import typing
+
+from docutils import frontend
+from docutils import utils
+
+import bs4
+from sphinx import parsers
 
 from . import module_hasher
 from . import module_walker
@@ -29,6 +36,105 @@ _param_default_re = re.compile(r'.*=\s*(\w+)')
 # <Signature (params here) -> annotation>
 # This regex should extract the ``annotation`` part of the string.
 _sig_annot_regex = re.compile(r'-> (.+)')
+
+
+# Maps common magic methods to their respective operator or call.
+operators = {
+    '__abs__': 'abs()',
+    '__add__': '+',
+    '__aenter__': 'async with self',
+    '__aiter__': 'in (async iterator)',
+    '__and__': '&',
+    '__anext__': 'await next()',
+    '__await__': 'await self',
+    '__bool__': 'bool()',
+    '__bytes__': 'bytes()',
+    '__call__': 'self()',
+    '__complex__': 'complex()',
+    '__contains__': 'in (contains)',
+    '__del__': 'del self',
+    '__delattr__': 'delattr()',
+    '__delitem__': 'del []',
+    '__dir__': 'dir()',
+    '__divmod__': 'divmod()',
+    '__enter__': 'with self',
+    '__eq__': '==',
+    '__float__': 'float()',
+    '__floordiv__': '//',
+    '__format__': 'format()',
+    '__ge__': '>=',
+    '__getattr__': 'getattr()',
+    '__getitem__': '_ = []',
+    '__gt__': '>',
+    '__hash__': 'hash()',
+    '__iadd__': '+',
+    '__iand__': '&',
+    '__idivmod__': 'divmod()',
+    '__ifloordiv__': '//',
+    '__ilshift__': '<<',
+    '__imatmul__': '@',
+    '__imod__': '%',
+    '__imul__': '*',
+    '__index__': 'operators.index()',
+    '__int__': 'int()',
+    '__invert__': '~self',
+    '__ior__': '|',
+    '__ipow__': '**',
+    '__irshift__': '>>',
+    '__isub__': '-',
+    '__iter__': 'in (iterator)',
+    '__itruediv__': '/',
+    '__ixor__': '^',
+    '__le__': '<=',
+    '__len__': 'len()',
+    '__length_hint__': 'operator.length_hint()',
+    '__lshift__': '<<',
+    '__lt__': '<',
+    '__matmul__': '@',
+    '__mod__': '%',
+    '__mul__': '*',
+    '__ne__': '!=',
+    '__neg__': '-self',
+    '__next__': 'next()',
+    '__or__': '|',
+    '__pos__': '+self',
+    '__pow__': '**',
+    '__radd__': '+',
+    '__rand__': '&',
+    '__rdivmod__': 'divmod()',
+    '__repr__': 'repr()',
+    '__reversed__': 'reversed()',
+    '__rfloordiv__': '//',
+    '__rlshift__': '<<',
+    '__rmatmul__': '@',
+    '__rmod__': '%',
+    '__rmul__': '*',
+    '__ror__': '|',
+    '__round__': 'round()',
+    '__rpow__': '**',
+    '__rrshift__': '>>',
+    '__rshift__': '>>',
+    '__rsub__': '-',
+    '__rtruediv__': '/',
+    '__rxor__': '^',
+    '__setattr__': 'setattr()',
+    '__setitem__': '[] = _',
+    '__str__': 'str()',
+    '__sub__': '-',
+    '__truediv__': '/',
+    '__xor__': '^',
+}
+
+
+def _get_operators(obj):
+    impl_ops = set()
+    impl_dir = dir(obj)
+
+    for operator in operators:
+        if operator in impl_dir:
+            impl_ops.add(operators[operator])
+
+    return list(sorted(impl_ops))
 
 
 class ModuleCacher:
@@ -78,24 +184,80 @@ class ModuleCacher:
             return None
 
     @staticmethod
-    def _get_param_meta(parameter: inspect.Parameter):
-        # Returns a dict of attributes about a parameter
-        p_str = str(parameter)
+    def _parse_docstring(docstring):
+        #  Get a DOM
+        # doctree = publish_doctree(docstring).asdom()
+        #  Get an element tree (meant to be simpler to use)
+        parser = parsers.RSTParser(rfc2822=False)
+        settings = frontend.OptionParser(
+            components=(parsers.RSTParser,),
+            # Apparently 5 means quiet?
+            defaults={'report_level': 5}).get_default_values()
+        dom = utils.new_document('', settings)
+        parser.parse(docstring, dom)
 
-        annotation = _param_annotation_re.match(p_str)
-        annotation = annotation.group(1) if annotation else None
-        default = _param_default_re.match(p_str)
-        default = default.group(1) if default else None
+        # Convert to a beautiful soup document tree. Note, this may not work
+        # on raspbian. If it complains, just remove the "html5lib" argument
+        # and put up with the warning.
+        dom = bs4.BeautifulSoup(str(dom), "html5lib").find('document')
 
-        result = {
-            'name': parameter.name,
-            'annotation': annotation,
-            'default': default,
-            # Type: _ParameterKind enum -> str
-            'kind': parameter.kind.name.replace('_', ' ').title()
+        # Removes all system messages Sphinx crapped out into the docstring.
+        for error in dom.find_all('system_message'):
+            error.replace_with(bs4.Tag(name='empty'))
+
+        for problematic in dom.find_all('problematic'):
+            string = problematic.text
+            string = re.sub(r':\w+:`', '', string).replace('`', '')
+
+            tag = bs4.NavigableString(string)
+            problematic.replace_with(tag)
+
+        params = {}
+        returns = None
+        raises = None
+        other_fields = []
+
+        field_list = dom.find('field_list')
+
+        if field_list:
+            fields: typing.List[bs4.Tag] = field_list.find_all('field')
+            for field in fields:
+                name = field.find('field_name').text
+                body = field.find('field_body').text
+
+                if name.lower() in ('raises', 'raise', 'throws', 'throw'):
+                    raises = body
+                elif name.lower() in ('return', 'returns'):
+                    returns = body
+                elif name.lower().startswith('param '):
+                    name = name[len('param '):].strip()
+                    params[name] = body
+                else:
+                    other_fields.append((name, body))
+
+            # Now remove the field list from the DOM so we don't see it when
+            # we stringify the body.
+            field_list.replace_with(bs4.Tag(name='empty'))
+
+        body = []
+
+        for child in dom.recursiveChildGenerator():
+            try:
+                if child.name == 'paragraph':
+                    body.append(child.text)
+                # Todo: handle other stuff later. For now, just omit it.
+            except:
+                pass
+
+        data = {
+            'body': '\n'.join(body),
+            'params': params,
+            'returns': returns,
+            'raises': raises,
+            'other_fields': other_fields
         }
 
-        return result
+        return data
 
     def make_cache(self) -> typing.Dict[str, typing.Any]:
         """
@@ -119,8 +281,10 @@ class ModuleCacher:
             parent, _, name = apparent_name.rpartition('.')
 
             try:
-                file = self._resolve_path(real_name, obj)
-                file = file[file.find(walker.start.__name__):]
+                _file = self._resolve_path(real_name, obj)
+                file = _file[_file.find(walker.start.__name__):]
+
+                assert file != 'y'
             except:
                 file = None
 
@@ -131,9 +295,12 @@ class ModuleCacher:
             docstring = inspect.getdoc(obj)
             if docstring:
                 docstring = inspect.cleandoc(docstring)
+            else:
+                docstring = ''
 
             try:
                 lines = inspect.getsourcelines(obj)
+
                 start_line = lines[1] + 1
                 end_line = start_line + len(lines[0])
             except:
@@ -148,17 +315,50 @@ class ModuleCacher:
                 'fqn': apparent_name,
                 'actual_fqn': real_name,
                 'file': file,
-                'docstring': docstring,
                 'start_line': start_line,
                 'end_line': end_line
             }
 
+            docstring_data = self._parse_docstring(docstring)
+
+            attr['docstring'] = docstring_data['body']
+
             if inspect.ismodule(obj):
                 attr['category'] = 'module'
-            elif inspect.isclass(obj):
-                attr['category'] = 'class'
 
-                obj: type
+                if hasattr(obj, '__all__'):
+                    attr['all'] = obj.__all__
+
+                attr['attrs'] = dir(obj)
+
+            elif inspect.isclass(obj):
+                obj: type = obj
+                if issubclass(obj, enum.IntFlag):
+                    attr['category'] = 'intflag enum'
+                elif issubclass(obj, enum.IntEnum):
+                    attr['category'] = 'int enum'
+                elif issubclass(obj, enum.Flag):
+                    attr['category'] = 'flag enum'
+                elif issubclass(obj, (enum.Enum, enum.EnumMeta)):
+                    attr['category'] = 'enum'
+                else:
+                    attr['category'] = 'class'
+
+                is_desc = any(f(obj) for f in
+                              (inspect.isdatadescriptor,
+                               inspect.isgetsetdescriptor,
+                               inspect.ismemberdescriptor,
+                               inspect.ismethoddescriptor))
+
+                if is_desc:
+                    attr['category'] = attr['category'] + ' descriptor'
+
+                if inspect.isabstract(obj):
+                    attr['category'] = 'abstract ' + attr['category']
+
+                if inspect.isawaitable(obj):
+                    attr['category'] = 'awaitable ' + attr['category']
+
                 attr['bases'] = [self._qual_name(b) for b in obj.__bases__]
 
                 class_attrs = {}
@@ -167,21 +367,79 @@ class ModuleCacher:
                     if not attr_name.startswith('__'):
                         class_attrs[attr_name] = kind
 
-                attr['attrs'] = class_attrs
+                ops = _get_operators(obj)
+                if ops:
+                    attr['ops'] = ops
 
-                pass
+                if hasattr(obj, '__slots__'):
+                    attr['slots'] = obj.__slots__
+
+                attr['attrs'] = class_attrs
+                mcs = type(obj)
+                attr['metaclass'] = f'{mcs.__module__}.{mcs.__qualname__}'
             elif inspect.isfunction(obj):
-                attr['category'] = 'function'
+                cat = 'method' if inspect.ismethod(obj) else 'function'
+                attr['category'] = cat
+
+                if inspect.iscoroutinefunction(obj):
+                    attr['category'] = 'coroutine ' + attr['category']
+                    async = True
+                else:
+                    async = False
+
+                if inspect.isabstract(obj):
+                    attr['category'] = 'abstract ' + attr['category']
+
                 s = inspect.signature(obj)
-                attr['return_hint'] = self._get_return_annotation(s)
-                attr['params'] = [self._get_param_meta(p)
-                                  for p in s.parameters.values()]
+                attr['hint'] = self._get_return_annotation(s)
+
+                sig = f'def {name} {inspect.signature(obj)!s}'
+
+                if async:
+                    sig = 'async ' + sig
+
+                attr['sig'] = sig
+
+                if docstring_data['returns']:
+                    attr['returns'] = docstring_data['returns']
+                if docstring_data['raises']:
+                    attr['raises'] = docstring_data['raises']
+
+                param_strings = docstring_data.get('params', {})
+
+                params = {}
+
+                for param in s.parameters.values():
+                    p_str = str(param)
+                    name = param.name
+
+                    annotation = _param_annotation_re.match(p_str)
+                    annotation = annotation.group(1) if annotation else None
+                    default = _param_default_re.match(p_str)
+                    default = default.group(1) if default else None
+
+                    result = {
+                        'name': name,
+                        'annotation': annotation,
+                        'default': default,
+                        # Type: _ParameterKind enum -> str
+                        'kind': param.kind.name.replace('_', ' ').lower(),
+                        'docstring': param_strings.get(name, ''),
+                    }
+
+                    params[name] = result
+
+                # Store params
+                attr['params'] = params
             else:
                 # General attribute.
                 attr['category'] = 'attribute'
+                attr['str'] = str(obj)
+                attr['repr'] = repr(obj)
+
+                type_t = type(obj)
+                attr['type'] = f'{type_t.__module__}.{type_t.__qualname__}'
 
             attr_meta[apparent_name] = attr
 
         return data
-
-

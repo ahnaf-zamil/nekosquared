@@ -9,9 +9,10 @@ config directory. This should be a list of Python modules to index when we are
 directed to.
 """
 import json
-import os
+import random
 import time
 
+import asyncio
 import asyncpg
 import discord
 
@@ -44,6 +45,7 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
     add_module = sql.SqlQuery('add_module.sql')
     get_count = sql.SqlQuery('get_count.sql')
     get_members = sql.SqlQuery('get_members.sql')
+    get_members_fqn = sql.SqlQuery('get_members_fqn.sql')
     get_modules = sql.SqlQuery('get_modules.sql')
     list_modules = sql.SqlQuery('list_modules.sql')
     schema_definition = sql.SqlQuery('generate_schema.sql')
@@ -67,20 +69,21 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
             # Type hinting in PyCharm :P
             conn: asyncpg.Connection = conn
 
-            module = await conn.fetchrow(self.get_modules, module)
+            if '.' not in module:
+                module = await conn.fetchrow(self.get_modules, module)
 
-            if not module:
-                return await ctx.send('I couldn\'t find a module for that.')
+                if not module:
+                    return await ctx.send('I couldn\'t find a module for that.')
 
-            # Unpack
-            pk, name = module
+                # Unpack
+                pk, name = module
 
-            # Todo: find a way of fuzzy matching in Postgres properly, as there
-            # are extensions for it, I just cannot get them to work at the
-            # moment.
-
-            # Get all members for that module.
-            members = await conn.fetch(self.get_members, pk)
+                # Get all members for that module. This may take a few seconds,
+                # so we show typing.
+                async with ctx.typing():
+                    members = await conn.fetch(self.get_members, pk)
+            else:
+                members = await conn.fetch(self.get_members_fqn, module)
 
             # Perform fuzzy matching. Get the 10 best results for the
             # fully qualified name.
@@ -115,36 +118,20 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
                     emoji = '\N{KEYCAP TEN}'
                 options[emoji] = (string, obj)
 
-            # Last 180 seconds
-            picker = fsa.FocusedOptionPicker(options, ctx.bot, ctx, 180)
+            if len(options) > 1:
+                # Last 180 seconds
+                picker = fsa.FocusedOptionPicker(options, ctx.bot, ctx, 180)
 
-            chosen_result = await picker.run()
+                chosen_result = await picker.run()
 
-            # If we timed out...
-            if chosen_result is None:
-                return
+                # If we timed out...
+                if chosen_result is None:
+                    return
+            else:
+                # Get the first (only) option.
+                chosen_result = list(options.values())[0][1]
 
-            # Otherwise, get the documentation:
-            embed = discord.Embed(title=chosen_result.pop('fq_member_name'))
-            metadata = json.loads(chosen_result.pop('metadata'))
-            docstring = metadata.pop('docstring')
-            if not docstring:
-                docstring = ''
-
-            embed.set_footer(text=metadata.pop('file'))
-
-            await ctx.send(embed=embed)
-
-            # Send docstring separately
-            if docstring:
-                docstring_pag = fsa.LinedPag(prefix='```rst', suffix='```')
-                for line in docstring.split('\n'):
-                    docstring_pag.add_line(line)
-
-                dsp = fsa.FocusedPagMessage.from_strings(
-                    *docstring_pag.pages, bot=ctx.bot, invoked_by=ctx,
-                    timeout=300)
-                dsp.nowait(dsp.run())
+        await self._make_send_doc(ctx, chosen_result)
 
     @py_group.command(name='modules', brief='Lists any modules documented.')
     async def list_modules(self, ctx):
@@ -225,11 +212,12 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
                         arguments = []
 
                         for j, attr in enumerate(attrs.values()):
-                            if j % 100 == 0:
-                                await status.edit(
+                            if not j or j % 250 == 249:
+                                asyncio.ensure_future(status.edit(
                                     content=f'[{i+1}/{tot}] In `{module}`:'
                                             f' Caching attribute [{j+1}'
                                             f'/{len(attrs)}] - `{attr["fqn"]}`')
+                                )
 
                             name = attr.pop('name')
                             fqn = attr.pop('fqn')
@@ -250,3 +238,133 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
                         f'members across {module_count:,} modules in approx. '
                         f'{int(runtime/60)} minutes, {int(runtime % 60)} '
                         f'seconds.')
+
+    ############################################################################
+    # Helpers and other bits and pieces.                                       #
+    ############################################################################
+    @staticmethod
+    async def _make_send_doc(ctx, element):
+        """Makes the documentation for us."""
+        meta = json.loads(element['metadata'])
+
+        category = meta['category']
+
+        embed = discord.Embed(
+            title=f'`{element["member_name"]}`: {category}',
+            colour=random.choice([0x4584b6, 0xffde57]))
+
+        docstring = meta.pop('docstring')
+        file = meta.pop('file')
+        start_line = meta.pop('start_line')
+        end_line = meta.pop('end_line')
+
+        if start_line < end_line:
+            sig = f'{start_line}⟶{end_line}'
+        elif start_line == end_line == 1:
+            sig = ''
+        else:
+            sig = f'{start_line}'
+
+        embed.set_footer(text=f'{file}:{sig}')
+
+        actual_fqn = meta.pop('actual_fqn')
+
+        description = []
+
+        sig = meta.pop('sig', '')
+
+        if sig:
+            description.append(sig)
+
+        if actual_fqn != element['fq_member_name']:
+            description.append(f'Alias for {actual_fqn}')
+
+        if description:
+            embed.description = '\n\n'.join(description)
+
+        params = meta.pop('params', {})
+        if params:
+            param_str = []
+            for param in params.values():
+                sig = f'`{param["name"]}'
+                if param['annotation']:
+                    sig += f': {param["annotation"]}'
+                if param['default']:
+                    sig += f' = {param["default"]}'
+
+                sig += '`'
+                line = [sig]
+                positionality = f'({param["kind"]})'
+                docstring = param['docstring']
+
+                if docstring:
+                    line.append(docstring)
+
+                line.append(positionality)
+
+                param_str.append(' - '.join(line))
+
+            embed.add_field(
+                name='Parameters',
+                value='\n'.join(param_str)[:1024],
+                inline=False)
+
+        embed.set_author(name=meta.pop('parent'))
+
+        ops = meta.pop('ops', [])
+        returns = meta.pop('returns', '')
+        hint = meta.pop('hint', '')
+        raises = meta.pop('raises', '')
+        attrs = [f'`{attr}`' for attr in sorted(meta.pop('attrs', []))]
+        type_t = meta.pop('type', '')
+        meta_class = meta.pop('metaclass', '')
+        bases = [f'`{base}`' for base in sorted(meta.pop('bases', []))]
+        str_v = meta.pop('str', '')
+        repr_v = meta.pop('repr', '')
+
+        if ops:
+            embed.add_field(
+                name='Operators',
+                value=', '.join(f'`{o}`' for o in ops))
+
+        if returns:
+            embed.add_field(name='Returns', value=returns)
+        if hint:
+            embed.add_field(name='Type hint', value=f'`{hint}`')
+        if raises:
+            embed.add_field(name='Raises', value=raises)
+        if attrs:
+            # Ignore protected/private members.
+            attrs = [*filter(lambda a: not a.startswith('_'), attrs)]
+            for i in range(0, len(attrs), 50):
+                embed.add_field(
+                    name='Attributes (continued)' if i else 'Attributes',
+                    value=', '.join(attrs[i:i+50]))
+        if bases:
+            for i in range(0, len(bases), 50):
+                embed.add_field(
+                    name='Base classes',
+                    value='\n'.join(bases[i:i+20]))
+        if meta_class:
+            embed.add_field(name='Metaclass', value=f'`{meta_class}`')
+        if type_t:
+            embed.add_field(name='Type', value=f'`{type_t}`')
+        if str_v:
+            embed.add_field(name='`str()` string', value=f'`{str_v}`')
+        if repr_v:
+            embed.add_field(name='`repr()` string', value=f'`{repr_v}`')
+
+        await ctx.send(embed=embed)
+
+        # Send paginator for the docstring, if applicable.
+        if docstring:
+            pag = fsa.LinedPag(max_lines=10, prefix='```\nDocstring:',
+                               suffix='```')
+            for line in docstring.split('\n'):
+                pag.add_line(f'  {line}')
+
+            # Keep alive for two minutes or so.
+            fsm = fsa.FocusedPagMessage.from_paginator(
+                pag=pag, bot=ctx.bot, invoked_by=ctx, timeout=120)
+
+            await fsm.run()

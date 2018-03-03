@@ -19,8 +19,7 @@ class GitCog(traits.Scribe, traits.CpuBoundPool):
 
     @commands.is_owner()
     @commands.command(
-        brief='Updates the bot if we are in a valid git repository.',
-        hidden=True)
+        brief='Updates the bot if we are in a valid git repository.')
     async def update(self, ctx):
         """
         This will DM you the results.
@@ -133,8 +132,7 @@ class GitCog(traits.Scribe, traits.CpuBoundPool):
     @commands.is_owner()
     @commands.command(
         brief='Clears the stash, and ensures we are up to date with master, '
-              'even if it means destroying the current code base.',
-        hidden=True)
+              'even if it means destroying the current code base.')
     async def fix(self, ctx):
         """
         This will DM you the results.
@@ -245,7 +243,7 @@ class GitCog(traits.Scribe, traits.CpuBoundPool):
             await ctx.bot.logout()
 
     @commands.is_owner()
-    @commands.command(brief='Restarts the bot', hidden=True, aliases=['stop'])
+    @commands.command(brief='Restarts the bot', aliases=['stop'])
     async def restart(self, ctx):
         try:
             await ctx.message.add_reaction('\N{OK HAND SIGN}')

@@ -128,13 +128,14 @@ class EmbedPrevCog:
 
                 embed.add_field(name=name, value=value, inline=inline)
 
-            if not (0 <= colour <= 0xFFFFFF):
-                warnings.append('Colour should be in range [0x0, 0xFFFFFF]')
-            if len(embed.title) > 256:
+            if colour is not embeds.EmptyEmbed:
+                if not (0 <= colour <= 0xFFFFFF):
+                    warnings.append('Colour should be in range [0x0, 0xFFFFFF]')
+            if embed.title and len(embed.title) > 256:
                 warnings.append('Title is greater than 256 chars')
-            if len(embed.description) > 2048:
+            if embed.description and len(embed.description) > 2048:
                 warnings.append('Description is greater than 2048 chars')
-            if len(embed.fields) >= 25:
+            if embed.fields and len(embed.fields) >= 25:
                 warnings.append('There are more than 24 fields.')
 
             # Send any warnings first.
