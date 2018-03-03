@@ -274,7 +274,7 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
         sig = meta.pop('sig', '')
 
         if sig:
-            description.append(sig)
+            description.append(f'`{sig}`')
 
         if actual_fqn != element['fq_member_name']:
             description.append(f'Alias for {actual_fqn}')

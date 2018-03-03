@@ -26,7 +26,7 @@ BotInterrupt = KeyboardInterrupt
 
 # Set to false to disable the global "development" message being set on
 # startup.
-is_development = True
+is_development = False
 
 
 ################################################################################
