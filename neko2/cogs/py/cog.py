@@ -76,18 +76,16 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
                 module = await conn.fetchrow(self.get_modules, module)
 
                 if not module:
-                    return await ctx.send('I couldn\'t find a module for that.')
+                    members = await conn.fetch(self.get_all_members_fqn)
+                else:
+                    # Unpack
+                    pk, name = module
 
-                # Unpack
-                pk, name = module
-
-                # Get all members for that module. This may take a few seconds,
-                # so we show typing.
-                members = await conn.fetch(self.get_members, pk)
+                    # Get all members for that module. This may take a few seconds,
+                    # so we show typing.
+                    members = await conn.fetch(self.get_members, pk)
             else:
                 members = await conn.fetch(self.get_members_fqn, module)
-                if not members:
-                    members = await conn.fetch(self.get_all_members_fqn)
 
             # Perform fuzzy matching. Get the 10 best results for the
             # fully qualified name.
