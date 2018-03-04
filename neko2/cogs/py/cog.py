@@ -46,6 +46,7 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
     add_member = sql.SqlQuery('add_member.sql')
     add_module = sql.SqlQuery('add_module.sql')
     get_count = sql.SqlQuery('get_count.sql')
+    get_all_members_fqn = sql.SqlQuery('get_all_members_fqn.sql')
     get_members = sql.SqlQuery('get_members.sql')
     get_members_fqn = sql.SqlQuery('get_members_fqn.sql')
     get_modules = sql.SqlQuery('get_modules.sql')
@@ -85,6 +86,8 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
                 members = await conn.fetch(self.get_members, pk)
             else:
                 members = await conn.fetch(self.get_members_fqn, module)
+                if not members:
+                    members = await conn.fetch(self.get_all_members_fqn)
 
             # Perform fuzzy matching. Get the 10 best results for the
             # fully qualified name.
