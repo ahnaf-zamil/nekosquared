@@ -264,19 +264,22 @@ class ModuleCacher:
         """
         Creates a cache dict and returns it.
         """
-        walker = module_walker.ModuleWalker(self._name, self._rel)
-        module_hash = str(module_hasher.get_module_hash(walker.start))
-        attrs = [attr for attr in walker]
+        try:
+            walker = module_walker.ModuleWalker(self._name, self._rel)
+            module_hash = str(module_hasher.get_module_hash(walker.start))
+            attrs = [attr for attr in walker]
 
-        # Holds our metadata.
-        attr_meta = {}
+            # Holds our metadata.
+            attr_meta = {}
 
-        data = {
-            "hash": module_hash,
-            'hashing_algorithm': module_hasher.hash_alg,
-            "root": walker.start.__name__,
-            "attrs": attr_meta
-        }
+            data = {
+                "hash": module_hash,
+                'hashing_algorithm': module_hasher.hash_alg,
+                "root": walker.start.__name__,
+                "attrs": attr_meta
+            }
+        except:
+            return {}
 
         for apparent_name, real_name, obj in attrs:
             # This is best effort. Some components may well error as we traverse
