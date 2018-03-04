@@ -395,7 +395,7 @@ class ModuleCacher:
                         attr['category'] = 'async coroutine ' + attr['category']
                         async = True
                     elif asyncio.iscoroutinefunction(obj):
-                        attr['category'] = '@asyncio.coroutine ' , attr['category']
+                        attr['category'] = '@asyncio.coroutine ' + attr['category']
                         async = True
                     else:
                         async = False
