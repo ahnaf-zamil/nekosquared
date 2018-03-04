@@ -231,7 +231,8 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
 
                         await conn.executemany(self.add_member, arguments)
                     except BaseException as ex:
-                        await ctx.send(f'\N{NO ENTRY SIGN} {ex}')
+                        await ctx.send(f'\N{NO ENTRY SIGN} in {module}\n'
+                                       f'{type(ex).__name__} {ex}')
 
                 module_count, member_count = await conn.fetchrow(self.get_count)
             runtime = time.time() - start_time
