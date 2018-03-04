@@ -15,17 +15,20 @@ cfg_file = configfiles.get_config_holder('discord.yaml')
 bot = client.Bot(cfg_file.sync_get())
 errors = autoloader.auto_load_modules(bot)
 
+
+# If any errors occur on startup... DM me each error.
 @bot.listen()
 async def on_ready():
+    global errors
     if errors:
         for error in errors:
             string = ''.join(traceback.format_exception(
                 type(error),
                 error,
-                error.__traceback__)
-            await bot.get_user(bot.owner_id).send(string[:2000])
+                error.__traceback__))
+            owner = bot.get_user(bot.owner_id)
+            await owner.send(f'```\n{string[:1990]}\n```')
         errors = None
 
 bot.run()
-
 exit(0)
