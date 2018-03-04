@@ -6,6 +6,7 @@ Here be dragons.
 This deals with inspecting each module given by a module walker, before
 outputting any data as a dict.
 """
+import asyncio
 import enum
 import inspect
 import re
@@ -385,8 +386,13 @@ class ModuleCacher:
                     cat = 'method' if inspect.ismethod(obj) else 'function'
                     attr['category'] = cat
 
+                    # This only picks up `async` marked coroutines, not
+                    # Python3.4-style decorated `@asyncio.coroutine` ones
                     if inspect.iscoroutinefunction(obj):
-                        attr['category'] = 'coroutine ' + attr['category']
+                        attr['category'] = 'async coroutine ' + attr['category']
+                        async = True
+                    elif asyncio.iscoroutinefunction(obj):
+                        attr['category'] = '@asyncio.coroutine ' , attr['category']
                         async = True
                     else:
                         async = False

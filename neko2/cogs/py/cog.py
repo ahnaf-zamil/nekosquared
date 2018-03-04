@@ -8,11 +8,11 @@ This expects a config file called neko2.cogs.py.targets.yaml to exist in the
 config directory. This should be a list of Python modules to index when we are
 directed to.
 """
+import asyncio
 import json
 import random
 import time
 
-import asyncio
 import asyncpg
 import discord
 
@@ -36,6 +36,8 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
 
     def __init__(self):
         self.cache_config = configfiles.get_config_data(config_file)
+        # Cast to and from a set to remove duplicates.
+        self.cache_config = tuple(frozenset(self.cache_config))
 
     ############################################################################
     # SQL queries we utilise in this class. This loads them from disk.         #
@@ -157,7 +159,8 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
         """
         await ctx.send('Warning! This may take from a few minutes to a few '
                        'hours, depending on the number of members being '
-                       'cached. Please be patient!')
+                       'cached. Please be patient! This will also block while '
+                       'modules are loaded. You have been warned.')
 
         status = await ctx.send('Starting cache process.')
 
