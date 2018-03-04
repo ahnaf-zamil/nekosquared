@@ -230,7 +230,7 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
                             arguments.append(next_record)
 
                         await conn.executemany(self.add_member, arguments)
-                    except ModuleNotFoundError as ex:
+                    except BaseException as ex:
                         await ctx.send(f'\N{NO ENTRY SIGN} {ex}')
 
                 module_count, member_count = await conn.fetchrow(self.get_count)
