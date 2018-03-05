@@ -11,7 +11,7 @@ import typing  # Type checking
 
 import cached_property    # Caching properties
 # Used internally.
-from discord.ext import commands
+from discord.ext import commands as discord_commands
 # Ensures these modules are in the same namespace.
 # noinspection PyUnresolvedReferences
 from discord.ext.commands.context import Context
@@ -23,6 +23,10 @@ from discord.ext.commands.converter import *
 from discord.ext.commands.cooldowns import *
 # noinspection PyUnresolvedReferences
 from discord.ext.commands.errors import *
+
+BaseCommand = discord_commands.Command
+BaseGroup = discord_commands.Group
+BaseGroupMixin = discord_commands.GroupMixin
 
 
 class CommandMixin:
@@ -53,11 +57,11 @@ class CommandMixin:
         return frozenset({self.qualified_name, *self.qualified_aliases})
 
 
-class Command(commands.Command, CommandMixin):
+class Command(discord_commands.Command, CommandMixin):
     pass
 
 
-class Group(commands.Group, CommandMixin):
+class Group(discord_commands.Group, CommandMixin):
     pass
 
 
@@ -66,7 +70,7 @@ def command(**kwargs):
     # Ensure the class is set correctly.
     cls = kwargs.pop('cls', Command)
     kwargs['cls'] = cls
-    return commands.command(**kwargs)
+    return discord_commands.command(**kwargs)
 
 
 def group(**kwargs):
@@ -74,4 +78,4 @@ def group(**kwargs):
     # Ensure the class is set correctly.
     cls = kwargs.pop('cls', Group)
     kwargs['cls'] = cls
-    return commands.command(**kwargs)
+    return discord_commands.command(**kwargs)

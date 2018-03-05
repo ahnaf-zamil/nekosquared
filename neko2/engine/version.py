@@ -3,37 +3,79 @@
 """
 Builtin extension that is loaded to implement a version message.
 """
-import discord      # Discord.py embeds.
+import inspect
+import platform
+import re
+import subprocess
 
-import neko2        # Neko2 package metadata (__version__, __author__, etc)
+from discord import embeds
+
+import neko2
 from neko2.engine import commands
+from neko2.shared import string
+
+
+# I like numbers
+try:
+    lines_of_code: str = subprocess.check_output(
+        [
+            '/bin/sh',
+            '-c',
+            'wc -l $(find neko2 -name "*.py" -o -name "*.sql")'
+        ],
+        universal_newlines=True)
+    # Gets the number from the total line of the output for wc
+    lines_of_code = lines_of_code.strip().split('\n')[-1].strip().split(' ')[0]
+    lines_of_code = f'{int(lines_of_code):,} lines of code!'
+except:
+    lines_of_code = 'No idea on how many lines of code!'
 
 
 @commands.command()
 async def version(ctx):
+    """Shows versioning information and some other useful statistics."""
     author = neko2.__author__
-    contrib = neko2.__contributors__
+    contrib = [*neko2.__contributors__]
     license = neko2.__license__
     repo = neko2.__repository__
     version = neko2.__version__
     owner = ctx.bot.get_user(ctx.bot.owner_id)
     uptime = ctx.bot.uptime
+    docstring = inspect.getdoc(neko2)
+    if docstring:
+        docstring = string.remove_single_lines(inspect.cleandoc(docstring))
+    else:
+        docstring = embeds.EmptyEmbed
 
-    desc = '\n'.join([
-        f'Contributed to by {", ".join(contrib)}',
+    # Remove me from contributors.
+    contrib.remove(author)
+
+    info = '\n\n'.join([
+        f'- Created by {author}, under the {license}',
+        f'- Bot account owned by {owner}',
+        '- Contributed to by ' + ', '.join(contrib) + '\n' if contrib else '',
+    ]).strip()
+
+    environment = '\n'.join([
+        f'- {platform.system()} {platform.release()} {platform.machine()}',
         '',
-        f'Licensed under {license}',
+        f'- Python {platform.python_version()} '
+        f'({platform.python_implementation()}) ',
+        f'   compiled with {platform.python_compiler()}',
+        f'   built on {platform.python_build()[1]}',
         '',
-        f'Bot user owned by {owner}'
+        f'- {lines_of_code}'
     ])
 
-    embed = discord.Embed(
-        title=f'Nekozilla² v{version}',
-        description=desc,
+    embed = embeds.Embed(
+        title=f'Neko² v{version}',
         colour=0xc70025,
+        description=docstring,
         url=repo)
 
-    embed.set_author(name=author)
+    embed.add_field(name='Ownership and licensing', value=info, inline=False)
+    embed.add_field(name='Techspecs for nerds', value=environment, inline=False)
+    embed.set_author(name=f'{author} presents...')
 
     if uptime >= 60 * 60 * 24:
         uptime /= (60.0 * 60 * 24)

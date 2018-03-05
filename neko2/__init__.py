@@ -1,7 +1,11 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
 """
-Implementation of the Neko² bot engine.
+Implementation of Neko²: a bot built from the learnings and mistakes
+of _Nekozilla_, hopefully to replace Nekozilla entirely.
+
+This is still in active development, so many features may still not work
+correctly, or may not be available yet.
 """
 import neko2.shared
 import neko2.cogs
