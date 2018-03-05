@@ -109,7 +109,7 @@ class HelpCog(traits.Scribe):
                 # If an error is raised by checking permissions for a command,
                 # then just ignore that command.
                 try:
-                    if command.can_run(ctx):
+                    if await command.can_run(ctx):
                         cmds.append(command)
                 except:
                     pass
