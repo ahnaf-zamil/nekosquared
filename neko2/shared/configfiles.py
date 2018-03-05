@@ -9,9 +9,14 @@ import os
 
 import aiofiles
 
+
+__all__ = ('CONFIG_DIRECTORY', 'ConfigFile', 'get_config_data',
+           'get_config_holder', 'get_config_data_async')
+
 # Overwrite this variable to alter where we look for config files if you
 # need to.
-CONFIG_DIRECTORY = '../neko2config'
+DEFAULT_CONFIG_DIRECTORY = '../neko2config'
+CONFIG_DIRECTORY = DEFAULT_CONFIG_DIRECTORY
 
 
 class ConfigFile:

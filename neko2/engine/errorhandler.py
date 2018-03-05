@@ -3,6 +3,7 @@
 import logging   # Logging uitls.
 import traceback   # Traceback utils.
 
+import discord
 import discord.errors as dpy_errors   # Errors for dpy base.
 import discord.ext.commands.errors as dpyext_errors   # Errors for ext.
 
@@ -26,6 +27,43 @@ async def handle_error(*, bot, cog=None, ctx=None, error, event_method=None):
     except BaseException as ex:
         ex.__cause__ = error
         traceback.print_exception(type(ex), ex, ex.__traceback__)
+
+
+async def __dm_me_error(*, bot, cog, ctx, error, event_method):
+    embed = discord.Embed(
+        title=f'An error occurred: `{type(error).__qualname__}`',
+        description=f'Supplied error message: `{error!s}`',
+        colour=0xFF0000)
+
+    trace = traceback.format_tb(error.__traceback__)
+    trace = ''.join(trace)
+    if len(trace) > 1010:
+        embed.set_footer(text='Traceback has been truncated.')
+        trace = trace[:1007] + '...'
+
+    trace = f'```\n{trace}\n```'
+    embed.add_field(name='Traceback', value=trace, inline=False)
+
+    if ctx:
+        whom_info = (
+            f'{ctx.command.qualified_name} invoked as {ctx.invoked_by}\n'
+            f'Invoked by: {ctx.author} (`{ctx.author.id}`)\n'
+            f'{"Guild: " + str(ctx.guild) if ctx.guild else "in DMs"}\n'
+            f'Channel: #{ctx.channel}\n'
+            f'When: {ctx.message.created_at}')
+        body = ctx.message.content
+        if len(body) > 1000:
+            body = f'{body[:997]}...'
+        body = f'```\n{body}\n```'
+        embed.add_field(name='Command info', value=whom_info)
+        embed.add_field(name='Command body', value=body)
+    if cog:
+        embed.add_field(name='Cog', value=str(cog))
+    if event_method:
+        embed.add_field(name='Event method', value=str(event_method))
+
+    owner = bot.get_user(bot.owner_id)
+    await owner.send(embed=embed)
 
 
 async def __handle_error(*, bot, cog=None, ctx=None, error, event_method=None):
@@ -123,6 +161,10 @@ async def __handle_error(*, bot, cog=None, ctx=None, error, event_method=None):
     else:
         reply = '\N{SQUARED SOS} Something serious went wrong... '
         reply += excuses.get_excuse()
+
+        # DM me some information about what went wrong.
+        await __dm_me_error(bot=bot, ctx=ctx, cog=cog, error=error,
+                            event_method=event_method)
 
     destination = ctx if ctx else bot.get_owner()
     # Since I take some raw input from errors, this is just a safeguard to
