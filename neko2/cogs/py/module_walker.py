@@ -3,12 +3,12 @@
 """
 Handles extracting anything exposed by a module.
 """
-import builtins
-import importlib
-import inspect
-import re
-import typing
-from neko2.shared import scribe
+import builtins    # Builtins. Used to get the Module class def'n
+import importlib   # Dynamic importing
+import inspect     # Inspection
+import re          # Regular expressions
+import typing      # Type checking
+from neko2.shared import scribe   # Logging
 
 
 ModuleType = type(builtins)

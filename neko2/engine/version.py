@@ -3,9 +3,9 @@
 """
 Builtin extension that is loaded to implement a version message.
 """
-import discord
+import discord      # Discord.py embeds.
 
-import neko2
+import neko2        # Neko2 package metadata (__version__, __author__, etc)
 from neko2.engine import commands
 
 

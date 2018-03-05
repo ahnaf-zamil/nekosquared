@@ -3,19 +3,19 @@
 """
 C and C++ utilities.
 """
-import collections
-import random
-import re
-import typing
-from urllib import parse
+import collections         # Named tuple
+import random              # RNG
+import re                  # Regex
+import typing              # Type checking
+from urllib import parse   # URL validation/sanitation
 
-import bs4
-import discord
+import bs4                 # HTML parser
+import discord             # discord.py
 
-from neko2.engine import commands
-from neko2.shared import errors
-from neko2.shared import fsa
-from neko2.shared import traits
+from neko2.engine import commands    # Command decorators
+from neko2.shared import errors      # error types
+from neko2.shared import fsa         # finite state machines
+from neko2.shared import traits      # HTTP pool
 
 
 result_path = re.compile(r'^/w/c(pp)?/', re.I)

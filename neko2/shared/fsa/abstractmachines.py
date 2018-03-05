@@ -10,12 +10,12 @@ make sure to keep this message here.
 Base finite state automaton. This is an asynchronous iterator abstract
 class type.
 """
-import abc
-import asyncio
-import typing
+import abc          # Abstract classes
+import asyncio      # Asyncio utils
+import typing       # Type checking
 
-import discord
-from discord.ext import commands
+import discord      # Discord.py
+from discord.ext import commands    # Context
 
 
 __all__ = ('AsyncioTimeoutError', 'FiniteStateAutomaton')

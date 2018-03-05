@@ -3,7 +3,7 @@
 """
 Builtin extension that is loaded to implement a custom help method.
 """
-from neko2.engine import commands
+from neko2.engine import commands       # Command decorators
 
 
 @commands.command()

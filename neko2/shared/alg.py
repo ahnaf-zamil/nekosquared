@@ -4,8 +4,8 @@
 Algorithm stuff, and general bits and pieces that don't belong elsewhere, or
 that generally operate on a wide variety of data.
 """
-import time
-import typing
+import time       # Basic timestamps
+import typing     # Type checking
 
 
 def find(predicate, iterable):

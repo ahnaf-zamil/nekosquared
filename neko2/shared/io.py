@@ -3,8 +3,8 @@
 """
 IO bits and pieces.
 """
-import inspect
-import os
+import inspect      # Stack frame inspection
+import os           # OS path utils
 
 __all__ = ('in_here',)
 

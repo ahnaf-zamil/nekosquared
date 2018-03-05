@@ -4,12 +4,12 @@
 Handles taking a basic hash of a module. This can be either a directory-based
 module or a file-based module.
 """
-import builtins
-import hashlib
-import importlib
-import inspect
-import os
-import typing
+import builtins   # Builtins. Just used to get the class def'n for Module.
+import hashlib    # Hashing algorithms
+import importlib  # Dynamic importing
+import inspect    # Inspection
+import os         # OS file path operations
+import typing     # Type checking
 
 
 ModuleType = type(builtins)

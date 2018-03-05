@@ -3,13 +3,13 @@
 """
 Embed preview cog utility.
 """
-import io
-import traceback
+import io                           # StringIO
+import traceback                    # Traceback utils
 
-from discord import embeds
-import yaml
+from discord import embeds          # Embeds
+import yaml                         # YAML parser
 
-from neko2.engine import commands
+from neko2.engine import commands   # Commands decorators
 
 
 class EmbedPrevCog:

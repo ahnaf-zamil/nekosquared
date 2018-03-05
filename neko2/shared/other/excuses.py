@@ -3,7 +3,7 @@
 """
 Various excuses to use when stuff breaks.
 """
-import random
+import random    # RNG
 
 __all__ = ('get_excuse',)
 

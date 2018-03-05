@@ -5,7 +5,7 @@ Cog holding owner-only administrative commands, such as those for restarting
 the bot, inspecting/loading/unloading commands/cogs/extensions, etc.
 """
 
-from neko2.engine import commands
+from neko2.engine import commands   # command decorator
 
 
 class AdminCog:

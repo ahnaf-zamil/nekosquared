@@ -5,5 +5,4 @@ Other more bespoke utilities used throughout the bot, such as fuzzy string
 pattern matching, fake type implementations, et cetera.
 """
 from . import excuses
-from . import faketypes
 from . import fuzzy

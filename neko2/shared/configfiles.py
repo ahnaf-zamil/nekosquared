@@ -3,11 +3,11 @@
 """
 Handles reading config files.
 """
-import asyncio
-import io
-import os
+import asyncio      # Asyncio
+import io           # Streams
+import os           # File operations
 
-import aiofiles
+import aiofiles     # Async file IO
 
 
 __all__ = ('CONFIG_DIRECTORY', 'ConfigFile', 'get_config_data',

@@ -3,8 +3,6 @@ Various thread and process pool templates.
 """
 import asyncio   # Asyncio co-routines, ensuring futures
 import concurrent.futures as futures   # Thread and Process pool executors.
-from functools import partialmethod, partial  # Partials
-import inspect  # Inspection
 import logging   # Logging utils.
 import os   # File system access.
 import typing   # Type hints.

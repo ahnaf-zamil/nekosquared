@@ -1,5 +1,6 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
+import asyncio   # Sleep
 import logging   # Logging uitls.
 import traceback   # Traceback utils.
 
@@ -7,7 +8,7 @@ import discord
 import discord.errors as dpy_errors   # Errors for dpy base.
 import discord.ext.commands.errors as dpyext_errors   # Errors for ext.
 
-from neko2.shared.other import excuses
+from neko2.shared.other import excuses   # Random excuses to make
 
 __all__ = ('handle_error',)
 __error_logger = logging.getLogger(__name__)
@@ -110,7 +111,7 @@ async def __handle_error(*, bot, cog=None, ctx=None, error, event_method=None):
         assert ctx
         return await ctx.message.add_reaction('\N{STOPWATCH}')
 
-    # If something was not found, just reraise.
+    # If something was not found, just re-raise.
     if isinstance(error, dpy_errors.NotFound):
         raise error
 
@@ -120,7 +121,7 @@ async def __handle_error(*, bot, cog=None, ctx=None, error, event_method=None):
     if event_method:
         reply = f'\N{SQUARED SOS} Error in event {event_method!r}'
     elif is_assert:
-        reply = '\N{CROSS MARK} Assertion failed'
+        reply = f'\N{CROSS MARK} Assertion failed {error}'
     elif is_deprecation:
         reply = f'\N{WASTEBASKET} Deprecation warning: {error}'
     elif is_unfinished:
@@ -130,9 +131,11 @@ async def __handle_error(*, bot, cog=None, ctx=None, error, event_method=None):
     elif no_bot_permission:
         reply = f'\N{ROBOT FACE} {error}'
     elif no_user_permission:
-        reply = f'\N{NO ENTRY SIGN} {error}'
+        return  # Pass silently
+        # reply = f'\N{NO ENTRY SIGN} {error}'
     elif not_owner:
-        reply = f'\N{NO ENTRY SIGN} You must be the bot owner to do this'
+        return  # Pass silently
+        # reply = f'\N{NO ENTRY SIGN} You must be the bot owner to do this'
     elif not_dms:
         reply = f'\N{NO ENTRY SIGN} You cannot do this in private messages.'
     elif too_few_args or bad_args or too_many_args:
@@ -150,7 +153,8 @@ async def __handle_error(*, bot, cog=None, ctx=None, error, event_method=None):
     elif is_disabled:
         reply = '\N{NO ENTRY SIGN} This command is disabled globally'
     elif is_not_found:
-        reply = f'\N{LEFT-POINTING MAGNIFYING GLASS} {error}'
+        return  # Pass silently.
+        # reply = f'\N{LEFT-POINTING MAGNIFYING GLASS} {error}'
     elif check_failed:
         reply = '\N{NO ENTRY SIGN} You cannot do that here'
     elif is_discord:
@@ -170,4 +174,13 @@ async def __handle_error(*, bot, cog=None, ctx=None, error, event_method=None):
     # Since I take some raw input from errors, this is just a safeguard to
     # ensure messages are never too long. If an error message is anywhere near
     # this size, then it is a stupid error anyway.
-    await destination.send(reply[:2000])
+    resp = await destination.send(reply[:2000])
+
+    # Clear after 15 seconds and destroy the invoking message also.
+    await asyncio.sleep(15)
+
+    futs = [resp.delete()]
+    if ctx:
+        futs.append(ctx.message.delete())
+
+    await asyncio.gather(*futs)

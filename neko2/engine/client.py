@@ -3,7 +3,6 @@
 """
 Holds the bot implementation.
 """
-import asyncio  # Asyncio utilities.
 import copy  # Deep and shallow copies of objects.
 import os   # Access to FS.
 import signal   # Access to kernel signals.
@@ -102,7 +101,6 @@ class Bot(commands.Bot, traits.Scribe):
         # Load version and help commands
         self.load_extension('neko2.engine.help')
         self.load_extension('neko2.engine.version')
-
 
     @cached_property.cached_property
     def invite(self):

@@ -9,16 +9,16 @@ make sure to keep this message here.
 
 Adds functionality to the Discord.py paginator to count lines.
 """
-import abc
-import asyncio
-import inspect
-import typing
+import abc          # Abstract classes
+import asyncio      # Asyncio stuff
+import inspect      # Inspection
+import typing       # Type checking
 
-import discord
-from discord.ext import commands
+import discord      # Discord.py
+from discord.ext import commands    # Context
 
-from neko2.shared.fsa import abstractmachines
-from neko2.shared.fsa import button
+from neko2.shared.fsa import abstractmachines   # Abstract FSM implementation
+from neko2.shared.fsa import button             # Buttons
 
 
 __all__ = (

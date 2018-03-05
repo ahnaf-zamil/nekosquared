@@ -8,7 +8,7 @@ cogs which are holders of logic.
 """
 import logging   # Loggers.
 import traceback   # Traceback utils.
-import typing
+import typing       # Type checking
 
 from neko2.shared import alg    # Timing.
 from neko2.shared import configfiles   # Config file utils.

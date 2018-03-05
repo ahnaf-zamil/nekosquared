@@ -16,7 +16,7 @@ by inspection. This will be done by spawning processes that run in the
 background and traverse the module trees. They will then cache results in
 files on disk, where possible.
 """
-from . import cog
+from . import cog   # cog
 
 
 def setup(bot):

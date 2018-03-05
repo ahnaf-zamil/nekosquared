@@ -10,11 +10,11 @@ make sure to keep this message here.
 Button implementation.
 """
 
-import typing
+import typing       # Typing
 
-import discord
+import discord      # Discord.py
 
-from neko2.shared.fsa import abstractmachines
+from neko2.shared.fsa import abstractmachines      # Abstract FSAs
 
 
 __all__ = ('Button', 'as_button')

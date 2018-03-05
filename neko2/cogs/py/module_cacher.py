@@ -6,20 +6,20 @@ Here be dragons.
 This deals with inspecting each module given by a module walker, before
 outputting any data as a dict.
 """
-import asyncio
-import enum
-import inspect
-import re
-import typing
+import asyncio    # Gather
+import enum    # Enum
+import inspect    # Inspection utils
+import re    # Regexes
+import typing    # Type checking and annotation fetching
 
-from docutils import frontend
-from docutils import utils
+from docutils import frontend    # Docutils frontend (config proxy)
+from docutils import utils    # document type
 
-import bs4
-from sphinx import parsers
+import bs4                    # HTML parser
+from sphinx import parsers    # ReStructured Text Parser
 
-from . import module_hasher
-from . import module_walker
+from . import module_hasher   # Module hashing
+from . import module_walker   # Module member recursive walker
 
 
 # Takes any permutations of the formats:

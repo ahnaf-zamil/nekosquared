@@ -3,16 +3,16 @@
 """
 Allows the bot owner to update the bot using Git, if it is installed.
 """
-import asyncio
-import io
-import os
-import shutil
-import traceback
+import asyncio                      # Asyncio subprocess
+import io                           # StringIO
+import os                           # File path utils
+import shutil                       # which (find in $PATH env-var)
+import traceback                    # Traceback utils
 
 
-from neko2.engine import commands
-from neko2.shared import fsa
-from neko2.shared import traits
+from neko2.engine import commands   # Command decorators
+from neko2.shared import fsa        # Finite state machines
+from neko2.shared import traits     # CpuBoundPool, logging
 
 
 class GitCog(traits.Scribe, traits.CpuBoundPool):

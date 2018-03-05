@@ -4,9 +4,9 @@
 """
 An extension of a paginated state machine that handles option picking.
 """
-import typing
-import discord
-from neko2.shared import fsa
+import typing       # Type checking
+import discord      # Discord.py
+from neko2.shared import fsa    # Other FSA stuff
 
 
 __all__ = ('OptionPicker', 'FocusedOptionPicker')

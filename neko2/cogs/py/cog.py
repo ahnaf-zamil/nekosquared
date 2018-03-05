@@ -8,22 +8,22 @@ This expects a config file called neko2.cogs.py.targets.yaml to exist in the
 config directory. This should be a list of Python modules to index when we are
 directed to.
 """
-import asyncio
-import json
-import random
-import time
+import asyncio    # asyncio.gather
+import json    # json deserialiser
+import random   # rng
+import time   # time.time
 
-import asyncpg
-import discord
+import asyncpg   # postgres
+import discord   # discord.Embed
 
-from neko2.engine import commands
-from neko2.shared import configfiles
-from neko2.shared import fsa
-from neko2.shared import sql
-from neko2.shared import traits
-from neko2.shared.other import fuzzy
+from neko2.engine import commands   # command decorator
+from neko2.shared import configfiles    # config files
+from neko2.shared import fsa    # finite state machines
+from neko2.shared import sql    # SqlQuery
+from neko2.shared import traits    # PostgresPool, IoBoundPool, Scribe
+from neko2.shared.other import fuzzy    # Fuzzy string logic
 
-from . import module_cacher
+from . import module_cacher   # Module cacher
 
 config_file = 'neko2.cogs.py.targets.yaml'
 

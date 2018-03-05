@@ -3,7 +3,7 @@
 """
 Loggable class.
 """
-import logging
+import logging          # Logging (duh!)
 
 __all__ = ('Scribe',)
 
