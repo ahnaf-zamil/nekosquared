@@ -10,6 +10,7 @@ import asyncio  # Gather
 import enum  # Enum
 import inspect  # Inspection utils
 import re  # Regex
+import traceback
 import typing  # Type checking and annotation fetching
 
 from docutils import frontend  # Docutils frontend (config proxy)
@@ -20,6 +21,14 @@ from sphinx import parsers  # ReStructured Text Parser
 
 from . import module_hasher  # Module hashing
 from . import module_walker  # Module member recursive walker
+
+# Set to True to fill your system journal quickly ;)
+DEBUG = False
+
+
+def trace():
+    if DEBUG:
+        traceback.print_exc()
 
 # Takes any permutations of the formats:
 # a
@@ -157,6 +166,7 @@ class ModuleCacher:
         try:
             return inspect.getabsfile(obj)
         except:
+            trace()
             pass
 
         stack = name.split('.')
@@ -198,7 +208,7 @@ class ModuleCacher:
         # Convert to a beautiful soup document tree. Note, this may not work
         # on raspbian. If it complains, just remove the "html5lib" argument
         # and put up with the warning.
-        dom = bs4.BeautifulSoup(str(dom), "html5lib").find('document')
+        dom = bs4.BeautifulSoup(str(dom)).find('document')
 
         # Removes all system messages Sphinx crapped out into the docstring.
         for error in dom.find_all('system_message'):
@@ -271,6 +281,7 @@ class ModuleCacher:
                         was_prev_term = False
 
             except:
+                trace()
                 pass
 
         data = {
@@ -302,6 +313,7 @@ class ModuleCacher:
                 "attrs": attr_meta
             }
         except:
+            trace()
             return {}
 
         for apparent_name, real_name, obj in attrs:
@@ -424,7 +436,7 @@ class ModuleCacher:
                                     class_readonly_properties[attr_n] = kind
                                     continue
                             except:
-                                pass
+                                trace()
 
                             class_attrs[attr_n] = kind
 
@@ -528,6 +540,6 @@ class ModuleCacher:
 
                 attr_meta[apparent_name] = attr
             except:
-                pass
+                trace()
 
         return data

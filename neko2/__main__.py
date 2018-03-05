@@ -38,7 +38,8 @@ async def on_ready():
                 type(error),
                 error,
                 error.__traceback__))
-            await owner.send(f'```\n{string[:1990]}\n```')
+            for i in range(0, min(20000, len(string)), 1990):
+                await owner.send(f'```\n{string[i:i+1990]}\n```')
 
 bot.run()
 exit(0)
