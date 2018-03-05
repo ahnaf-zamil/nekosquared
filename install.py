@@ -7,6 +7,9 @@ dependencies being a pain in the backside.
 This is an absolutely horriffic brute force attempt to install stuff. This
 generates service and run scripts, and installs a virtual environment and
 all depencencies.
+
+./install.py onlydeps   -- Only install dependencies
+./install.py update     -- Update any dependencies already satisfied.
 """
 import getpass
 import inspect
@@ -15,6 +18,7 @@ import pip
 import shutil
 import subprocess
 import sys
+import time
 import traceback
 
 # Maps import name to pypi name.
@@ -80,6 +84,16 @@ except AssertionError:
 
 if not just_deps:
     # Try to get virtualenv package, install it if it does not exist.
+    print('I will create a venv in this directory, and then clone the repo.')
+
+    i = 5
+    while i >= 0:
+        print(f'You have {i}s to cancel the operation...', end='')
+        time.sleep(1)
+        i -= 1
+        print('\r', end='')
+    print()
+
     try:
         import venv
     except ImportError:
@@ -229,5 +243,6 @@ if not just_deps:
 
 print(
     'Done. All you need to do now is add your configurations into the config '
-    'dir inside `nekosquared\'. See the `example-config\' directory for examples.'
+    'dir inside `nekosquared\'. See the `example-config\' '
+    'directory for examples.'
 )
