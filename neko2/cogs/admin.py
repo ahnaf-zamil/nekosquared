@@ -10,9 +10,8 @@ from neko2.engine import commands   # command decorator
 
 class AdminCog:
     """Holds administrative utilities"""
-    @staticmethod
-    async def __local_check(ctx):
-        await ctx.bot.is_owner(ctx.bot.owner_id)
+    async def __local_check(self, ctx):
+        return await ctx.bot.is_owner(ctx.author)
 
     @commands.command(aliases=['stop', 'die'])
     async def restart(self, ctx):
@@ -26,7 +25,6 @@ class AdminCog:
             await ctx.send('\N{OK HAND SIGN}')
         finally:
             await ctx.bot.logout()
-
 
 
 

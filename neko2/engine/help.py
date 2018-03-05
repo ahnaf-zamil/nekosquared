@@ -103,7 +103,7 @@ class HelpCog(traits.Scribe):
         pages = []
 
         # Get commands this user can run, only.
-        def get_runnable_commands(mixin):
+        async def get_runnable_commands(mixin):
             cmds = []
             for command in sorted(mixin.commands, key=lambda c: c.name):
                 # If an error is raised by checking permissions for a command,
@@ -116,7 +116,7 @@ class HelpCog(traits.Scribe):
             return cmds
 
         current_page = ''
-        for i, command in enumerate(get_runnable_commands(ctx.bot)):
+        for i, command in enumerate(await get_runnable_commands(ctx.bot)):
             if i % 30 == 0:
                 if current_page:
                     pages.append(current_page)
@@ -127,7 +127,7 @@ class HelpCog(traits.Scribe):
             if isinstance(command, commands.BaseGroupMixin):
                 # This is a command group. Only show if we have at least one
                 # available sub-command, though.
-                if len(get_runnable_commands(command)) > 0:
+                if len(await get_runnable_commands(command)) > 0:
                     name = f'{name}...'
 
             if current_page:

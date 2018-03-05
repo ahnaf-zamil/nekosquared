@@ -119,10 +119,11 @@ class CpuBoundPool:
                               args: typing.Iterable=None,
                               *,
                               loop=asyncio.get_event_loop()):
+        args = args if args else []
         return await loop.run_in_executor(
             cls._cpu_pool,
             func,
-            args)
+            *args)
 
 class IoBoundPool:
     """
@@ -144,10 +145,11 @@ class IoBoundPool:
                               args: typing.Iterable=None,
                               *,
                               loop=asyncio.get_event_loop()):
+        args = args if args else []
         return await loop.run_in_executor(
             cls._io_pool,
             func,
-            args)
+            *args)
 
 
 class FsPool(IoBoundPool, Scribe):
