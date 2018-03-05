@@ -8,6 +8,7 @@ import copy  # Deep and shallow copies of objects.
 import os   # Access to FS.
 import signal   # Access to kernel signals.
 import sys   # General bits and bobs such as the most recent exception.
+import time  # Measuring uptime.
 import traceback  # Exception traceback utilities.
 
 import cached_property  # Cached properties.
@@ -22,11 +23,6 @@ __all__ = ('BotInterrupt', 'Bot')
 
 # Sue me.
 BotInterrupt = KeyboardInterrupt
-
-
-# Set to false to disable the global "development" message being set on
-# startup.
-is_development = False
 
 
 ################################################################################
@@ -103,18 +99,10 @@ class Bot(commands.Bot, traits.Scribe):
         # Used to prevent recursively calling logout.
         self._logged_in = False
 
-        if is_development:
-            @self.listen()
-            async def on_connect():
-                while True:
-                    await self.change_presence(
-                        status=discord.Status.do_not_disturb,
-                        game=discord.Game(name='in development'))
-                    await asyncio.sleep(120)
-                    await self.change_presence(
-                        status=discord.Status.do_not_disturb,
-                        game=discord.Game(name='may be unstable'))
-                    await asyncio.sleep(120)
+        # Load version and help commands
+        self.load_extension('neko2.engine.help')
+        self.load_extension('neko2.engine.version')
+
 
     @cached_property.cached_property
     def invite(self):
@@ -122,6 +110,12 @@ class Bot(commands.Bot, traits.Scribe):
             'https://discordapp.com/oauth2/authorize?scope=bot&'
             f'client_id={self.client_id}'
         )
+
+    @property
+    def uptime(self) -> float:
+        """Returns how many seconds the bot has been up for."""
+        curr = time.time()
+        return curr - getattr(self, 'start_time', curr)
 
     async def get_owner(self) -> discord.User:
         """
@@ -142,6 +136,7 @@ class Bot(commands.Bot, traits.Scribe):
         self.logger.info(f'Invite me to your server at {self.invite}')
         self._logged_in = True
         self.dispatch('start')
+        setattr(self, 'start_time', time.time())
         await super().start(self.__token)
 
     # noinspection PyBroadException
