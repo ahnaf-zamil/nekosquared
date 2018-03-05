@@ -242,16 +242,6 @@ class GitCog(traits.Scribe, traits.CpuBoundPool):
             await asyncio.sleep(2)
             await ctx.bot.logout()
 
-    @commands.is_owner()
-    @commands.command(brief='Restarts the bot', aliases=['stop'])
-    async def restart(self, ctx):
-        try:
-            await ctx.message.add_reaction('\N{OK HAND SIGN}')
-        except:
-            await ctx.send('\N{OK HAND SIGN}')
-        finally:
-            await ctx.bot.logout()
-
 
 def setup(bot):
     bot.add_cog(GitCog())
