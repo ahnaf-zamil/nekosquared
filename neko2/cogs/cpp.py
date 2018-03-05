@@ -114,7 +114,8 @@ class CppCog(traits.HttpPool):
     @commands.command(
         name='cppref',
         brief='Searches en.cppreference.com for the given criteria',
-        aliases=['cref'])
+        aliases=['cref'],
+        examples=['std::string', 'stringstream'])
     async def cpp_reference_cmd(self, ctx, *terms):
         results = await self.results(*terms)
 

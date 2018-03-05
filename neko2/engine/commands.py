@@ -37,6 +37,12 @@ class CommandMixin:
     aliases: property
     full_parent_name: property
     qualified_name: property
+    usage: property
+    clean_params: property
+    examples: list
+
+    def __init__(self, *args, **kwargs):
+        self.examples = kwargs.pop('examples', [])
 
     @cached_property.cached_property
     def names(self) -> typing.FrozenSet[str]:
@@ -58,11 +64,17 @@ class CommandMixin:
 
 
 class Command(discord_commands.Command, CommandMixin):
-    pass
+    """Neko command: tweaks some stuff Discord.py provides."""
+    def __init__(self, *args, **kwargs):
+        discord_commands.Command.__init__(self, *args, **kwargs)
+        CommandMixin.__init__(self, *args, **kwargs)
 
 
 class Group(discord_commands.Group, CommandMixin):
-    pass
+    """Neko command group: tweaks some stuff Discord.py provides."""
+    def __init__(self, *args, **kwargs):
+        discord_commands.Group.__init__(self, *args, **kwargs)
+        CommandMixin.__init__(self, *args, **kwargs)
 
 
 def command(**kwargs):

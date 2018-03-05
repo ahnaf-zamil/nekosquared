@@ -47,7 +47,7 @@ async def __dm_me_error(*, bot, cog, ctx, error, event_method):
 
     if ctx:
         whom_info = (
-            f'{ctx.command.qualified_name} invoked as {ctx.invoked_by}\n'
+            f'{ctx.command.qualified_name} invoked as {ctx.invoked_with}\n'
             f'Invoked by: {ctx.author} (`{ctx.author.id}`)\n'
             f'{"Guild: " + str(ctx.guild) if ctx.guild else "in DMs"}\n'
             f'Channel: #{ctx.channel}\n'

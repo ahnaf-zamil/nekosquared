@@ -6,21 +6,20 @@ Here be dragons.
 This deals with inspecting each module given by a module walker, before
 outputting any data as a dict.
 """
-import asyncio    # Gather
-import enum    # Enum
-import inspect    # Inspection utils
-import re    # Regexes
-import typing    # Type checking and annotation fetching
+import asyncio  # Gather
+import enum  # Enum
+import inspect  # Inspection utils
+import re  # Regex
+import typing  # Type checking and annotation fetching
 
-from docutils import frontend    # Docutils frontend (config proxy)
-from docutils import utils    # document type
+from docutils import frontend  # Docutils frontend (config proxy)
+from docutils import utils  # document type
 
-import bs4                    # HTML parser
-from sphinx import parsers    # ReStructured Text Parser
+import bs4  # HTML parser
+from sphinx import parsers  # ReStructured Text Parser
 
-from . import module_hasher   # Module hashing
-from . import module_walker   # Module member recursive walker
-
+from . import module_hasher  # Module hashing
+from . import module_walker  # Module member recursive walker
 
 # Takes any permutations of the formats:
 # a
@@ -37,7 +36,6 @@ _param_default_re = re.compile(r'.*=\s*(\w+)')
 # <Signature (params here) -> annotation>
 # This regex should extract the ``annotation`` part of the string.
 _sig_annot_regex = re.compile(r'-> (.+)')
-
 
 # Maps common magic methods to their respective operator or call.
 operators = {
@@ -139,7 +137,7 @@ def _get_operators(obj):
 
 
 class ModuleCacher:
-    def __init__(self, name: str, relative_to: str=None) -> None:
+    def __init__(self, name: str, relative_to: str = None) -> None:
         self._name, self._rel = name, relative_to
         # Maps names to file names
         self._filename_cache = {}
@@ -242,11 +240,36 @@ class ModuleCacher:
 
         body = []
 
+        was_prev_term = False
+
         for child in dom.recursiveChildGenerator():
             try:
-                if child.name == 'paragraph':
+                if child.name == 'term':
                     body.append(child.text)
-                # Todo: handle other stuff later. For now, just omit it.
+
+                    was_prev_term = True
+                else:
+                    if child.name == 'title':
+                        title = child.text
+                        title += ('\n' + '-' * len(title) + '\n')
+                        title = '\n' + title
+
+                        body.append(title)
+                        was_prev_term = False
+
+                    # This renders definition tables correctly. It is a pain
+                    # in the arse to decipher otherwise.
+                    elif child.name == 'paragraph':
+                        if was_prev_term:
+                            text = child.text
+
+                            # Visually indent this.
+                            text = text.replace('\n', '\n    ')
+                            body[-1] += f' - {text}'
+                        else:
+                            body.append(child.text)
+                        was_prev_term = False
+
             except:
                 pass
 
@@ -303,6 +326,7 @@ class ModuleCacher:
                 docstring = inspect.getdoc(obj)
                 if docstring:
                     docstring = inspect.cleandoc(docstring)
+                    # docstring = string.remove_single_lines(docstring)
                 else:
                     docstring = ''
 
@@ -369,10 +393,39 @@ class ModuleCacher:
 
                     attr['bases'] = [self._qual_name(b) for b in obj.__bases__]
 
+                    if hasattr(obj, '__init__'):
+                        attr['init'] = str(inspect.signature(
+                            getattr(obj, '__init__')))
+                    if hasattr(obj, '__new__'):
+                        attr['new'] = str(inspect.signature(
+                            getattr(obj, '__new__')))
+
                     class_attrs = {}
+
+                    # Only have __get__
+                    class_readonly_properties = {}
+
+                    # Have __get__ and __set__
+                    class_properties = {}
 
                     for attr_n, kind, _, _ in inspect.classify_class_attrs(obj):
                         if not attr_n.startswith('__'):
+                            # Try to determine if we have a property or not
+                            # first.
+                            try:
+                                is_property = inspect.isdatadescriptor(obj)
+                                is_property = isinstance(obj, property) \
+                                              or is_property
+
+                                if is_property:
+                                    class_properties[attr_n] = kind
+                                    continue
+                                elif hasattr(obj, '__get__'):
+                                    class_readonly_properties[attr_n] = kind
+                                    continue
+                            except:
+                                pass
+
                             class_attrs[attr_n] = kind
 
                     ops = _get_operators(obj)
@@ -383,6 +436,8 @@ class ModuleCacher:
                         attr['slots'] = obj.__slots__
 
                     attr['attrs'] = class_attrs
+                    attr['readonly_properties'] = class_readonly_properties
+                    attr['properties'] = class_properties
                     mcs = type(obj)
                     attr['metaclass'] = f'{mcs.__module__}.{mcs.__qualname__}'
                 elif inspect.isfunction(obj):
@@ -392,10 +447,10 @@ class ModuleCacher:
                     # This only picks up `async` marked coroutines, not
                     # Python3.4-style decorated `@asyncio.coroutine` ones
                     if inspect.iscoroutinefunction(obj):
-                        attr['category'] = 'async coroutine ' + attr['category']
+                        attr['category'] = 'async coro ' + attr['category']
                         async = True
                     elif asyncio.iscoroutinefunction(obj):
-                        attr['category'] = '@asyncio.coroutine ' + attr['category']
+                        attr['category'] = 'Python3.4 coro ' + attr['category']
                         async = True
                     else:
                         async = False
@@ -445,8 +500,23 @@ class ModuleCacher:
                     # Store params
                     attr['params'] = params
                 else:
+                    category = 'attribute'
+
+                    # Try to determine if we have a property or not first.
+                    try:
+                        is_property = inspect.isdatadescriptor(obj)
+                        is_property = isinstance(obj, property) \
+                                      or is_property
+
+                        if is_property:
+                            category = 'property'
+                        elif hasattr(obj, '__get__'):
+                            category = 'read-only property'
+                    except:
+                        pass
+
                     # General attribute.
-                    attr['category'] = 'attribute'
+                    attr['category'] = category
                     try:
                         attr['str'] = str(obj)
                         attr['repr'] = repr(obj)

@@ -60,80 +60,95 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
     @commands.group(
         name='py',
         brief='Searches the given module for the given attribute.',
-        usage='discord Client.event',
+        examples=['discord Bot.listen', 'discord.ext.commands.bot.Bot.listen'],
         invoke_without_command=True)
     async def py_group(self, ctx, module: str, *, attribute: str = ''):
         """
         Searches for documentation on the given module for the given
         attribute.
+
+        You can either specify a module name followed by an attribute contained
+        somewhere within the module, or you can provide the fully qualified
+        attribute name alone.
         """
-        async with await self.acquire_db() as conn, ctx.typing():
+        try:
+            async with await self.acquire_db() as conn, ctx.typing():
 
-            # Type hinting in PyCharm :P
-            conn: asyncpg.Connection = conn
+                # Type hinting in PyCharm :P
+                conn: asyncpg.Connection = conn
 
-            if '.' not in module:
-                module = await conn.fetchrow(self.get_modules, module)
+                async def fetch(query, *args):
+                    return await asyncio.wait_for(
+                        conn.fetch(query, *args),
+                        timeout=10)
 
-                if not module:
-                    members = await conn.fetch(self.get_all_members_fqn)
+                if '.' not in module:
+                    module = await conn.fetchrow(self.get_modules, module)
+
+                    if not module:
+                        members = await fetch(self.get_all_members_fqn)
+                    else:
+                        # Unpack
+                        pk, name = module
+
+                        # Get all members for that module. This may take a few
+                        # seconds, so we show typing.
+                        members = await fetch(self.get_members, pk)
                 else:
-                    # Unpack
-                    pk, name = module
 
-                    # Get all members for that module. This may take a few seconds,
-                    # so we show typing.
-                    members = await conn.fetch(self.get_members, pk)
-            else:
-                members = await conn.fetch(self.get_members_fqn, module)
+                    members = await fetch(self.get_members_fqn, module)
 
-            # Perform fuzzy matching. Get the 10 best results for the
-            # fully qualified name.
+                # Perform fuzzy matching. Get the 10 best results for the
+                # fully qualified name.
 
-            # Construct a mapping of the qualified name to all other fields
-            # first
-            mapping = {
-                r.get('fq_member_name').replace('.', ' '): r for r in
-                # Cast each record to a dictionary so we can manipulate it
-                # properly.
-                (dict(rec) for rec in members)
-            }
+                # Construct a mapping of the qualified name to all other fields
+                # first
+                mapping = {
+                    r.get('fq_member_name').replace('.', ' '): r for r in
+                    # Cast each record to a dictionary so we can manipulate it
+                    # properly.
+                    (dict(rec) for rec in members)
+                }
 
-            top_results = fuzzy.extract(
-                attribute,
-                mapping.keys(),
-                scoring_algorithm=fuzzy.deep_ratio)
+                top_results = fuzzy.extract(
+                    attribute,
+                    mapping.keys(),
+                    scoring_algorithm=fuzzy.deep_ratio)
 
-            if not top_results:
-                return await ctx.send('No results were found...')
+                if not top_results:
+                    return await ctx.send('No results were found...')
 
-            # Paginate the results.
-            options = {}
+                # Paginate the results.
+                options = {}
 
-            for i, (result, score) in enumerate(top_results):
-                obj = mapping[result]
-                string = mapping[result]['fq_member_name']
+                for i, (result, score) in enumerate(top_results):
+                    obj = mapping[result]
+                    string = mapping[result]['fq_member_name']
 
-                if (i + 1) < 10:
-                    emoji = f'{i + 1}\N{COMBINING ENCLOSING KEYCAP}'
+                    if (i + 1) < 10:
+                        emoji = f'{i + 1}\N{COMBINING ENCLOSING KEYCAP}'
+                    else:
+                        emoji = '\N{KEYCAP TEN}'
+                    options[emoji] = (string, obj)
+
+                if len(options) > 1:
+                    # Last 180 seconds
+                    picker = fsa.FocusedOptionPicker(options, ctx.bot, ctx, 180)
+
+                    chosen_result = await picker.run()
+
+                    # If we timed out...
+                    if chosen_result is None:
+                        return
                 else:
-                    emoji = '\N{KEYCAP TEN}'
-                options[emoji] = (string, obj)
+                    # Get the first (only) option.
+                    chosen_result = list(options.values())[0][1]
 
-            if len(options) > 1:
-                # Last 180 seconds
-                picker = fsa.FocusedOptionPicker(options, ctx.bot, ctx, 180)
-
-                chosen_result = await picker.run()
-
-                # If we timed out...
-                if chosen_result is None:
-                    return
-            else:
-                # Get the first (only) option.
-                chosen_result = list(options.values())[0][1]
-
-        await self._make_send_doc(ctx, chosen_result)
+            await self._make_send_doc(ctx, chosen_result)
+        except asyncio.TimeoutError:
+            await ctx.send('Query timed out... try being less vague, or give '
+                           'me a faster computer to run on!',
+                           delete_after=15)
 
     @py_group.command(name='modules', brief='Lists any modules documented.')
     async def list_modules(self, ctx):
@@ -320,7 +335,19 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
         returns = meta.pop('returns', '')
         hint = meta.pop('hint', '')
         raises = meta.pop('raises', '')
+        init = meta.pop('init', '')
+        new = meta.pop('new', '')
+
         attrs = [f'`{attr}`' for attr in sorted(meta.pop('attrs', []))]
+        attrs = [*filter(lambda a: not a.startswith('_'), attrs)]
+
+        prop = [f'`{p}`' for p in sorted(meta.pop('properties', []))]
+        prop = [*filter(lambda a: not a.startswith('_'), prop)]
+
+        roprop = [f'`{rop}`' for rop in
+                  sorted(meta.pop('readonly_properties', []))]
+        roprop = [*filter(lambda a: not a.startswith('_'), roprop)]
+
         type_t = meta.pop('type', '')
         meta_class = meta.pop('metaclass', '')
         bases = [f'`{base}`' for base in sorted(meta.pop('bases', []))]
@@ -338,13 +365,10 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
             embed.add_field(name='Type hint', value=f'`{hint}`')
         if raises:
             embed.add_field(name='Raises', value=raises)
-        if attrs:
-            # Ignore protected/private members.
-            attrs = [*filter(lambda a: not a.startswith('_'), attrs)]
-            for i in range(0, len(attrs), 50):
-                embed.add_field(
-                    name='Attributes (continued)' if i else 'Attributes',
-                    value=', '.join(attrs[i:i+50]))
+        if init:
+            embed.add_field(name='`__init__` signature', value=f'`{init}`')
+        if new:
+            embed.add_field(name='`__new__` signature', value=f'`{new}`')
         if bases:
             for i in range(0, len(bases), 50):
                 embed.add_field(
@@ -359,11 +383,29 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
         if repr_v:
             embed.add_field(name='`repr()` string', value=f'`{repr_v}`')
 
+        if roprop:
+            # Ignore protected/private members.
+            embed.add_field(
+                name='Read-only properties',
+                value=', '.join(roprop[:100]))
+
+        if prop:
+            # Ignore protected/private members.
+            embed.add_field(
+                name='Properties',
+                value=', '.join(prop[:100]))
+
+        if attrs:
+            # Ignore protected/private members.
+            embed.add_field(
+                name='Attributes',
+                value=', '.join(attrs[:100]))
+
         await ctx.send(embed=embed)
 
         # Send paginator for the docstring, if applicable.
         if docstring:
-            pag = fsa.LinedPag(max_lines=10, prefix='```\nDocstring:',
+            pag = fsa.LinedPag(max_lines=15, prefix='```\nDocstring:',
                                suffix='```')
             for line in docstring.split('\n'):
                 pag.add_line(f'  {line}')
