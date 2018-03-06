@@ -71,6 +71,17 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
         somewhere within the module, or you can provide the fully qualified
         attribute name alone.
         """
+        if not attribute:
+            if not await ctx.bot.is_owner(ctx.author):
+                await ctx.send('Please provide a module and attribute. The '
+                               'ability to search the entire namespace has '
+                               'been disabled until a faster device can host '
+                               'this bot, as it consumes too much processing '
+                               'time.', delete_after=30)
+                return
+            else:
+                await ctx.send('This will probably be slow..!', delete_After=5)
+
         try:
             async with await self.acquire_db() as conn, ctx.typing():
 
@@ -383,25 +394,47 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
         if repr_v:
             embed.add_field(name='`repr()` string', value=f'`{repr_v}`')
 
+        ########################################################################
+        # Attributes have their own page                                       #
+        ########################################################################
+
+        pages = [embed]
+
         if roprop:
             # Ignore protected/private members.
-            embed.add_field(
-                name='Read-only properties',
-                value=', '.join(roprop[:100]))
+            text = ', '.join(attrs)
+
+            pages.append(discord.Embed(
+                title=f'`{element["member_name"]}`: Read-only properties',
+                colour=random.choice([0x4584b6, 0xffde57]),
+                description=text[:2000]))
 
         if prop:
             # Ignore protected/private members.
-            embed.add_field(
-                name='Properties',
-                value=', '.join(prop[:100]))
+            text = ', '.join(prop)
+
+            pages.append(discord.Embed(
+                title=f'`{element["member_name"]}`: Properties',
+                colour=random.choice([0x4584b6, 0xffde57]),
+                description=text[:2000]))
 
         if attrs:
             # Ignore protected/private members.
-            embed.add_field(
-                name='Attributes',
-                value=', '.join(attrs[:100]))
+            text = ', '.join(attrs)
 
-        await ctx.send(embed=embed)
+            pages.append(discord.Embed(
+                title=f'`{element["member_name"]}`: Attributes',
+                colour=random.choice([0x4584b6, 0xffde57]),
+                description=text[:2000]))
+
+        if len(pages) > 1:
+            asyncio.ensure_future(fsa.FocusedPagEmbed.from_embeds(
+                pages,
+                bot=ctx.bot,
+                invoked_by=ctx,
+                timeout=600).run())
+        else:
+            await ctx.send(embed=pages.pop())
 
         # Send paginator for the docstring, if applicable.
         if docstring:
@@ -412,6 +445,6 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
 
             # Keep alive for two minutes or so.
             fsm = fsa.FocusedPagMessage.from_paginator(
-                pag=pag, bot=ctx.bot, invoked_by=ctx, timeout=120)
+                pag=pag, bot=ctx.bot, invoked_by=ctx, timeout=600)
 
             await fsm.run()
