@@ -21,7 +21,7 @@ from neko2.shared import traits         # PostgresPool, IoBoundPool, Scribe
 from neko2.shared.other import fuzzy    # Fuzzy string logic
 from . import module_cacher             # Module cacher
 
-config_file = 'neko2.cogs.py.targets.yaml'
+config_file = 'neko2.cogs.py.targets.json'
 
 
 class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
@@ -32,8 +32,6 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
 
     def __init__(self):
         self.cache_config = configfiles.get_config_data(config_file)
-        # Cast to and from a set to remove duplicates.
-        self.cache_config = tuple(frozenset(self.cache_config))
 
     ############################################################################
     # SQL queries we utilise in this class. This loads them from disk.         #
@@ -76,7 +74,7 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
                                'time.', delete_after=30)
                 return
             else:
-                await ctx.send('This will probably be slow..!', delete_After=5)
+                await ctx.send('This will probably be slow..!', delete_after=5)
 
         try:
             async with await self.acquire_db() as conn, ctx.typing():
@@ -221,7 +219,7 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
                                     f'collecting required data from source code'
                                     f'...'))
 
-                        cache = await self.run_in_io_pool(cache_task, module)
+                        cache = await self.run_in_io_pool(cache_task, [module])
 
                         module_name = cache['root']
                         hash_code = str(cache['hash'])
