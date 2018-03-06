@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Since the Sphinx documentation facilities use a client-side JavaScript-based
-search, we cannot abuse the search system like in the ``cpp`` extension.
+search, we cannot abuse the search system like in the ``coliru`` extension.
 
 (Well, I could possibly, but it would mean either rewriting thousands of lines
 of undocumented and minified JavaScript, or implementing a JavaScript parser

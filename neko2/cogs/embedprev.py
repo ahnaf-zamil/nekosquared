@@ -5,10 +5,8 @@ Embed preview cog utility.
 """
 import io                           # StringIO
 import traceback                    # Traceback utils
-
 from discord import embeds          # Embeds
 import yaml                         # YAML parser
-
 from neko2.engine import commands   # Commands decorators
 
 

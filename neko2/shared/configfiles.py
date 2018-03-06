@@ -6,12 +6,12 @@ Handles reading config files.
 import asyncio      # Asyncio
 import io           # Streams
 import os           # File operations
-
 import aiofiles     # Async file IO
 
 
 __all__ = ('CONFIG_DIRECTORY', 'ConfigFile', 'get_config_data',
            'get_config_holder', 'get_config_data_async')
+
 
 # Overwrite this variable to alter where we look for config files if you
 # need to.

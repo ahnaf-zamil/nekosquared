@@ -3,21 +3,20 @@
 """
 C and C++ utilities.
 """
-import collections         # Named tuple
-import random              # RNG
-import re                  # Regex
-import typing              # Type checking
-from urllib import parse   # URL validation/sanitation
-
-import bs4                 # HTML parser
-import discord             # discord.py
-
-from neko2.engine import commands    # Command decorators
-from neko2.shared import errors      # error types
-from neko2.shared import fsa         # finite state machines
-from neko2.shared import traits      # HTTP pool
+import collections                    # Named tuple
+import random                         # RNG
+import re                             # Regex
+import typing                         # Type checking
+from urllib import parse              # URL validation/sanitation
+import bs4                            # HTML parser
+import discord                        # discord.py
+from neko2.engine import commands     # Command decorators
+from neko2.shared import errors       # standard errors
+from neko2.shared import fsa          # finite state machines
+from neko2.shared import traits       # HTTP pool
 
 
+# CppReference stuff
 result_path = re.compile(r'^/w/c(pp)?/', re.I)
 SearchResult = collections.namedtuple('SearchResult', 'text href')
 SearchResults = collections.namedtuple(
@@ -112,11 +111,10 @@ class CppCog(traits.HttpPool):
             c_general, c_keywords, c_experimental, other)
 
     @commands.command(
-        name='cppref',
         brief='Searches en.cppreference.com for the given criteria',
         aliases=['cref'],
         examples=['std::string', 'stringstream'])
-    async def cpp_reference_cmd(self, ctx, *terms):
+    async def cppref(self, ctx, *terms):
         results = await self.results(*terms)
 
         embeds = []

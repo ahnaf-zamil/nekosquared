@@ -5,6 +5,9 @@ Implementations of errors.
 """
 
 
+__all__ = ('HttpError',)
+
+
 class HttpError(RuntimeError):
     def __init__(self, response):
         self.response = response

@@ -3,8 +3,9 @@
 """
 A cached Sequel statement that we gather from disk.
 """
-from neko2.shared import io   # in_here
-from neko2.shared import traits  # Logging
+from neko2.shared import io      # in_here
+from neko2.shared import traits  # Logging trait
+
 
 __all__ = ('SqlQuery',)
 

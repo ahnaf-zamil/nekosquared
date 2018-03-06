@@ -8,15 +8,12 @@ import io                           # StringIO
 import os                           # File path utils
 import shutil                       # which (find in $PATH env-var)
 import traceback                    # Traceback utils
-
-
 from neko2.engine import commands   # Command decorators
 from neko2.shared import fsa        # Finite state machines
 from neko2.shared import traits     # CpuBoundPool, logging
 
 
 class GitCog(traits.Scribe, traits.CpuBoundPool):
-
     @commands.is_owner()
     @commands.command(
         brief='Updates the bot if we are in a valid git repository.')

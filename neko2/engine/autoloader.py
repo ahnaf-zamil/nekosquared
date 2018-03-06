@@ -6,15 +6,15 @@ Automatically loads modules listed in the config file.
 Discord.py refers to these as extensions. Extensions contain zero or more
 cogs which are holders of logic.
 """
-import logging   # Loggers.
-import traceback   # Traceback utils.
-import typing       # Type checking
-
-from neko2.shared import alg    # Timing.
+import logging                         # Loggers.
+import traceback                       # Traceback utils.
+import typing                          # Type checking
+from neko2.shared import alg           # Timing.
 from neko2.shared import configfiles   # Config file utils.
 
 
 __all__ = ('FILE', 'auto_load_modules')
+
 
 FILE = 'modules.yaml'
 

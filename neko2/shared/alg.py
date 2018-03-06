@@ -8,6 +8,10 @@ import time       # Basic timestamps
 import typing     # Type checking
 
 
+__all__ = ('find', 'find_async', 'find_async_iterator', 'find_all',
+           'time_it', 'time_it_async')
+
+
 def find(predicate, iterable):
     """
     Attempts to find the first match for the given predicate in the iterable.
@@ -67,6 +71,9 @@ def time_it(call, *args, **kwargs) -> (typing.Any, float):
 async def time_it_async(coro, *args, **kwargs) -> (typing.Any, float):
     """
     Times how long it takes to perform a task asynchronously.
+
+    Note that this measures time between start and finish. If other coroutines
+    are in the queue between these calls, then it will impact the runtime.
 
     :param coro: the coroutine to call.
     :param args: the arguments to give the callable.

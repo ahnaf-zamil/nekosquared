@@ -5,6 +5,9 @@ String manipulation utilities.
 """
 
 
+__all__ = ('remove_single_lines',)
+
+
 def remove_single_lines(string: str) -> str:
     """
     Attempts to remove single line breaks. This should take into account

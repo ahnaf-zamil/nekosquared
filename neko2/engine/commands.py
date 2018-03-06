@@ -7,12 +7,9 @@ definitions provided by Discord.py.
 This has been altered so that command errors are not dispatched from here
 anymore. Instead, they are to be dispatched by the client.
 """
-import typing  # Type checking
-
-import cached_property    # Caching properties
-# Used internally.
+import typing                                           # Type checking
+import cached_property                                  # Caching properties
 from discord.ext import commands as discord_commands
-# Ensures these modules are in the same namespace.
 # noinspection PyUnresolvedReferences
 from discord.ext.commands.context import Context
 # noinspection PyUnresolvedReferences

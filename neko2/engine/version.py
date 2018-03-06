@@ -3,16 +3,13 @@
 """
 Builtin extension that is loaded to implement a version message.
 """
-import inspect
-import platform
-import re
-import subprocess
-
-from discord import embeds
-
-import neko2
-from neko2.engine import commands
-from neko2.shared import string
+import inspect                          # Object introspection
+import platform                         # Platform information
+import subprocess                       # Process forking
+from discord import embeds              # Embeds
+import neko2                            # neko2 package info
+from neko2.engine import commands       # commands
+from neko2.shared import string         # string manipulations
 
 
 # I like numbers

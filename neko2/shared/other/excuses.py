@@ -5,7 +5,8 @@ Various excuses to use when stuff breaks.
 """
 import random    # RNG
 
-__all__ = ('get_excuse',)
+
+__all__ = ('get_excuse', 'excuses')
 
 
 def get_excuse():
@@ -16,7 +17,7 @@ def get_excuse():
     return excuse
 
 
-excuses = [
+excuses = (
         'clock speed',
         'solar flares',
         'electromagnetic radiation from satellite debris',
@@ -543,4 +544,4 @@ excuses = [
         'shorted the RAM',
         'Leap second overloaded RHEL6 servers',
         'DNS server drank too much and had a hiccup',
-]
+)

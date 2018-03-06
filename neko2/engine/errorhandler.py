@@ -1,16 +1,17 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
-import asyncio   # Sleep
-import logging   # Logging uitls.
-import traceback   # Traceback utils.
-
-import discord
-import discord.errors as dpy_errors   # Errors for dpy base.
+import asyncio                                        # Async sleep
+import logging                                        # Logging utils.
+import traceback                                      # Traceback utils.
+import discord                                        # Embeds
+import discord.errors as dpy_errors                   # Errors for dpy base.
 import discord.ext.commands.errors as dpyext_errors   # Errors for ext.
+from neko2.shared.other import excuses                # Random excuses to make
 
-from neko2.shared.other import excuses   # Random excuses to make
 
 __all__ = ('handle_error',)
+
+
 __error_logger = logging.getLogger(__name__)
 
 
@@ -53,6 +54,7 @@ async def __dm_me_error(*, bot, cog, ctx, error, event_method):
             f'Channel: #{ctx.channel}\n'
             f'When: {ctx.message.created_at}')
         body = ctx.message.content
+        body = body.replace('`', '’')
         if len(body) > 1000:
             body = f'{body[:997]}...'
         body = f'```\n{body}\n```'

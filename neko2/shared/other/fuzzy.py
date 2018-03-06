@@ -11,9 +11,14 @@ Citations:
 [3]: https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/utils/fuzzy.py
 """
 import difflib   # Calculating string closeness
-import heapq     # Built-in heap datatype.
+import heapq     # Built-in heap data-type.
 import re        # Regex to match word boundaries.
 import typing    # Type hinting.
+
+
+__all__ = ('tokenize_sort', 'float_to_ratio', 'ratio', 'quick_ratio',
+           'real_quick_ratio', 'deep_ratio', 'sorted_token_ratio',
+           'extract', 'extract_best')
 
 
 _word = re.compile(r'\w+')

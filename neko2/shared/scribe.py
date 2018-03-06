@@ -5,6 +5,7 @@ Loggable class.
 """
 import logging          # Logging (duh!)
 
+
 __all__ = ('Scribe',)
 
 

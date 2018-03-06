@@ -1,0 +1,21 @@
+{
+  "c": "mv main.cpp main.c && gcc -Wall -Wextra -pedantic -O2 -std=c11 -o a.out main.c && ./a.out",
+  "c++": "g++ -Wall -Wextra -std=c++17 -pedantic -O2 -lstdc++fs -o a.out main.cpp && ./a.out",
+  "cpp": "g++ -Wall -Wextra -std=c++17 -pedantic -O2 -lstdc++fs -o a.out main.cpp && ./a.out",
+  "python2": "python main.cpp",
+  "python3": "python3.5 main.cpp",
+  "python": "python3.5 main.cpp",
+  "py": "python3.5 main.cpp",
+  "perl": "perl main.cpp",
+  "pl": "perl main.cpp",
+  "perl6": "perl6 main.cpp",
+  "ruby": "ruby main.cpp",
+  "sh": "sh main.cpp",
+  "bash": "bash main.cpp",
+  "fortran": "gfortran main.cpp",
+  "awk": "awk main.cpp",
+  "haskell": "runhaskell main.cpp",
+  "bc": "bc -wl main.cpp",
+  "lua": "lua main.cpp",
+  "make": "make -f main.cpp"
+}

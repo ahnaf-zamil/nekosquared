@@ -1,27 +1,25 @@
 """
 Various thread and process pool templates.
 """
-import asyncio   # Asyncio co-routines, ensuring futures
-import concurrent.futures as futures   # Thread and Process pool executors.
-import logging   # Logging utils.
-import os   # File system access.
-import typing   # Type hints.
-
-import aiohttp   # Asynchronous HTTP/HTTPs.
-import aiofiles   # Asynchronous file I/O.
-import asyncpg   # Asynchronous Postgres integration.
-
-from neko2.engine import shutdown   # Shutdown hooks.
+import asyncio                        # Asyncio co-routines, ensuring futures
+import concurrent.futures as futures  # Thread and Process pool executors.
+import logging                        # Logging utils.
+import os                             # File system access.
+import typing                         # Type hints.
+import aiohttp                        # Asynchronous HTTP/HTTPs.
+import aiofiles                       # Asynchronous file I/O.
+import asyncpg                        # Asynchronous Postgres integration.
+from neko2.engine import shutdown     # Shutdown hooks.
 from neko2.shared import classtools   # Class monkey-patching.
-from neko2.shared import configfiles   # Config file support.
-from neko2.shared import scribe  # Logger (I moved it)
+from neko2.shared import configfiles  # Config file support.
+from neko2.shared import scribe       # Logger (I moved it)
+
 
 __all__ = ('Scribe', 'CpuBoundPool', 'IoBoundPool', 'FsPool',
            'HttpPool', 'PostgresPool')
 
 
 T = typing.TypeVar('T')
-
 
 Scribe = scribe.Scribe
 
@@ -95,6 +93,7 @@ async def _terminate_children():
     finally:
         logging.getLogger(__name__).info('Pool resources are now freed.')
 
+
 del _processes, _threads, _magic_number
 
 
@@ -116,7 +115,7 @@ class CpuBoundPool:
     @classmethod
     async def run_in_cpu_pool(cls,
                               func: typing.Callable,
-                              args: typing.Iterable=None,
+                              args: typing.Iterable = None,
                               *,
                               loop=asyncio.get_event_loop()):
         args = args if args else []
@@ -124,6 +123,7 @@ class CpuBoundPool:
             cls._cpu_pool,
             func,
             *args)
+
 
 class IoBoundPool:
     """
@@ -141,10 +141,10 @@ class IoBoundPool:
 
     @classmethod
     async def run_in_io_pool(cls,
-                              func: typing.Callable,
-                              args: typing.Iterable=None,
-                              *,
-                              loop=asyncio.get_event_loop()):
+                             func: typing.Callable,
+                             args: typing.Iterable = None,
+                             *,
+                             loop=asyncio.get_event_loop()):
         args = args if args else []
         return await loop.run_in_executor(
             cls._io_pool,
@@ -158,6 +158,7 @@ class FsPool(IoBoundPool, Scribe):
     the local file system. This runs in the same pool of workers as the
     IoBoundPool uses.
     """
+
     @classmethod
     async def acquire_fp(cls, file, mode='r', buffering=-1, encoding=None,
                          errors=None, newline=None, closefd=True, opener=None):
@@ -172,10 +173,13 @@ class HttpPool(Scribe):
     """
     Allows you to acquire an HTTP pool to use.
     """
+
     @classmethod
     async def acquire_http(cls):
         """
         :return: the client session.
+
+        Do not use in a with block.
         """
         if not hasattr(cls, '_http_pool'):
             cls.logger.info('Initialising HTTP pool.')
@@ -196,6 +200,7 @@ class PostgresPool(Scribe):
     """
     Allows you to acquire a connection to the database from the connection pool.
     """
+
     @classmethod
     async def acquire_db(cls, timeout=None):
         if not hasattr(cls, '_postgres_pool'):

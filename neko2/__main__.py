@@ -1,7 +1,27 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
 """
-Application entry point.
+Application entry point. This loads any modules, DMing the owner if there is
+any error, and then starts the bot.
+
+If a path is provided as the first argument, we look in this path directory
+for any configuration files, otherwise, we assume ../neko2config.
+
+This is done to support the following design.
+
+- neko2bot
+  |
+  |--nekosquared
+  |  |
+  |  |--neko2
+  |  |--venv
+  |  |--LICENSE
+  |  |--README.md
+  |  `--etc
+  |
+  `--neko2config
+     |
+     `--config files
 """
 import sys
 import traceback

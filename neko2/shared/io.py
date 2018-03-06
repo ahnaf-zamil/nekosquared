@@ -6,7 +6,8 @@ IO bits and pieces.
 import inspect      # Stack frame inspection
 import os           # OS path utils
 
-__all__ = ('in_here',)
+
+__all__ = ('in_here', 'json', 'yaml')
 
 
 def in_here(*paths, nested_by=0):
@@ -38,3 +39,25 @@ def in_here(*paths, nested_by=0):
         abs_dir_name = os.path.abspath(dir_name)
 
         return os.path.join(abs_dir_name, *paths)
+
+
+def json(file, *, relative_to_here=True):
+    """Loads a JSON file on the fly and returns the data."""
+    import json
+
+    if relative_to_here:
+        file = in_here(file, nested_by=1)
+
+    with open(file) as fp:
+        return json.load(fp)
+
+
+def yaml(file, *, relative_to_here=True):
+    """Loads a YAML file on the fly and returns the data."""
+    import yaml
+
+    if relative_to_here:
+        file = in_here(file, nested_by=1)
+
+    with open(file) as fp:
+        return yaml.load(fp)

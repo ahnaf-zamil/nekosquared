@@ -3,22 +3,22 @@
 """
 Holds the bot implementation.
 """
-import copy  # Deep and shallow copies of objects.
-import os   # Access to FS.
-import signal   # Access to kernel signals.
-import sys   # General bits and bobs such as the most recent exception.
-import time  # Measuring uptime.
-import traceback  # Exception traceback utilities.
-
-import cached_property  # Cached properties.
-import discord   # Basic discord.py bits and pieces.
-from discord.ext import commands   # Discord.py extensions.
-
+import copy                             # Deep and shallow copies of objects.
+import os                               # Access to file system tools.
+import signal                           # Access to kernel signals.
+import sys                              # Most recent exception
+import time                             # Measuring uptime.
+import traceback                        # Exception traceback utilities.
+import cached_property                  # Cached properties.
+import discord                          # Basic discord.py bits and pieces.
+from discord.ext import commands        # Discord.py extensions.
 from neko2.engine import errorhandler   # Error handling routine.
-from neko2.engine import shutdown   # Hook to call on shutdown.
-from neko2.shared import traits   # Cog and class traits.
+from neko2.engine import shutdown       # Hook to call on shutdown.
+from neko2.shared import traits         # Cog and class traits.
+
 
 __all__ = ('BotInterrupt', 'Bot')
+
 
 # Sue me.
 BotInterrupt = KeyboardInterrupt

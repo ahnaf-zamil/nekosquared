@@ -9,11 +9,8 @@ make sure to keep this message here.
 
 Button implementation.
 """
-
-import typing       # Typing
-
-import discord      # Discord.py
-
+import typing                                      # Typing
+import discord                                     # Discord.py
 from neko2.shared.fsa import abstractmachines      # Abstract FSAs
 
 

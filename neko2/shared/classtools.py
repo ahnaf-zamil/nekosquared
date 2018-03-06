@@ -1,6 +1,11 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
-"""Utilities for monkey-patching classes."""
+"""
+Utilities for monkey-patching classes.
+"""
+
+
+__all__ = ('patches',)
 
 
 def patches(original_kass):

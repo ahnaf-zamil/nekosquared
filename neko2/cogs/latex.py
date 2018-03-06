@@ -4,12 +4,10 @@
 Formats and makes use of the code-cogs equation editor API to generate
 previews for LaTeX strings.
 """
-import io               # BytesIO
-
-import discord          # Discord.py
-import PIL.Image        # PIL Image loading
-import PIL.ImageDraw    # PIL Image drawing
-
+import io                            # BytesIO
+import discord                       # Discord.py
+import PIL.Image                     # PIL Image loading
+import PIL.ImageDraw                 # PIL Image drawing
 from neko2.engine import commands    # Command decorators
 from neko2.shared import traits      # IOBound, CpuBound, and HTTP pools.
 

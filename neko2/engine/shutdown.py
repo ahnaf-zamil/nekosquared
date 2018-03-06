@@ -8,6 +8,7 @@ Couldn't find another way of handling this sadly. Hooray for global variables.
 """
 import asyncio   # Asyncio queues.
 
+
 __all__ = ('on_shutdown', 'terminate')
 
 

@@ -1,11 +1,10 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
-
 """
 An extension of a paginated state machine that handles option picking.
 """
-import typing       # Type checking
-import discord      # Discord.py
+import typing                   # Type checking
+import discord                  # Discord.py
 from neko2.shared import fsa    # Other FSA stuff
 
 
