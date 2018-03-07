@@ -82,7 +82,8 @@ class HelpCog:
         if children:
             embed.add_field(
                 name='Child commands',
-                value=', '.join(f'`{child.name}`' for child in children))
+                value=', '.join(f'`{child.name}`' for child in children
+                                if await child.can_run(ctx)))
 
         if parent:
             embed.add_field(name='Parent', value=f'`{parent}`')

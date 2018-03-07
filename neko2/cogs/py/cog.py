@@ -62,16 +62,12 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool):
     @commands.group(
         name='py',
         brief='Searches the given module for the given attribute.',
-        examples=['discord Bot.listen', 'discord.ext.commands.bot.Bot.listen'],
+        examples=['discord Bot.listen'],
         invoke_without_command=True)
     async def py_group(self, ctx, module: str, *, attribute: str = ''):
         """
         Searches for documentation on the given module for the given
         attribute.
-
-        You can either specify a module name followed by an attribute contained
-        somewhere within the module, or you can provide the fully qualified
-        attribute name alone.
         """
         if not attribute and not ALLOW_AMBIGUOUS_MODULE:
             param = inspect.signature(
