@@ -3,14 +3,14 @@
 """
 A cached Sequel statement that we gather from disk.
 """
-from neko2.shared import io      # in_here
-from neko2.shared import traits  # Logging trait
+from neko2.shared import ioutil      # in_here
+from neko2.shared import scribe  # Logging trait
 
 
 __all__ = ('SqlQuery',)
 
 
-class SqlQuery(traits.Scribe):
+class SqlQuery(scribe.Scribe):
     """
     This reads a SQL query from disk at the given path and acts as a descriptor
     returning the raw SQL query text.
@@ -27,7 +27,7 @@ class SqlQuery(traits.Scribe):
                 to be in the same directory as the caller.
         """
         if relative_to_here:
-            self._file_name = io.in_here(file_name, nested_by=1)
+            self._file_name = ioutil.in_here(file_name, nested_by=1)
         else:
             self._file_name = file_name
 

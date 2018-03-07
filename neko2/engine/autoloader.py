@@ -16,7 +16,7 @@ from neko2.shared import configfiles   # Config file utils.
 __all__ = ('FILE', 'auto_load_modules')
 
 
-FILE = 'modules.yaml'
+FILE = 'modules'
 
 
 def auto_load_modules(bot, *, config_file=FILE) \

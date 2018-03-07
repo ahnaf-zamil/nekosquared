@@ -6,8 +6,8 @@ Coliru API for executing code on the fly.
 import json
 import re
 from neko2.engine import commands     # Command decorators
+from neko2.shared import configfiles  # Config files
 from neko2.shared import fsa          # finite state machines
-from neko2.shared import io           # file IO
 from neko2.shared import traits       # HTTP pool
 
 
@@ -17,11 +17,28 @@ from neko2.shared import traits       # HTTP pool
 # end of the block, and the capture group will be the content within that we
 # are concerned with.
 code_block_re = re.compile(r'```(\w+)\s([\s\S(^\\`{3})]*?)\s```')
-coliru_cfg = io.json('coliru.json')
+coliru_cfg = configfiles.get_from_here('coliru_configs').sync_get()
 coliru_endpoint = 'http://coliru.stacked-crooked.com/compile'
+four_space_re = re.compile(r'^ {4}')
 
 
 class ColiruCog(traits.HttpPool):
+    @staticmethod
+    async def fix_makefile(input_code: str) -> str:
+        """
+        Fixes makefiles so they actually compile. This converts any leading
+        quadruple spaces on a line to a horizontal tab character.
+        :param input_code: the input string.
+        :return: the makefile-friendly string.
+        """
+        strings = []
+        for line in input_code.splitlines():
+            while four_space_re.match(line):
+                line = four_space_re.sub('\t', line)
+            strings.append(line)
+        return '\n'.join(strings)
+
+
     @commands.group(
         brief='Compiles and runs code under a given configuration',
         invoke_without_command=True)
@@ -40,6 +57,9 @@ class ColiruCog(traits.HttpPool):
         configuration. See the subcommand `coliru configs` to see the supported
         configurations.
 
+        If you use makefiles, indent by four spaces. I will automatically
+        translate the leading quadruple spaces to horizontal tabs.
+
         http://coliru.stacked-crooked.com/
         """
 
@@ -49,6 +69,10 @@ class ColiruCog(traits.HttpPool):
             return await ctx.send('Please provide some highlighted code')
         else:
             lang, code = code.groups()
+
+            if lang == 'make':
+                code = self.fix_makefile(code)
+
         try:
             config = coliru_cfg[lang.lower()]
 

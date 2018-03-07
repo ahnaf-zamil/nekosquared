@@ -6,9 +6,9 @@ Built from the mistakes and learnings of Neko.
 
 ```python
 # Using cURL
-curl https://raw.githubusercontent.com/Espeonageon/nekosquared/master/install.py | python3.6
+curl https://raw.githubusercontent.com/neko404notfound/nekosquared/master/install.py | python3.6
 # Using wget
-wget -qO- https://raw.githubusercontent.com/Espeonageon/nekosquared/master/install.py | python3.6
+wget -qO- https://raw.githubusercontent.com/neko404notfound/nekosquared/master/install.py | python3.6
 ```
 
 This downloads the installation script in the root of the repository, and
@@ -23,33 +23,38 @@ and have the `python3-virtualenv package installed.`
 
 ## The config files
 
-This bot looks in the current working directory for a directory called `config`.
-It will look in here for any configuration files that are needed. These
-configuration files may be in INI, JSON or YAML format, depending on the most
-appropriate implementation. Example config files can be found in the `ex-config`
-directory of this repository.
+The bot defaults to the config directory `../neko2config`. This is changeable
+by specifying the path as the first command line option when running the bot:
 
-## Brought to you by...
+```bash
+python3.6 -m neko2 /home/me/my_directory
+# or
+python3.6 -m neko2 ~/my_directory
+```
 
-This project uses multiple existing dependencies to make life a bit easier and
-to reduce the amount of testing that has to take place. These dependencies
-come from both PyPi and non-PyPi sources.
+Config files can have any supported file extension, but they **must** have
+one. The file type should be guessed automatically. For example, `discord` will
+load either `discord.json`, `discord.py` or `discord.yaml` depending on which
+is found first.
 
-### From PyPi
+The bot currently supports the following serialization formats:
 
-- [aiofiles](https://pypi.python.org/pypi/aiofiles) - Asyncio file I/O wrapper.
-- [aiohttp](https://pypi.python.org/pypi/aiohttp) - Async HTTP wrapper.
-- [asyncpg](https://pypi.python.org/pypi/asyncpg) - Async Postgres wrapper.
-- [cached_property](https://pypi.python.org/pypi/cached-property) - Cached
-    property decorator implementations that also include thread-safe wrappers
-    and cached properties that will revalidate after a given period of time.
-- [pyyaml](https://pypi.python.org/pypi/pyyaml) - YAML implementation.
+| Extension | Format | Notes |
+|---|---|---|
+| `.json` | JSON | Recommended |
+| `.yaml` | YAML | Yet Another Markup Language. Requires `pyyaml` to be installed. |
+| `.py` | Python | Loads the file and attempts to `eval` it. This risks arbitrary code execution and is untested. | 
 
-### From elsewhere
+The current config files are required for the bot to work:
 
-- [Discord.py Rewrite](https://github.com/rapptz/discord.py/tree/rewrite) -
-    The rewrite of the Discord.py API wrapper using asyncio.
+| Name | Description |
+|---|---|
+| `discord` | Basic Discord config and authentication. Holds a dictionary of two dictionaries: `bot` and `auth`. `bot` contains `command_prefix` (string) and `owner_id` (int); `auth` contains `client_id` (int) and `token` (string). |
+| `database` | Holds PostgreSQL credentials. This is a dictionary of four strings: `database`, `host`, `user`, and `password`. |
+| `modules` | Holds a list of fully qualified extensions to load (e.g. `neko2.cogs.latex`) |
 
-## Looking for the old version?
+Cogs require the following additional configurations:
 
-Check it out [here](https://github.com/neko404notfound/neko).
+| Cog | Name | Description |
+|---|---|---|
+| `neko2.cogs.py` | `neko2.cogs.py.targets` | A list of modules to cache for the `py` command. |

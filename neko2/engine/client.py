@@ -14,6 +14,7 @@ import discord                          # Basic discord.py bits and pieces.
 from discord.ext import commands        # Discord.py extensions.
 from neko2.engine import errorhandler   # Error handling routine.
 from neko2.engine import shutdown       # Hook to call on shutdown.
+from neko2.shared import scribe         # Logging
 from neko2.shared import traits         # Cog and class traits.
 
 
@@ -47,7 +48,7 @@ del signals, unix_signals, windows_signals, terminate
 ################################################################################
 # Bot class definition.                                                        #
 ################################################################################
-class Bot(commands.Bot, traits.Scribe):
+class Bot(commands.Bot, scribe.Scribe):
     """
     My implementation of the Discord.py bot. This implements a few extra things
     on top of the existing Discord.py and discord.ext.commands implementations.

@@ -17,14 +17,14 @@ from neko2.engine import commands       # command decorator
 from neko2.shared import configfiles    # config files
 from neko2.shared import fsa            # finite state machines
 from neko2.shared import sql            # SqlQuery
-from neko2.shared import traits         # PostgresPool, IoBoundPool, Scribe
+from neko2.shared import traits         # PostgresPool, IoBoundPool
 from neko2.shared.other import fuzzy    # Fuzzy string logic
 from . import module_cacher             # Module cacher
 
-config_file = 'neko2.cogs.py.targets.json'
+config_file = 'neko2.cogs.py.targets'
 
 
-class PyCog(traits.PostgresPool, traits.IoBoundPool, traits.Scribe):
+class PyCog(traits.PostgresPool, traits.IoBoundPool):
     """
     Manages generating the database of caches, and providing some form of user
     interface into it.

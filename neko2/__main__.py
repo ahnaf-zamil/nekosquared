@@ -35,7 +35,7 @@ if len(sys.argv) > 1:
     config_path = sys.argv[1]
     configfiles.CONFIG_DIRECTORY = config_path
 
-cfg_file = configfiles.get_config_holder('discord.yaml')
+cfg_file = configfiles.get_from_config_dir('discord.yaml')
 
 bot = client.Bot(cfg_file.sync_get())
 errors = autoloader.auto_load_modules(bot)

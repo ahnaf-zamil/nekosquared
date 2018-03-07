@@ -7,13 +7,12 @@ import typing                              # Type checking bits and pieces
 import cached_property                     # Cached properties
 from discord import embeds                 # Embeds
 from neko2.engine import commands          # Command decorators
-from neko2.shared import traits            # Traits
 from neko2.shared import fsa               # Finite state machines
 from neko2.shared import string            # String voodoo
 from neko2.shared.other import fuzzy       # Fuzzy string matching
 
 
-class HelpCog(traits.Scribe):
+class HelpCog:
     def __init__(self, bot):
         self.bot = bot
 

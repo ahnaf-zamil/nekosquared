@@ -15,13 +15,10 @@ from neko2.shared import configfiles  # Config file support.
 from neko2.shared import scribe       # Logger (I moved it)
 
 
-__all__ = ('Scribe', 'CpuBoundPool', 'IoBoundPool', 'FsPool',
-           'HttpPool', 'PostgresPool')
+__all__ = ('CpuBoundPool', 'IoBoundPool', 'FsPool', 'HttpPool', 'PostgresPool')
 
 
 T = typing.TypeVar('T')
-
-Scribe = scribe.Scribe
 
 
 def _magic_number(*, cpu_bound=False):
@@ -152,7 +149,7 @@ class IoBoundPool:
             *args)
 
 
-class FsPool(IoBoundPool, Scribe):
+class FsPool(IoBoundPool, scribe.Scribe):
     """
     Trait that allows the acquisition of an asynchronous file handle from
     the local file system. This runs in the same pool of workers as the
@@ -169,7 +166,7 @@ class FsPool(IoBoundPool, Scribe):
             executor=_io_pool)
 
 
-class HttpPool(Scribe):
+class HttpPool(scribe.Scribe):
     """
     Allows you to acquire an HTTP pool to use.
     """
@@ -196,7 +193,7 @@ class HttpPool(Scribe):
         return cls._http_pool
 
 
-class PostgresPool(Scribe):
+class PostgresPool(scribe.Scribe):
     """
     Allows you to acquire a connection to the database from the connection pool.
     """

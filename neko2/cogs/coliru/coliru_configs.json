@@ -15,7 +15,6 @@
   "fortran": "gfortran main.cpp",
   "awk": "awk main.cpp",
   "haskell": "runhaskell main.cpp",
-  "bc": "bc -wl < main.cpp",
   "lua": "lua main.cpp",
   "make": "make -f main.cpp"
 }
