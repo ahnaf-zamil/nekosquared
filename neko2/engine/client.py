@@ -12,11 +12,12 @@ import traceback                        # Exception traceback utilities.
 import cached_property                  # Cached properties.
 import discord                          # Basic discord.py bits and pieces.
 from discord.ext import commands        # Discord.py extensions.
+from discord.utils import oauth_url     # OAuth URL generator
 from neko2.engine import errorhandler   # Error handling routine.
 from neko2.engine import shutdown       # Hook to call on shutdown.
 from neko2.shared import scribe         # Logging
 from neko2.shared import traits         # Cog and class traits.
-
+from neko2.shared.other import perms
 
 __all__ = ('BotInterrupt', 'Bot')
 
@@ -53,6 +54,11 @@ class Bot(commands.Bot, scribe.Scribe):
     My implementation of the Discord.py bot. This implements a few extra things
     on top of the existing Discord.py and discord.ext.commands implementations.
 
+    Attributes
+    ----------
+    - ``permbits`` - optional (not yet implemented). An integer bitfield
+        representing the default permissions to invite the bot with when
+        generating OAuth2 URLs.
 
     Properties
     ----------
@@ -105,10 +111,11 @@ class Bot(commands.Bot, scribe.Scribe):
 
     @cached_property.cached_property
     def invite(self):
-        return (
-            'https://discordapp.com/oauth2/authorize?scope=bot&'
-            f'client_id={self.client_id}'
-        )
+        perm_bits = getattr(self, 'permbits', 0)
+
+        permissions = perms.Permissions.to_discord_type(perm_bits)
+
+        return oauth_url(self.client_id, permissions=permissions)
 
     @property
     def uptime(self) -> float:

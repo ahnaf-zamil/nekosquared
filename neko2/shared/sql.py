@@ -26,10 +26,18 @@ class SqlQuery(scribe.Scribe):
         :param relative_to_here: defaults to true. If true, we consider the file
                 to be in the same directory as the caller.
         """
+
         if relative_to_here:
-            self._file_name = ioutil.in_here(file_name, nested_by=1)
-        else:
-            self._file_name = file_name
+            file_name = ioutil.in_here(file_name, nested_by=1)
+
+        if ioutil.get_inode_type(file_name) != 'file':
+            in_ty = ioutil.get_inode_type(file_name + '.sql')
+            if in_ty == 'file':
+                file_name = file_name + '.sql'
+            else:
+                raise FileNotFoundError(f'Cannot find {file_name}')
+
+        self._file_name = file_name
 
         with open(self._file_name) as fp:
             self.content = '\n'.join(fp.readlines())

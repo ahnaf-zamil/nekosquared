@@ -8,6 +8,7 @@ config directory. This should be a list of Python modules to index when we are
 directed to.
 """
 import asyncio                          # asyncio.gather
+import inspect                          # introspection
 import json                             # json deserialiser
 import random                           # rng
 import time                             # time.time
@@ -24,6 +25,13 @@ from . import module_cacher             # Module cacher
 config_file = 'neko2.cogs.py.targets'
 
 
+# Set to True to allow searching by just fuzzy module names. This is much much
+# slower, and should only be enabled if your system is powerful enough to
+# support it in a reasonable response latency. A Raspberry Pi is not powerful
+# enough. This slowdown is proportional to the database size.
+ALLOW_AMBIGUOUS_MODULE = False
+
+
 class PyCog(traits.PostgresPool, traits.IoBoundPool):
     """
     Manages generating the database of caches, and providing some form of user
@@ -37,15 +45,15 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool):
     # SQL queries we utilise in this class. This loads them from disk.         #
     ############################################################################
 
-    add_member = sql.SqlQuery('add_member.sql')
-    add_module = sql.SqlQuery('add_module.sql')
-    get_count = sql.SqlQuery('get_count.sql')
-    get_all_members_fqn = sql.SqlQuery('get_all_members_fqn.sql')
-    get_members = sql.SqlQuery('get_members.sql')
-    get_members_fqn = sql.SqlQuery('get_members_fqn.sql')
-    get_modules = sql.SqlQuery('get_modules.sql')
-    list_all_modules = sql.SqlQuery('list_modules.sql')
-    schema_definition = sql.SqlQuery('generate_schema.sql')
+    add_member = sql.SqlQuery('add_member')
+    add_module = sql.SqlQuery('add_module')
+    get_count = sql.SqlQuery('get_count')
+    get_all_members_fqn = sql.SqlQuery('get_all_members_fqn')
+    get_members = sql.SqlQuery('get_members')
+    get_members_fqn = sql.SqlQuery('get_members_fqn')
+    get_modules = sql.SqlQuery('get_modules')
+    list_all_modules = sql.SqlQuery('list_modules')
+    schema_definition = sql.SqlQuery('generate_schema')
 
     ############################################################################
     # Commands and events.                                                     #
@@ -65,16 +73,10 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool):
         somewhere within the module, or you can provide the fully qualified
         attribute name alone.
         """
-        if not attribute:
-            if not await ctx.bot.is_owner(ctx.author):
-                await ctx.send('Please provide a module and attribute. The '
-                               'ability to search the entire namespace has '
-                               'been disabled until a faster device can host '
-                               'this bot, as it consumes too much processing '
-                               'time.', delete_after=30)
-                return
-            else:
-                await ctx.send('This will probably be slow..!', delete_after=5)
+        if not attribute and not ALLOW_AMBIGUOUS_MODULE:
+            param = inspect.signature(
+                self.py_group.callback).parameters['attribute']
+            raise commands.MissingRequiredArgument(param)
 
         try:
             async with await self.acquire_db() as conn, ctx.typing():

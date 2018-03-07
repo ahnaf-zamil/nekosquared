@@ -4,10 +4,10 @@
 IO bits and pieces.
 """
 import inspect      # Stack frame inspection
-import os           # OS path utils
+import os.path      # OS path utils
 
 
-__all__ = ('in_here', 'json', 'yaml')
+__all__ = ('in_here', 'json', 'yaml', 'get_inode_type')
 
 
 def in_here(*paths, nested_by=0):
@@ -61,3 +61,25 @@ def yaml(file, *, relative_to_here=True):
 
     with open(file) as fp:
         return yaml.load(fp)
+
+
+def get_inode_type(*paths):
+    """
+    Returns a string representing the inode type, or none if the inode doesn't
+    exist.
+
+    :param paths: the paths to join.
+    :return: 'dir', 'link', 'file', None
+    """
+    path = os.path.join(*paths)
+
+    if not os.path.exists(path):
+        return None
+    elif os.path.islink(path):
+        return 'link'
+    elif os.path.isfile(path):
+        return 'file'
+    elif os.path.isdir(path):
+        return 'dir'
+    else:
+        assert False, f'Unknown inode type for {path}.'

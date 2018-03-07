@@ -3,14 +3,38 @@
 """
 Embed preview cog utility.
 """
-import io                           # StringIO
-import traceback                    # Traceback utils
-from discord import embeds          # Embeds
-import yaml                         # YAML parser
-from neko2.engine import commands   # Commands decorators
+import io                             # StringIO
+import traceback                      # Traceback utils
+from discord import embeds            # Embeds
+from discord import utils             # OAuth2 URL generation
+import yaml                           # YAML parser
+from neko2.engine import commands     # Commands decorators
+from neko2.shared.other import perms  # Permission bits.
 
 
-class EmbedPrevCog:
+class DiscordUtilCog:
+    @commands.command(
+        name='geninvite',
+        brief='Generates an OAuth invite URL from a given snowflake client ID',
+        help='Valid options: ```' +
+             ', '.join(perms.Permissions.__members__.keys()) +
+             '```')
+    async def generate_invite(self, ctx, client_id: str, *permissions: str):
+        perm_bits = 0
+
+        for permission in permissions:
+            if permission not in perms.Permissions:
+                return await ctx.send(f'{permission} is not recognised.')
+            else:
+                perm_bits |= perms.Permissions[permission]
+
+        await ctx.send(
+            utils.oauth_url(
+                client_id,
+                permissions=perms.Permissions.to_discord_type(perm_bits),
+                guild=ctx.guild
+            ))
+
     @commands.command(
         name='embed',
         brief='Takes YAML input and generates a preview for an embed.')
@@ -148,4 +172,4 @@ class EmbedPrevCog:
 
 
 def setup(bot):
-    bot.add_cog(EmbedPrevCog())
+    bot.add_cog(DiscordUtilCog())
