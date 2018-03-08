@@ -75,15 +75,18 @@ class HelpCog:
             embed.add_field(name='Examples', value=examples)
 
         if isinstance(command, commands.BaseGroupMixin):
-            children = sorted(command.commands, key=lambda c: c.name)
+            _children = sorted(command.commands, key=lambda c: c.name)
+            children = []
+
+            for child in _children:
+                if await child.can_run(ctx):
+                    children.append(child)
         else:
             children = []
 
         if children:
-            embed.add_field(
-                name='Child commands',
-                value=', '.join(f'`{child.name}`' for child in children
-                                if await child.can_run(ctx)))
+            children = ', '.join(f'`{child.name}`' for child in children)
+            embed.add_field(name='Child commands', value=children)
 
         if parent:
             embed.add_field(name='Parent', value=f'`{parent}`')
