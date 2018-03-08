@@ -35,7 +35,7 @@ if len(sys.argv) > 1:
     config_path = sys.argv[1]
     configfiles.CONFIG_DIRECTORY = config_path
 
-cfg_file = configfiles.get_from_config_dir('discord.yaml')
+cfg_file = configfiles.get_from_config_dir('discord')
 
 bot = client.Bot(cfg_file.sync_get())
 errors = autoloader.auto_load_modules(bot)
@@ -58,6 +58,10 @@ async def on_ready():
                 type(error),
                 error,
                 error.__traceback__))
+            
+            # We only print the first 20k chars of each error. This is to
+            # prevent clogging up the inbox if we get a stack overflow or
+            # something with hundreds of frames.
             for i in range(0, min(20000, len(string)), 1990):
                 await owner.send(f'```\n{string[i:i+1990]}\n```')
 
