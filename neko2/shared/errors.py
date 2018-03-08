@@ -17,11 +17,11 @@ class HttpError(RuntimeError):
         return self.response.reason
 
     @property
-    def status_code(self) -> int:
-        return self.response.status_code
+    def status(self) -> int:
+        return self.response.status
 
     def __str__(self):
-        return f'{self.status_code}: {self.reason}'
+        return f'{self.status}: {self.reason}'
 
 
 class NotFound(RuntimeError):

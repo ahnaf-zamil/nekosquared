@@ -4,7 +4,7 @@
 Builtin extension that is loaded to implement a custom help method.
 """
 import typing                              # Type checking bits and pieces
-import cached_property                     # Cached properties
+
 from discord import embeds                 # Embeds
 from neko2.engine import commands          # Command decorators
 from neko2.shared import fsa               # Finite state machines
@@ -163,14 +163,14 @@ class HelpCog:
 
             await fsm.run()
 
-    @cached_property.cached_property
+    @property
     def all_commands(self) -> typing.FrozenSet[commands.BaseCommand]:
         """
         Generates a set of all unique commands recursively.
         """
         return frozenset([command for command in self.bot.walk_commands()])
 
-    @cached_property.cached_property
+    @property
     def alias2command(self) -> typing.Dict:
         """
         Generates a mapping of all fully qualified command names and aliases
@@ -212,11 +212,16 @@ class HelpCog:
                 # gets to see all commands regardless of whether they are
                 # accessible or not.
                 if context.author.id == context.bot.owner_id:
-                    guessed_name, score = fuzzy.extract_best(
+                    result = fuzzy.extract_best(
                         string,
                         self.alias2command.keys(),
                         scoring_algorithm=fuzzy.deep_ratio,
                         min_score=60)
+
+                    if not result:
+                        return None
+                    else:
+                        guessed_name, score = result
 
                     return score == 100, self.alias2command[guessed_name]
                 else:
@@ -245,22 +250,6 @@ class HelpCog:
                 pass
 
             return None
-
-    def __invalidate(self):
-        for attr in 'all_commands', 'alias2command':
-            try:
-                del self.__dict__[attr]
-            except:
-                pass
-
-    async def on_connect(self):
-        self.__invalidate()
-
-    async def on_add_command(self, _):
-        self.__invalidate()
-
-    async def on_remove_command(self, _):
-        self.__invalidate()
 
 
 def setup(bot):

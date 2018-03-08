@@ -227,13 +227,14 @@ def extract_best(query: str,
     Extracts the best result for the query in the given choices... if there is
     one!
     """
-    result = list(
-        extract(
+    result = extract(
             query,
             choices,
             scoring_algorithm=scoring_algorithm,
             min_score=min_score,
-            max_results=1))
+            max_results=1)
+
+    result = list(result)
 
     if result:
         return result[0]
