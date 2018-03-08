@@ -1,10 +1,9 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
 """
-Urban Dictionary and Wordnik support.
+Urban Dictionary support.
 """
 import discord
-import wordnik
 
 from neko2.engine import commands
 from neko2.shared import fsa
@@ -15,7 +14,8 @@ urban_random = 'http://api.urbandictionary.com/v0/random'
 urban_search = 'http://api.urbandictionary.com/v0/define'
 
 
-class DictionaryCog(traits.IoBoundPool, traits.HttpPool):
+class UrbanDictionaryCog(traits.HttpPool):
+    """Urban dictionary cog."""
     @staticmethod
     def _format_urban_defn(definition: dict) -> discord.Embed:
         """
@@ -92,6 +92,5 @@ class DictionaryCog(traits.IoBoundPool, traits.HttpPool):
             await fsa.FocusedPagEmbed.from_embeds(
                 embeds, bot=ctx.bot, invoked_by=ctx, timeout=120).run()
 
-
 def setup(bot):
-    bot.add_cog(DictionaryCog())
+    bot.add_cog(UrbanDictionaryCog())

@@ -3,6 +3,14 @@
 """
 Other more bespoke utilities used throughout the bot, such as fuzzy string
 pattern matching, fake type implementations, et cetera.
+
+Uncategorised bits and bobs can go here directly.
 """
 from . import excuses
 from . import fuzzy
+
+
+def rand_colour() -> int:
+    """Gets a random colour."""
+    from random import randint
+    return randint(0, 0xFFFFFF)
