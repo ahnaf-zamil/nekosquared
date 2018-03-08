@@ -86,7 +86,7 @@ def quote(text: str):
 
     # Ensure capitalised start
     text = f'{text[0:1].upper()}{text[1:]}'
-    if not any(text.endswith for x in ('!', '?', '.', ',')):
+    if not any(text.endswith(x) for x in ('!', '?', '.', ',')):
         text += '.'
 
     return f'“{text}”'
@@ -147,13 +147,13 @@ class WordnikCog(traits.IoBoundPool):
             extended_text = ellipse(result.get('extendedText', None))
             source = result.get('attributionText', result['sourceDictionary'])
             citations = [f'{quote(c["cite"])} - {c["source"]}'
-                         for c in result.get('citations', [])]
+                         for c in result.get('citations', []) if c["cite"]]
             citations = ellipse('\n\n'.join(citations))
             examples = [e["text"] for e in result.get('exampleUses', [])]
             # Capitalise each example, and quote it.
             examples = [quote(e) for e in examples]
             examples = ellipse('\n\n'.join(examples))
-            title = result['word']
+            title = result['word'].upper()
             part_of_speech = result.get('partOfSpeech', None)
             definition = result.get('text', '_No definition_')
             if part_of_speech:
