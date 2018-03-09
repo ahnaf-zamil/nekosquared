@@ -150,7 +150,7 @@ class ConfigFile(scribe.Scribe):
         return self._value is not None
 
 
-def get_from_config_dir(file_name, *, load_now=False):
+def get_from_config_dir(file_name, *, load_now=True):
     """
     Constructs a ConfigFile from the default configuration directory, and
     caches the data.
@@ -167,7 +167,7 @@ def get_from_config_dir(file_name, *, load_now=False):
     return cf
 
 
-def get_from_here(file_name, *, nested_by=0, load_now=False):
+def get_from_here(file_name, *, nested_by=0, load_now=True):
     """
     Constructs a ConfigFile relative to the current directory the caller is
     defined in, and caches the data.
