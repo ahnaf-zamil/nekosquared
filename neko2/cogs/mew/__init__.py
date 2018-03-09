@@ -25,7 +25,7 @@ assets_directory = ioutil.in_here('assets')
 class MewReactsCog(scribe.Scribe):
     """Reactions cog."""
     def __init__(self):
-        bindings = configfiles.get_from_here(bindings_file)
+        bindings = configfiles.get_from_here(bindings_file).sync_get()
 
         # Attempt to locate all files to ensure paths are valid.
         potential_targets = set()
@@ -86,12 +86,13 @@ class MewReactsCog(scribe.Scribe):
             # Otherwise, if the react doesn't exist, or wasn't specified, then
             # list the reacts available.
             else:
-                await ctx.send('Available reacts: ' + ' '.join(
+                await ctx.send('**Mew reactions:**\n\n' + ' '.join(
                         map(
                             lambda n: f'`{n}`',
                             sorted(self.images)
                         )
-                    )
+                    ) + '.\n\nThanks to @Ѵԑԑ#4012 for providing the emotes and '
+                    'command alias configurations.'
                 )
 
 
