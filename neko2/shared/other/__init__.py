@@ -8,6 +8,7 @@ Uncategorised bits and bobs can go here directly.
 """
 from . import excuses
 from . import fuzzy
+from . import orderedset
 
 
 def rand_colour() -> int:
