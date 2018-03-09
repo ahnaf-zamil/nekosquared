@@ -58,3 +58,5 @@ Cogs require the following additional configurations:
 | Cog | Name | Description |
 |---|---|---|
 | `neko2.cogs.py` | `neko2.cogs.py.targets` | A list of modules to cache for the `py` command. |
+| `neko2.cogs.urlshorten` | `neko2.cogs.urlshorten.key` | [String API key](https://console.developers.google.com/apis/credentials) for the `goo.gl` API for URL shortening. |
+| `neko2.cogs.wordnik` | `neko2.cogs.wordnik.key` | [String API key](http://developer.wordnik.com/) for the `wordnik` API for dictionary access. |
