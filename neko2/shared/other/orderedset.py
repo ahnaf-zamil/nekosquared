@@ -33,11 +33,11 @@ class OrderedSet(collections.Set):
         """Get the length of the set."""
         return len(self._dict)
 
-    def __iter__(self) -> typing.Iterator[typing._T_co]:
+    def __iter__(self) -> typing.Iterator[object]:
         """Return an iterator across the set."""
         return iter(self._dict)
 
-    def __getitem__(self, index: int) -> typing._T:
+    def __getitem__(self, index: int) -> object:
         """Access the element at the given index in the set."""
         return list(self._dict.keys())[index]
 
@@ -51,10 +51,10 @@ class OrderedSet(collections.Set):
 # noinspection PyProtectedMember
 class MutableOrderedSet(OrderedSet, collections.MutableSet):
     """An ordered set that allows mutation."""
-    def add(self, x: typing._T) -> None:
+    def add(self, x: object) -> None:
         """Adds a new element to the set."""
         self._dict[x] = None
 
-    def discard(self, x: typing._T) -> None:
+    def discard(self, x: object) -> None:
         """Removes an element from the set."""
         self._dict.pop(x)
