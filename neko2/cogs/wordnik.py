@@ -21,6 +21,7 @@ from neko2.shared import other
 from neko2.shared import traits
 
 
+config_file = 'neko2.cogs.wordnik.key'
 
 wordnik_endpoint = 'http://api.wordnik.com/v4'
 
@@ -98,7 +99,7 @@ class WordnikCog(traits.IoBoundPool):
     of online dictionaries.
     """
     def __init__(self):
-        self._token = configfiles.get_config_data('neko2.cogs.wordnik.token')
+        self._token = configfiles.get_config_data(config_file)
         self.api_client = swagger.ApiClient(self._token, wordnik_endpoint)
         self.api = WordApi.WordApi(self.api_client)
 
