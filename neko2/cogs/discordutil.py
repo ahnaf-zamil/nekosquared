@@ -4,10 +4,10 @@
 Embed preview cog utility.
 """
 import io                             # StringIO
+import json                           # JSON
 import traceback                      # Traceback utils
 from discord import embeds            # Embeds
 from discord import utils             # OAuth2 URL generation
-import yaml                           # YAML parser
 from neko2.engine import commands     # Commands decorators
 from neko2.shared.other import perms  # Permission bits.
 
@@ -37,7 +37,7 @@ class DiscordUtilCog:
 
     @commands.command(
         name='embed',
-        brief='Takes YAML input and generates a preview for an embed.')
+        brief='Takes JSON input and generates a preview for an embed.')
     async def embed_preview(self, ctx, *, dom):
         """
         Available options:
@@ -51,17 +51,18 @@ class DiscordUtilCog:
 
         Example:
 
-        ---
-        title: Hello
-        description: World!
-        color: 0xF0F0F0
-        fields:
-        - name: foo
-          value: bar
-        - name: baz
-          value: bork
-          inline: no
-        ...
+        ```json
+        {
+            "title": "Hello",
+            "description": "World!",
+            "color": 0xF0F0F0,
+            "fields": [
+                {"name": "foo", "value": "bar"},
+                {"name": "baz", "value": "bork"}
+            ],
+            "inline": false
+        }
+        ```
         """
 
         dom: str = dom.strip()
@@ -75,14 +76,12 @@ class DiscordUtilCog:
             dom = dom[:-3]
 
         try:
-            with io.StringIO(dom) as stream:
-                dom: dict = yaml.load(stream)
-                if not isinstance(dom, dict):
-                    return await ctx.send('Expected YAML dictionary.')
-
-                # For simplicity, translate color to colour.
-                if 'color' in dom:
-                    dom['colour'] = dom.pop('color')
+            dom = json.loads(dom)
+            if not isinstance(dom, dict):
+                return await ctx.send('Expected YAML dictionary.')
+            # For simplicity, translate color to colour.
+            if 'color' in dom:
+                dom['colour'] = dom.pop('color')
 
             # Helper.
             def get(key: str,
