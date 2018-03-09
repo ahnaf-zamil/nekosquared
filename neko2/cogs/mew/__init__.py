@@ -18,7 +18,7 @@ from neko2.shared import scribe
 
 
 # Relative to this directory.
-bindings_file = 'bindings.yaml'
+bindings_file = 'bindings'
 assets_directory = ioutil.in_here('assets')
 
 
@@ -91,7 +91,7 @@ class MewReactsCog(scribe.Scribe):
                             lambda n: f'`{n}`',
                             sorted(self.images)
                         )
-                    ) + '.\n\nThanks to @Ѵԑԑ#4012 for providing the emotes and '
+                    ) + '.\n\nThanks to Zcissors for providing the emotes and '
                     'command alias configurations.'
                 )
 

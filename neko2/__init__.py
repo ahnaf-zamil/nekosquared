@@ -17,4 +17,4 @@ __license__ = 'Mozilla Public License Version 2.0'
 __url__ = 'https://github.com/neko404notfound/nekosquared'
 __version__ = '0.0.0'
 __repository__ = __url__
-__contributors__ = (__author__,)
+__contributors__ = (__author__, 'Zcissors')
