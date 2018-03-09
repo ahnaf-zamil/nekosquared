@@ -35,7 +35,7 @@ class GitCog(scribe.Scribe, traits.CpuBoundPool):
         git_path = shutil.which('git')
 
         msg = await ctx.send('I will now destructively sync with GitHub! ' +
-                             '*slides into DMs*...' if ctx.guild else '')
+                             ('*slides into DMs*...' if ctx.guild else ''))
 
         did_fail = False
 
