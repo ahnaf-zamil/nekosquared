@@ -3,47 +3,38 @@
 """
 A cached Sequel statement that we gather from disk.
 """
+import logging
+
 from neko2.shared import ioutil      # in_here
-from neko2.shared import scribe  # Logging trait
 
 
 __all__ = ('SqlQuery',)
 
 
-class SqlQuery(scribe.Scribe):
+__logger = logging.getLogger(__name__)
+
+
+def SqlQuery(file_name: str, *, relative_to_here=True) -> str:
     """
-    This reads a SQL query from disk at the given path and acts as a descriptor
-    returning the raw SQL query text.
+    Reads the query from file, and initialises the object.
 
-    This is designed to be embedded in class-scope and then accessed by an
-    instance of that class.
+    :param file_name: file name to open.
+    :param relative_to_here: defaults to true. If true, we consider the file
+            to be in the same directory as the caller.
     """
-    def __init__(self, file_name, *, relative_to_here=True):
-        """
-        Reads the query from file, and initialises the object.
+    if relative_to_here:
+        file_name = ioutil.in_here(file_name, nested_by=1)
 
-        :param file_name: file name to open.
-        :param relative_to_here: defaults to true. If true, we consider the file
-                to be in the same directory as the caller.
-        """
+    if ioutil.get_inode_type(file_name) != 'file':
+        in_ty = ioutil.get_inode_type(file_name + '.sql')
+        if in_ty == 'file':
+            file_name = file_name + '.sql'
+        else:
+            raise FileNotFoundError(f'Cannot find {file_name}')
 
-        if relative_to_here:
-            file_name = ioutil.in_here(file_name, nested_by=1)
+    with open(file_name) as fp:
+        content = '\n'.join(fp.readlines())
 
-        if ioutil.get_inode_type(file_name) != 'file':
-            in_ty = ioutil.get_inode_type(file_name + '.sql')
-            if in_ty == 'file':
-                file_name = file_name + '.sql'
-            else:
-                raise FileNotFoundError(f'Cannot find {file_name}')
+    __logger.info(f'Deserialized {file_name}')
 
-        self._file_name = file_name
-
-        with open(self._file_name) as fp:
-            self.content = '\n'.join(fp.readlines())
-
-        self.logger.info(f'Deserialized {file_name}')
-
-    def __get__(self, *_):
-        """This acts as the descriptor."""
-        return self.content
+    return content

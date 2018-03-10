@@ -27,6 +27,7 @@ def trace():
     if DEBUG:
         traceback.print_exc()
 
+
 # Takes any permutations of the formats:
 # a
 # a:b
@@ -297,7 +298,7 @@ class ModuleCacher:
         """
         try:
             walker = module_walker.ModuleWalker(self._name, self._rel)
-            module_hash = str(module_hasher.get_module_hash(walker.start))
+            module_hash = module_hasher.get_module_hash(walker.start)
             attrs = [attr for attr in walker]
 
             # Holds our metadata.

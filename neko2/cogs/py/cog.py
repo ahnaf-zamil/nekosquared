@@ -1,162 +1,100 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
 """
-Search and admin utilities for the cache system.
-
-This expects a config file called neko2.cogs.py.targets.yaml to exist in the
-config directory. This should be a list of Python modules to index when we are
-directed to.
+V2 of a cog implementation for Python document caching and lookup. This should
+hopefully run faster this time, as it outsources most of the searching logic to
+PostgreSQL fuzzy logic functions. This removes the overhead of moving tables
+of tens of thousands of records across network sockets, and will also be faster
+since most Postgres builtin functions are compiled C source rather than
+interpreted Python source. Also the devs are probably a lot cleverer than I am.
 """
-import asyncio                          # asyncio.gather
-import inspect                          # introspection
-import json                             # json deserialiser
-import random                           # rng
-import time                             # time.time
-import asyncpg                          # postgres
-import discord                          # discord.Embed
-from neko2.engine import commands       # command decorator
-from neko2.shared import configfiles    # config files
-from neko2.shared import fsa            # finite state machines
-from neko2.shared import sql            # SqlQuery
-from neko2.shared import traits         # PostgresPool, IoBoundPool
-from neko2.shared.other import fuzzy    # Fuzzy string logic
-from . import module_cacher             # Module cacher
+import asyncio
+import json
+import random
+import time
+import traceback
+
+import discord
+
+from neko2.engine import commands
+from neko2.shared import configfiles, fsa
+from neko2.shared import scribe
+from neko2.shared import sql
+from neko2.shared import traits
+from . import module_cacher
+
 
 config_file = 'neko2.cogs.py.targets'
 
 
-# Set to True to allow searching by just fuzzy module names. This is much much
-# slower, and should only be enabled if your system is powerful enough to
-# support it in a reasonable response latency. A Raspberry Pi is not powerful
-# enough. This slowdown is proportional to the database size.
-ALLOW_AMBIGUOUS_MODULE = False
-
-
-class PyCog(traits.PostgresPool, traits.IoBoundPool):
-    """
-    Manages generating the database of caches, and providing some form of user
-    interface into it.
-    """
+class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
+    gen_schema_sql = sql.SqlQuery('generate-schema')
+    add_member = sql.SqlQuery('add-member')
+    add_module = sql.SqlQuery('add-module')
+    list_modules = sql.SqlQuery('list-modules')
+    get_top_10 = sql.SqlQuery('get-top-10')
 
     def __init__(self):
-        self.cache_config = configfiles.get_config_data(config_file)
-
-    ############################################################################
-    # SQL queries we utilise in this class. This loads them from disk.         #
-    ############################################################################
-
-    add_member = sql.SqlQuery('add_member')
-    add_module = sql.SqlQuery('add_module')
-    get_count = sql.SqlQuery('get_count')
-    get_all_members_fqn = sql.SqlQuery('get_all_members_fqn')
-    get_members = sql.SqlQuery('get_members')
-    get_members_fqn = sql.SqlQuery('get_members_fqn')
-    get_modules = sql.SqlQuery('get_modules')
-    list_all_modules = sql.SqlQuery('list_modules')
-    schema_definition = sql.SqlQuery('generate_schema')
-
-    ############################################################################
-    # Commands and events.                                                     #
-    ############################################################################
+        self.modules = set(configfiles.get_config_data(config_file))
 
     @commands.group(
         name='py',
         brief='Searches the given module for the given attribute.',
         examples=['discord Bot.listen'],
         invoke_without_command=True)
-    async def py_group(self, ctx, module: str, *, attribute: str = ''):
+    async def py_group(self, ctx, module: str, *, attribute: str):
         """
         Searches for documentation on the given module for the given
         attribute.
         """
-        if not attribute and not ALLOW_AMBIGUOUS_MODULE:
-            param = inspect.signature(
-                self.py_group.callback).parameters['attribute']
-            raise commands.MissingRequiredArgument(param)
+        async with await self.acquire_db() as conn, ctx.typing():
+            top_results = await conn.fetch(
+                self.get_top_10,
+                module,
+                attribute)
 
-        try:
-            async with await self.acquire_db() as conn, ctx.typing():
-
-                # Type hinting in PyCharm :P
-                conn: asyncpg.Connection = conn
-
-                async def fetch(query, *args):
-                    return await asyncio.wait_for(
-                        conn.fetch(query, *args),
-                        timeout=10)
-
-                if '.' not in module:
-                    module = await conn.fetchrow(self.get_modules, module)
-
-                    if not module:
-                        members = await fetch(self.get_all_members_fqn)
-                    else:
-                        # Unpack
-                        pk, name = module
-
-                        # Get all members for that module. This may take a few
-                        # seconds, so we show typing.
-                        members = await fetch(self.get_members, pk)
-                else:
-
-                    members = await fetch(self.get_members_fqn, module)
-
-                # Perform fuzzy matching. Get the 10 best results for the
-                # fully qualified name.
-
-                # Construct a mapping of the qualified name to all other fields
-                # first
-                mapping = {
-                    r.get('fq_member_name').replace('.', ' '): r for r in
-                    # Cast each record to a dictionary so we can manipulate it
-                    # properly.
-                    (dict(rec) for rec in members)
-                }
-
-                top_results = fuzzy.extract(
-                    attribute,
-                    mapping.keys(),
-                    scoring_algorithm=fuzzy.deep_ratio)
-
-                if not top_results:
-                    return await ctx.send('No results were found...')
+            if not top_results:
+                return await ctx.send('No results were found...')
 
                 # Paginate the results.
-                options = {}
+            options = {}
 
-                for i, (result, score) in enumerate(top_results):
-                    obj = mapping[result]
-                    string = mapping[result]['fq_member_name']
+            for i, record in enumerate(top_results):
+                s, fq_s, pk, name, fq_name, meta = list(record.values())[0]
 
-                    if (i + 1) < 10:
-                        emoji = f'{i + 1}\N{COMBINING ENCLOSING KEYCAP}'
-                    else:
-                        emoji = '\N{KEYCAP TEN}'
-                    options[emoji] = (string, obj)
+                obj = {
+                    'member_name': name,
+                    'fq_member_name': fq_name,
+                    'metadata': meta
+                }
 
-                if len(options) > 1:
-                    # Last 180 seconds
-                    picker = fsa.FocusedOptionPicker(options, ctx.bot, ctx, 180)
+                string = fq_name
 
-                    chosen_result = await picker.run()
-
-                    # If we timed out...
-                    if chosen_result is None:
-                        return
+                if (i + 1) < 10:
+                    emoji = f'{i + 1}\N{COMBINING ENCLOSING KEYCAP}'
                 else:
-                    # Get the first (only) option.
-                    chosen_result = list(options.values())[0][1]
+                    emoji = '\N{KEYCAP TEN}'
+                options[emoji] = (string, obj)
 
-            await self._make_send_doc(ctx, chosen_result)
-        except asyncio.TimeoutError:
-            await ctx.send('Query timed out... try being less vague, or give '
-                           'me a faster computer to run on!',
-                           delete_after=15)
+            if len(options) > 1:
+                # Last 180 seconds
+                picker = fsa.FocusedOptionPicker(options, ctx.bot, ctx, 180)
+
+                chosen_result = await picker.run()
+
+                # If we timed out...
+                if chosen_result is None:
+                    return
+            else:
+                # Get the first (only) option.
+                chosen_result = list(options.values())[0][1]
+
+        await self._make_send_doc(ctx, chosen_result)
 
     @py_group.command(name='modules', brief='Lists any modules documented.')
     async def list_modules(self, ctx):
         async with await self.acquire_db() as conn:
-            result = await conn.fetch(self.list_all_modules)
+            result = await conn.fetch(self.list_modules)
             await ctx.send(', '.join(f'`{r["module_name"]}`' for r in result))
 
     @commands.is_owner()
@@ -164,47 +102,36 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool):
     async def show_config(self, ctx):
         """Dumps the config."""
         pag = fsa.Pag()
-        pag.add_line(str(self.cache_config))
+        pag.add_line(str(self.modules))
 
         for page in pag.pages:
             await ctx.send(page)
 
-    @commands.is_owner()
-    @py_group.command()
-    async def recache(self, ctx):
-        """
-        Sets up the cache. This first destroys any existing schema, and
-        proceeds to generate a fresh schema and tables.
-        """
-        await ctx.send('Warning! This may take from a few minutes to a few '
-                       'hours, depending on the number of members being '
-                       'cached. Please be patient! This will also block while '
-                       'modules are loaded. You have been warned.')
+    async def _wipe_schema(self):
+        """Call this to create the schema the first time you run this."""
+        async with await self.acquire_db() as conn:
+            self.logger.warning('Destroying schema and rebuilding it.')
+            await conn.execute(self.gen_schema_sql)
 
-        status = await ctx.send('Starting cache process.')
+    async def _cache_modules(self, ctx, status: commands.StatusMessage):
+        """Caches all the modules."""
 
-        start_time = time.time()
+        # Cache the modules
+        # Run in a pool execution service to prevent blocking the
+        # asyncio event loop.
+        def cache_task(module_name):
+            # Read the module data
+            cache = module_cacher.ModuleCacher(module_name)
+            cache = cache.make_cache()
+            return cache
 
-        # noinspection PyUnusedLocal
-        async with await self.acquire_db() as conn, ctx.typing():
-            self.logger.warning(f'{ctx.author} invoked re-cache operation.')
-            asyncio.ensure_future(
-                status.edit(content='Connected. Ensuring schema exists.'))
+        tot = len(self.modules)
 
-            await conn.execute(self.schema_definition)
+        async with await self.acquire_db() as conn:
+            total_attrs = 0
+            total_modules = 0
 
-            # Start caching modules
-            tot = len(self.cache_config)
-
-            # Run in a thread pool execution service to prevent blocking the
-            # asyncio event loop.
-            def cache_task(module_name):
-                # Read the module data
-                cache = module_cacher.ModuleCacher(module_name)
-                cache = cache.make_cache()
-                return cache
-
-            for i, module in enumerate(self.cache_config):
+            for i, module in enumerate(self.modules):
                 # Cache each module in a transaction.
                 async with conn.transaction(
                         isolation='serializable',
@@ -212,18 +139,30 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool):
                         deferrable=False):
 
                     try:
-                        asyncio.ensure_future(status.edit(
-                            content=f'[{i+1}/{tot}] Caching `{module}`... '
-                                    f'collecting required data from source code'
-                                    f'...'))
+                        self.logger.info(f'[{i+1}/{tot}] Analysing `{module}`')
 
+                        asyncio.ensure_future(status.set_message(
+                            f'[{i+1}/{tot}] Analysing `{module}`... '))
+
+                        # Ideally I want to use CPU pool, but pickling becomes
+                        # an issue, and that is required for IPC.
                         cache = await self.run_in_io_pool(cache_task, [module])
 
                         module_name = cache['root']
-                        hash_code = str(cache['hash'])
+                        hash_code = cache['hash']
 
                         # Insert an entry into the module index
-                        module_pk = await conn.fetchval(
+                        await status.set_message(
+                            f'[{i+1}/{tot}] Generating a new table for '
+                            f'`{module}` dynamically in schema... '
+                        )
+
+                        self.logger.info(
+                            f'[{i+1}/{tot}] Generating a new table for '
+                            f'`{module}` dynamically in schema... '
+                        )
+
+                        module_tbl_name = await conn.fetchval(
                             self.add_module,
                             module_name,
                             hash_code)
@@ -231,36 +170,73 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool):
                         # Collect all arguments we are concerned with. This is
                         # each record to insert.
                         attrs = cache['attrs']
+                        total_attrs += len(attrs)
+
                         arguments = []
 
                         for j, attr in enumerate(attrs.values()):
                             if not j or j % 250 == 249:
-                                asyncio.ensure_future(status.edit(
-                                    content=f'[{i+1}/{tot}] In `{module}`:'
-                                            f' Storing attribute [{j+1}'
-                                            f'/{len(attrs)}] - `{attr["fqn"]}`')
+                                self.logger.info(
+                                    f'[{i+1}/{tot}] In `{module}`:'
+                                    f' Generating insert query [{j+1}'
+                                    f'/{len(attrs)}] - `{attr["fqn"]}`')
+
+                                asyncio.ensure_future(status.set_message(
+                                    f'[{i+1}/{tot}] In `{module}`:'
+                                    f' Generating insert query [{j+1}'
+                                    f'/{len(attrs)}] - `{attr["fqn"]}`')
                                 )
 
                             name = attr.pop('name')
                             fqn = attr.pop('fqn')
                             data = json.dumps(attr)
 
-                            next_record = (module_pk, name, fqn, data)
+                            next_record = (module_tbl_name, name, fqn, data)
                             arguments.append(next_record)
 
+                        self.logger.info(
+                            f'[{i+1}/{tot}] In `{module}`; Executing '
+                            f'{len(attrs)} insertions.')
+
+                        asyncio.ensure_future(status.set_message(
+                            f'[{i+1}/{tot}] In `{module}`; Executing '
+                            f'{len(attrs)} insertions.'
+                        ))
+
                         await conn.executemany(self.add_member, arguments)
+
+                        total_modules += 1
                     except BaseException as ex:
+                        traceback.print_exc()
                         await ctx.send(f'\N{NO ENTRY SIGN} in {module}\n'
                                        f'{type(ex).__name__} {ex}')
+        return total_attrs, total_modules
 
-                module_count, member_count = await conn.fetchrow(self.get_count)
-            runtime = time.time() - start_time
+    @commands.is_owner()
+    @py_group.command(brief='Recaches any missing or out-of-date modules.')
+    async def recache(self, ctx):
+        """
+        This replaces any modules with a differing hash to the one we have
+        stored, and modules that are not present.
+        """
+        self.logger.warning(f'{ctx.author} just invoked a complete recache.')
 
-            await status.edit(
-                content=f'[{tot}/{tot}] Completed. Cached {member_count:,} '
-                        f'members across {module_count:,} modules in approx. '
-                        f'{int(runtime/60)} minutes, {int(runtime % 60)} '
-                        f'seconds.')
+        start_time = time.time()
+
+        async with commands.StatusMessage(ctx) as status:
+            with ctx.typing():
+                await status.set_message('Rebuilding schema and installing '
+                                         'extensions.')
+                await self._wipe_schema()
+                attrs, modules = await self._cache_modules(ctx, status)
+
+                runtime = time.time() - start_time
+                commands.acknowledge(ctx)
+
+            await status.set_message(
+                f'Generated schema, tables, and cached {attrs} attributes '
+                f'across {modules} Python modules in approx {runtime:.2f}s.')
+            await asyncio.sleep(15)
 
     ############################################################################
     # Helpers and other bits and pieces.                                       #
@@ -419,24 +395,21 @@ class PyCog(traits.PostgresPool, traits.IoBoundPool):
                 colour=random.choice([0x4584b6, 0xffde57]),
                 description=text[:2000]))
 
-        if len(pages) > 1:
-            asyncio.ensure_future(fsa.FocusedPagEmbed.from_embeds(
-                pages,
-                bot=ctx.bot,
-                invoked_by=ctx,
-                timeout=600).run())
-        else:
-            await ctx.send(embed=pages.pop())
-
-        # Send paginator for the docstring, if applicable.
         if docstring:
-            pag = fsa.LinedPag(max_lines=15, prefix='```\nDocstring:',
-                               suffix='```')
+            doc_pag = fsa.LinedPag()
             for line in docstring.split('\n'):
-                pag.add_line(f'  {line}')
+                doc_pag.add_line(line)
 
-            # Keep alive for two minutes or so.
-            fsm = fsa.FocusedPagMessage.from_paginator(
-                pag=pag, bot=ctx.bot, invoked_by=ctx, timeout=600)
+            # Generate embeds.
+            for page in doc_pag.pages:
+                pages.append(discord.Embed(
+                    title=f'`{element["member_name"]}`: Docstring',
+                    description=page,
+                    color=random.choice([0x4584b6, 0xffde57])))
 
+        if len(pages) > 1:
+            fsm = fsa.PagEmbed.from_embeds(
+                pages, bot=ctx.bot, invoked_by=ctx, timeout=600)
             await fsm.run()
+        else:
+            await ctx.send(embed=pages[0])

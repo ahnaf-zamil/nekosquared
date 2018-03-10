@@ -11,6 +11,7 @@ Adds functionality to the Discord.py paginator to count lines.
 """
 import abc                                      # Abstract classes
 import asyncio                                  # Asyncio stuff
+import functools
 import inspect                                  # Object inspection
 import typing                                   # Type checking
 import discord                                  # Discord.py
@@ -177,7 +178,9 @@ def is_not_bot_and_valid_button(self, reaction, user):
     Predicate to ensure the user is not our bot, and the reaction is an
     existing button.
     """
-    return user != self.bot.user and reaction.emoji in self._buttons
+    not_bot = user != self.bot.user
+    valid_react = reaction.emoji in self._buttons
+    return not_bot and valid_react
 
 
 def allow_author_only(self, reaction, user):
@@ -199,6 +202,23 @@ def allow_author_and_owner(self, reaction, user):
         return user.id in (self.bot.owner_id, self.bot.user.id)
     else:
         return False
+
+
+# Fixes #6
+def localise(message, predicate):
+    """
+    Fixes an issue where buttons could control all other embeds by the same
+    user.
+
+    :param message: a method that will get the message we can react to.
+    :param predicate: the predicate to apply.
+    :returns: a patched predicate.
+    """
+    @functools.wraps(predicate)
+    def new_predicate(self, reaction, user):
+        return reaction.message.id == message().id \
+               and predicate(self, reaction, user)
+    return new_predicate
 
 
 # If you hate the default predicate, then go replace these in your code or
@@ -386,6 +406,12 @@ class AbstractPagFsa(abstractmachines.FiniteStateAutomaton, abc.ABC):
         Quick overwrite of the existing predicate. This can have a self
         parameter, or not supply it.
         """
+        # Firstly fix the predicate to only respond to this message.
+        def get_reply_message():
+            return self._reply_message
+
+        predicate = localise(get_reply_message, predicate)
+
         params = tuple(inspect.signature(predicate).parameters.values())
         if len(params) < 2:
             raise AttributeError('Expected at least two parameters.')
@@ -397,10 +423,11 @@ class AbstractPagFsa(abstractmachines.FiniteStateAutomaton, abc.ABC):
         if str(params[0]) == 'self':
             inner_predicate = predicate
 
-            def predicate(react, user):
+            @functools.wraps(predicate)
+            def new_predicate(react, user):
                 return inner_predicate(self, react, user)
 
-            setattr(self, 'react_predicate', predicate)
+            setattr(self, 'react_predicate', new_predicate)
 
         else:
             # This automatically encapsulates and deals with self, so will not

@@ -1,1 +1,0 @@
-SELECT * FROM py_cog.members WHERE module_pk = ($1);

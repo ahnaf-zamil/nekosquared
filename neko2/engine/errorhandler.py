@@ -9,10 +9,14 @@ import discord.ext.commands.errors as dpyext_errors   # Errors for ext.
 from neko2.shared.other import excuses                # Random excuses to make
 
 
-__all__ = ('handle_error',)
+__all__ = ('handle_error', 'should_dm_on_error')
 
 
 __error_logger = logging.getLogger(__name__)
+
+
+# Set to false to prevent DMing on errors.
+should_dm_on_error = True
 
 
 async def handle_error(*, bot, cog=None, ctx=None, error, event_method=None):
@@ -168,21 +172,27 @@ async def __handle_error(*, bot, cog=None, ctx=None, error, event_method=None):
         reply = '\N{SQUARED SOS} Something serious went wrong... '
         reply += excuses.get_excuse()
 
-        # DM me some information about what went wrong.
-        await __dm_me_error(bot=bot, ctx=ctx, cog=cog, error=error,
-                            event_method=event_method)
+        if should_dm_on_error:
+            # DM me some information about what went wrong.
+            await __dm_me_error(bot=bot, ctx=ctx, cog=cog, error=error,
+                                event_method=event_method)
 
     destination = ctx if ctx else bot.get_owner()
+
     # Since I take some raw input from errors, this is just a safeguard to
     # ensure messages are never too long. If an error message is anywhere near
     # this size, then it is a stupid error anyway.
-    resp = await destination.send(reply[:2000])
 
     # Clear after 15 seconds and destroy the invoking message also.
-    await asyncio.sleep(15)
+    async def fut():
+        resp = await destination.send(reply[:2000])
 
-    futs = [resp.delete()]
-    if ctx:
-        futs.append(ctx.message.delete())
+        await asyncio.sleep(15)
 
-    await asyncio.gather(*futs)
+        futs = [resp.delete()]
+        if ctx:
+            futs.append(ctx.message.delete())
+
+        await asyncio.gather(*futs)
+
+    asyncio.ensure_future(fut())

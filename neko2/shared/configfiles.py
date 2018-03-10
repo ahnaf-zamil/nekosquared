@@ -188,10 +188,10 @@ def get_from_here(file_name, *, nested_by=0, load_now=True):
 
 def get_config_data(file_name):
     """Quickly fetches the config data from the config directory."""
-    return get_from_config_dir(file_name).sync_get()
+    return get_from_config_dir(file_name, load_now=False).sync_get()
 
 
 async def get_config_data_async(file_name):
     """Asynchronously reads config data from file in the config directory."""
-    holder = get_from_config_dir(file_name)
+    holder = get_from_config_dir(file_name, load_now=False)
     return await holder.async_get()

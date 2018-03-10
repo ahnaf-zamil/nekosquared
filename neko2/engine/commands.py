@@ -7,8 +7,12 @@ definitions provided by Discord.py.
 This has been altered so that command errors are not dispatched from here
 anymore. Instead, they are to be dispatched by the client.
 """
-import typing                                           # Type checking
-import cached_property                                  # Caching properties
+import typing  # Type checking
+
+import asyncio
+import cached_property  # Caching properties
+import discord  # Message type.
+
 from discord.ext import commands as discord_commands
 # noinspection PyUnresolvedReferences
 from discord.ext.commands.context import Context
@@ -62,6 +66,7 @@ class CommandMixin:
 
 class Command(discord_commands.Command, CommandMixin):
     """Neko command: tweaks some stuff Discord.py provides."""
+
     def __init__(self, *args, **kwargs):
         discord_commands.Command.__init__(self, *args, **kwargs)
         CommandMixin.__init__(self, *args, **kwargs)
@@ -69,6 +74,7 @@ class Command(discord_commands.Command, CommandMixin):
 
 class Group(discord_commands.Group, CommandMixin):
     """Neko command group: tweaks some stuff Discord.py provides."""
+
     def __init__(self, *args, **kwargs):
         discord_commands.Group.__init__(self, *args, **kwargs)
         CommandMixin.__init__(self, *args, **kwargs)
@@ -88,3 +94,87 @@ def group(**kwargs):
     cls = kwargs.pop('cls', Group)
     kwargs['cls'] = cls
     return discord_commands.command(**kwargs)
+
+
+def acknowledge(ctx: Context,
+                *,
+                emoji: str = '\N{OK HAND SIGN}',
+                timeout: float = 15) -> None:
+    """
+    Acknowledges the message in the given context. This tries to add a reaction
+    and if this is not possible, it replies with a message holding the emoji
+    instead.
+
+    If anything doesn't work, this is dealt with silently. No errors should
+    propagate out of this method.
+
+    :param ctx: the context to acknowledge.
+    :param emoji: emoji to use. This defaults to OK HAND SIGN
+    :param timeout: how long to wait before destroying messages, or None if they
+            should not be destroyed. Defaults to 15 seconds.
+    """
+
+    async def fut():
+        messages = [ctx.message]
+
+        try:
+            await ctx.message.add_reaction(emoji)
+        except:
+            try:
+                messages.append(await ctx.send(emoji))
+            except:
+                pass
+        finally:
+            if timeout is not None:
+                await asyncio.sleep(timeout)
+                for message in messages:
+                    try:
+                        await message.delete()
+                    except:
+                        pass
+
+    asyncio.ensure_future(fut())
+
+
+class StatusMessage:
+    """
+    Wraps around a message to enable using it as a status message by using
+    a unified function call
+    """
+    __slots__ = ('invoked_by', 'message_to_edit')
+
+    def __init__(self, invoked_by: typing.Union[discord.Message, Context]):
+        if isinstance(invoked_by, Context):
+            invoked_by = invoked_by.message
+
+        self.invoked_by = invoked_by
+        self.message_to_edit = None
+
+    async def set_message(self, message):
+        if self.message_to_edit is None:
+            self.message_to_edit = await self.invoked_by.channel.send(message)
+        else:
+            try:
+                await self.message_to_edit.edit(content=message)
+            except discord.NotFound:
+                # Resend
+                self.message_to_edit = None
+                await self.set_message(message)
+
+    @property
+    def current_content(self) -> str:
+        return self.message_to_edit.content if self.message_to_edit else ''
+
+    @property
+    def current_embed(self) -> typing.Optional[discord.Embed]:
+        return self.message_to_edit.embed if self.message_to_edit else None
+
+    async def delete(self):
+        if self.message_to_edit:
+            await self.message_to_edit.delete()
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *_):
+        await self.delete()

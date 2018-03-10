@@ -1,0 +1,1 @@
+SELECT neko2.python_doc.create_tbl(($1), ($2));

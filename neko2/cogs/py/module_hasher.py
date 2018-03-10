@@ -20,8 +20,8 @@ Hashing algorithm to use.
 
 Valid options include:
 - scrypt
-- blake2b
-- blake2s
+- blake2b  (512 bit)
+- blake2s  (256 bit)
 - md5
 - sha1
 - sha3_224

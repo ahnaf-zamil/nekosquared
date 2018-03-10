@@ -79,8 +79,14 @@ class HelpCog:
             children = []
 
             for child in _children:
-                if await child.can_run(ctx):
-                    children.append(child)
+                try:
+                    if await child.can_run(ctx):
+                        children.append(child)
+                except:
+                    # This prevents crashing if the child has an is_owner
+                    # check on it, as dpy raises a NotOwner exception rather
+                    # than returning False in this case.
+                    pass
         else:
             children = []
 
@@ -193,7 +199,7 @@ class HelpCog:
         return mapping
 
     async def get_best_match(self, string: str, context) \
-            -> typing.Optional[commands.BaseCommand]:
+            -> typing.Optional[typing.Tuple[bool, commands.BaseCommand]]:
         """
         Attempts to get the best match for the given string. This will
         first attempt to resolve the string directly. If that fails, we will
@@ -207,52 +213,60 @@ class HelpCog:
         is instead None, then nothing was found. The boolean of the tuple is
         true if we have an exact match, or false if it was a fuzzy match.
         """
-        if string in self.alias2command:
-            return True, self.alias2command[string]
-        else:
+        alias2command = self.alias2command
+
+        if string in alias2command:
+            command = alias2command[string]
             try:
-                # Require a minimum of 60% match to qualify. The bot owner
-                # gets to see all commands regardless of whether they are
-                # accessible or not.
                 if context.author.id == context.bot.owner_id:
-                    result = fuzzy.extract_best(
-                        string,
-                        self.alias2command.keys(),
-                        scoring_algorithm=fuzzy.deep_ratio,
-                        min_score=60)
-
-                    if not result:
-                        return None
-                    else:
-                        guessed_name, score = result
-
-                    return score == 100, self.alias2command[guessed_name]
-                else:
-                    score_it = fuzzy.extract(
-                        string,
-                        self.alias2command.keys(),
-                        scoring_algorithm=fuzzy.deep_ratio,
-                        min_score=60,
-                        max_results=None)
-
-                    for guessed_name, score in score_it:
-                        can_run = False
-                        next_command = self.alias2command[guessed_name]
-
-                        try:
-                            can_run = await next_command.can_run(context)
-                            can_run = can_run and next_command.enabled
-                        except:
-                            # Also means we cannot run
-                            pass
-
-                        if can_run:
-                            return score == 100, next_command
-
-            except KeyError:
+                    return True, command
+                elif await command.can_run(context):
+                    return True, command
+            except:
                 pass
 
-            return None
+        try:
+            # Require a minimum of 60% match to qualify. The bot owner
+            # gets to see all commands regardless of whether they are
+            # accessible or not.
+            if context.author.id == context.bot.owner_id:
+                result = fuzzy.extract_best(
+                    string,
+                    alias2command.keys(),
+                    scoring_algorithm=fuzzy.deep_ratio,
+                    min_score=60)
+
+                if not result:
+                    return None
+                else:
+                    guessed_name, score = result
+
+                return score == 100, alias2command[guessed_name]
+            else:
+                score_it = fuzzy.extract(
+                    string,
+                    alias2command.keys(),
+                    scoring_algorithm=fuzzy.deep_ratio,
+                    min_score=60,
+                    max_results=None)
+
+                for guessed_name, score in score_it:
+                    can_run = False
+                    next_command = alias2command[guessed_name]
+
+                    try:
+                        can_run = await next_command.can_run(context)
+                        can_run = can_run and next_command.enabled
+                    except:
+                        # Also means we cannot run
+                        pass
+
+                    if can_run:
+                        return score == 100, next_command
+        except KeyError:
+            pass
+
+        return None
 
 
 def setup(bot):
