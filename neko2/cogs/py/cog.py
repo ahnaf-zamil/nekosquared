@@ -14,6 +14,7 @@ import random
 import time
 import traceback
 
+import asyncpg
 import discord
 
 from neko2.engine import commands
@@ -48,10 +49,14 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
         attribute.
         """
         async with await self.acquire_db() as conn, ctx.typing():
-            top_results = await conn.fetch(
-                self.get_top_10,
-                module,
-                attribute)
+
+            try:
+                top_results = await conn.fetch(
+                    self.get_top_10,
+                    module,
+                    attribute)
+            except asyncpg.NoDataFoundError:
+                top_results = []
 
             if not top_results:
                 return await ctx.send('No results were found...')
