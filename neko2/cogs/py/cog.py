@@ -30,10 +30,10 @@ config_file = 'neko2.cogs.py.targets'
 
 class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
     gen_schema_sql = sql.SqlQuery('generate-schema')
-    add_member = sql.SqlQuery('add-member')
-    add_module = sql.SqlQuery('add-module')
-    list_modules = sql.SqlQuery('list-modules')
-    get_top_10 = sql.SqlQuery('get-top-10')
+    add_member_sql = sql.SqlQuery('add-member')
+    add_module_sql = sql.SqlQuery('add-module')
+    list_modules_sql = sql.SqlQuery('list-modules')
+    get_top_10_sql = sql.SqlQuery('get-top-10')
 
     def __init__(self):
         self.modules = set(configfiles.get_config_data(config_file))
@@ -52,7 +52,7 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
 
             try:
                 top_results = await conn.fetch(
-                    self.get_top_10,
+                    self.get_top_10_sql,
                     module,
                     attribute)
             except asyncpg.NoDataFoundError:
@@ -99,7 +99,7 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
     @py_group.command(name='modules', brief='Lists any modules documented.')
     async def list_modules(self, ctx):
         async with await self.acquire_db() as conn:
-            result = await conn.fetch(self.list_modules)
+            result = await conn.fetch(self.list_modules_sql)
             await ctx.send(', '.join(f'`{r["module_name"]}`' for r in result))
 
     @commands.is_owner()
@@ -168,7 +168,7 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
                         )
 
                         module_tbl_name = await conn.fetchval(
-                            self.add_module,
+                            self.add_module_sql,
                             module_name,
                             hash_code)
 
@@ -208,7 +208,7 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
                             f'{len(attrs)} insertions.'
                         ))
 
-                        await conn.executemany(self.add_member, arguments)
+                        await conn.executemany(self.add_member_sql, arguments)
 
                         total_modules += 1
                     except BaseException as ex:
