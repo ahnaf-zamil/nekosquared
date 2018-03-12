@@ -238,9 +238,11 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
                 runtime = time.time() - start_time
                 commands.acknowledge(ctx)
 
-            await status.set_message(
+            message = (
                 f'Generated schema, tables, and cached {attrs} attributes '
                 f'across {modules} Python modules in approx {runtime:.2f}s.')
+            await status.set_message(message)
+            await ctx.author.send(message)
             await asyncio.sleep(15)
 
     ############################################################################
