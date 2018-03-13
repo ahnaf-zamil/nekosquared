@@ -4,6 +4,7 @@
 Formats and makes use of the code-cogs equation editor API to generate
 previews for LaTeX strings.
 """
+import asyncio
 import io                            # BytesIO
 import discord                       # Discord.py
 import PIL.Image                     # PIL Image loading
@@ -47,8 +48,8 @@ backgrounds = {
 }
 
 # We pad the image slightly
-padding_pct_height = 1.2
-padding_pct_width = 1.5
+padding_pct_height = 1.5
+padding_pct_width = 1.1
 
 
 class LatexCog(traits.IoBoundPool, traits.HttpPool, traits.CpuBoundPool):
@@ -153,6 +154,53 @@ class LatexCog(traits.IoBoundPool, traits.HttpPool, traits.CpuBoundPool):
 
         await cls.run_in_io_pool(cpu_work)
 
+    async def get_send_image(self, ctx, content: str) -> discord.Message:
+        # Append a tex newline to the start to force the content to
+        # left-align.
+        url = self.generate_url(f'\\\\{content}',
+                                bg_colour='white',
+                                size=10)
+
+        conn = await self.acquire_http()
+
+        resp = await conn.get(url)
+        data = await resp.read()
+
+        with io.BytesIO(data) as in_data, io.BytesIO() as out_data:
+            in_data.seek(0)
+            await self.pad_convert_image(in_data, out_data, 0xFFFFFF)
+            out_data.seek(0)
+            file = discord.File(out_data, 'latex.png')
+
+            msg = await ctx.send(
+                content=f'{ctx.author}:',
+                file=file)
+
+            return msg
+
+    def mk_edit_predicate(self, ctx: commands.Context):
+        """
+        Generates a predicate for listening to edit events.
+
+        Note. This will only work if the prefix is the same, otherwise it will
+        return false when called.
+        """
+        def predicate(before: discord.Message, after: discord.Message) -> bool:
+            assert before.id == after.id
+            assert before.channel == after.channel
+
+            # Get the command prefix
+            if not after.content.startswith(ctx.prefix):
+                return False
+            else:
+                content = after.content[len(ctx.prefix):].lstrip()
+
+                assert hasattr(ctx.command, 'qualified_names')
+                return any(content.startswith(a)
+                           for a in ctx.command.qualified_names)
+
+        return predicate
+
     @commands.command(
         name='tex', aliases=['latex', 'texd', 'latexd'],
         brief='Attempts to parse the given LaTeX string and display a '
@@ -163,34 +211,16 @@ class LatexCog(traits.IoBoundPool, traits.HttpPool, traits.CpuBoundPool):
         response is shown.
         """
 
-        if ctx.invoked_with.endswith('d'):
-            # noinspection PyBroadException
-            try:
-                await ctx.message.delete()
-            except BaseException:
-                pass
+        delete = ctx.invoked_with.endswith('d')
+
+        if delete:
+            await commands.try_delete(ctx)
 
         async with ctx.typing():
-            # Append a tex newline to the start to force the content to
-            # left-align.
-            url = self.generate_url(f'\\\\{content}',
-                                    bg_colour='white',
-                                    size=10)
+            msg = await self.get_send_image(ctx, content)
 
-            conn = await self.acquire_http()
-
-            resp = await conn.get(url)
-            data = await resp.read()
-
-            with io.BytesIO(data) as in_data, io.BytesIO() as out_data:
-                in_data.seek(0)
-                await self.pad_convert_image(in_data, out_data, 0xFFFFFF)
-                out_data.seek(0)
-                file = discord.File(out_data, 'latex.png')
-
-                await ctx.send(
-                    content=f'`{content}`',
-                    file=file)
+        if not delete:
+            await commands.wait_for_edit(ctx=ctx, msg=msg, timeout=1800)
 
 
 def setup(bot):

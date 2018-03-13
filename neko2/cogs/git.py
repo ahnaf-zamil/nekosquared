@@ -53,7 +53,7 @@ class GitCog(scribe.Scribe, traits.CpuBoundPool):
                 return ctx.author.send('.git does not exist. Is this a repo?')
 
             with io.StringIO() as out_s:
-                shell = os.getenv('SHELL', None)
+                shell = os.getenv('SHELL')
                 if shell is None:
                     shell = shutil.which('sh')
                     if shell is None:

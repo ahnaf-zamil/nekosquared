@@ -57,12 +57,10 @@ class UrlShortenerCog(traits.HttpPool):
                 await ctx.send(err_msg, delete_after=10)
             else:
                 # Try to delete the initial message
-                try:
-                    await ctx.message.delete()
-                finally:
-                    return await ctx.send(
-                        f'{ctx.author.mention} {optional_description}: '
-                        f'{data["id"]}')
+                await commands.try_delete(ctx)
+                return await ctx.send(
+                    f'{ctx.author.mention} {optional_description}: '
+                    f'{data["id"]}')
 
         except Exception as ex:
             raise RuntimeError(str(ex) + ': ' + res.reason)

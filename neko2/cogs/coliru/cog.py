@@ -38,10 +38,10 @@ class ColiruCog(traits.HttpPool):
             strings.append(line)
         return '\n'.join(strings)
 
-
     @commands.group(
         brief='Compiles and runs code under a given configuration',
-        invoke_without_command=True)
+        invoke_without_command=True,
+        aliases=['colirud', 'cc', 'ccd'])
     async def coliru(self, ctx, *, input_code: str):
         """
         Compiles the given code using the compiler invocation, and outputs the
@@ -76,32 +76,43 @@ class ColiruCog(traits.HttpPool):
         try:
             config = coliru_cfg[lang.lower()]
 
-            http = await self.acquire_http()
             with ctx.typing():
+
+                http = await self.acquire_http()
+
                 res = await http.post(
                     coliru_endpoint,
                     data=json.dumps({'cmd': config,
                                      'src': code}))
 
-                output = await res.text()
+            output = await res.text()
 
-                pag = fsa.LinedPag(prefix='```', suffix='```')
+            pag = fsa.LinedPag(prefix='```', suffix='```')
 
-                pag.add_line(f'> {config.replace("main.cpp", "src")}\n')
+            pag.add_line(f'> {config.replace("main.cpp", "src")}\n---')
 
-                for line in output.split('\n'):
-                    pag.add_line(line)
+            for line in output.split('\n'):
+                pag.add_line(line)
 
-                if len(pag.pages) > 1:
-                    fsm = fsa.PagMessage.from_paginator(
-                        pag=pag, bot=ctx.bot, invoked_by=ctx, timeout=120)
+            if ctx.invoked_with in ('ccd', 'colirud'):
+                await commands.try_delete(ctx)
 
-                    # Prevents blocking the typing message.
-                    fsm.nowait(fsm.run())
-                elif pag.pages:
-                    await ctx.send(pag.pages[0])
-                else:
-                    await ctx.send('No output...')
+            if len(pag.pages) > 1:
+                fsm = fsa.PagMessage.from_paginator(
+                    pag=pag, bot=ctx.bot, invoked_by=ctx, timeout=120)
+
+                # Prevents blocking the typing message.
+                msg = None
+                async for _ in fsm:
+                    msg = await fsm.get_message()
+
+            elif pag.pages:
+                msg = await ctx.send(pag.pages[0])
+            else:
+                msg = await ctx.send('No output...')
+
+            # Allow editing to reinvoke.
+            await commands.wait_for_edit(ctx=ctx, msg=msg, timeout=1800)
         except KeyError:
             await ctx.send('Invalid configuration.')
 

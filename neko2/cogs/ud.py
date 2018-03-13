@@ -64,9 +64,10 @@ class UrbanDictionaryCog(traits.HttpPool):
 
     @commands.command(
         brief='Looks up a definition on Urban Dictionary',
-        examples=['java', ''], aliases=['ud'])
-    async def urban(self, ctx, *, phrase: str=None):
+        examples=['java', ''], aliases=['ud', 'udd', 'urband'])
+    async def urban(self, ctx: commands.Context, *, phrase: str=None):
         """If no phrase is given, we pick some random ones to show."""
+
         conn = await self.acquire_http()
 
         with ctx.typing():
@@ -86,11 +87,15 @@ class UrbanDictionaryCog(traits.HttpPool):
         embeds = [self._format_urban_defn(word) for word in resp]
 
         # If we have more than one result, make a FSM from the pages.
+        if ctx.invoked_with in ('udd', 'urband'):
+            await commands.try_delete(ctx)
+
         if len(embeds) == 1:
             await ctx.send(embed=embeds[0])
         else:
             await fsa.FocusedPagEmbed.from_embeds(
                 embeds, bot=ctx.bot, invoked_by=ctx, timeout=120).run()
+
 
 def setup(bot):
     bot.add_cog(UrbanDictionaryCog())
