@@ -195,6 +195,16 @@ BEGIN TRANSACTION;
                 FROM get_table(_tbl_name) as tbl
                 WHERE tbl.fq_member_name % attr
                 ORDER BY
+                    -- Forces us to place public before protected, before
+                    -- private.
+                    (SELECT CASE
+                        WHEN tbl.member_name ILIKE '__%' THEN 4
+                        WHEN tbl.fq_member_name ILIKE '%.__%' THEN 3
+                        WHEN tbl.member_name ILIKE '_%' THEN 2
+                        WHEN tbl.fq_member_name ILIKE '%._%' Then 1
+                        ELSE 0
+                    END),
+
                     1 - fq_member_simil,
                     1 - member_simil,
                     tbl.fq_member_name
@@ -203,5 +213,4 @@ BEGIN TRANSACTION;
         END;
         $fuzzy_search_for$
         LANGUAGE plpgsql;
-
 COMMIT TRANSACTION;

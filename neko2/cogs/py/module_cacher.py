@@ -144,10 +144,21 @@ def _get_operators(obj):
 
 
 class ModuleCacher:
-    def __init__(self, name: str, relative_to: str = None) -> None:
+    def __init__(self, name: str,
+                 relative_to: str = None,
+                 precondition: str = None) -> None:
+        """
+        Inits the cacher.
+        :param name: the module name.
+        :param relative_to: optional: the module relative path.
+        :param precondition: a script to execute to initialise the module. This
+                is optional, but is to enable us to get modules such as Flask
+                ready to be used. This is exec'ed.
+        """
         self._name, self._rel = name, relative_to
         # Maps names to file names
         self._filename_cache = {}
+        self._precondition = precondition
 
     def _resolve_path(self, name: str, obj):
         """
@@ -296,23 +307,22 @@ class ModuleCacher:
         """
         Creates a cache dict and returns it.
         """
-        try:
-            walker = module_walker.ModuleWalker(self._name, self._rel)
-            module_hash = module_hasher.get_module_hash(walker.start)
-            attrs = [attr for attr in walker]
+        if self._precondition:
+            exec(self._precondition)
 
-            # Holds our metadata.
-            attr_meta = {}
+        walker = module_walker.ModuleWalker(self._name, self._rel)
+        module_hash = module_hasher.get_module_hash(walker.start)
+        attrs = [attr for attr in walker]
 
-            data = {
-                "hash": module_hash,
-                'hashing_algorithm': module_hasher.hash_alg,
-                "root": walker.start.__name__,
-                "attrs": attr_meta
-            }
-        except:
-            trace()
-            return {}
+        # Holds our metadata.
+        attr_meta = {}
+
+        data = {
+            "hash": module_hash,
+            'hashing_algorithm': module_hasher.hash_alg,
+            "root": walker.start.__name__,
+            "attrs": attr_meta
+        }
 
         for apparent_name, real_name, obj in attrs:
             # This is best effort. Some components may well error as we traverse

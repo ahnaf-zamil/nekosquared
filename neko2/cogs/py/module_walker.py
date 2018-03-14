@@ -30,8 +30,7 @@ class ModuleWalker(scribe.Scribe):
     """
     def __init__(self,
                  module: str,
-                 relative_to: str=None,
-                 skip_protected: bool=True) -> None:
+                 relative_to: str=None) -> None:
         """
         Init the walker.
         :param module: the module name to explore.
@@ -42,7 +41,6 @@ class ModuleWalker(scribe.Scribe):
 
         self.start = importlib.import_module(module, relative_to)
         self._root = self.start.__spec__.name
-        self._skip_protected = skip_protected
 
         # self.logger.setLevel('DEBUG')
 
@@ -84,6 +82,14 @@ class ModuleWalker(scribe.Scribe):
             already_indexed.add(root)
 
             for name, member in inspect.getmembers(root):
+                # Uncomment to ignore private members
+                #   if name.startswith('__'):
+                #       continue
+
+                # Uncomment to ignore protected members
+                #   if name.startswith('__'):
+                #       continue
+
 
                 # Ensure we are in the defining module and it is not just a
                 # reference.
@@ -96,14 +102,7 @@ class ModuleWalker(scribe.Scribe):
                     if inspect.isclass(member):
                         real_q_name = class_regex.match(str(member)).group(1)
 
-                if name.startswith('__'):
-                    self.logger.debug(f'Skipping private member {name}')
-                    continue
-                elif name.startswith('_') and self._skip_protected:
-                    self.logger.debug(f'Skipping protected member {name}')
-                    continue
-                else:
-                    self.logger.debug(f'Inspecting {name}')
+                self.logger.debug(f'Inspecting {name}')
 
                 # noinspection PyBroadException
                 try:

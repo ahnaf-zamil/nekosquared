@@ -36,7 +36,7 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
     get_top_10_sql = sql.SqlQuery('get-top-10')
 
     def __init__(self):
-        self.modules = set(configfiles.get_config_data(config_file))
+        self.modules = configfiles.get_config_data(config_file)
 
     @commands.group(
         name='py',
@@ -124,9 +124,11 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
         # Cache the modules
         # Run in a pool execution service to prevent blocking the
         # asyncio event loop.
-        def cache_task(module_name):
+        def cache_task(module_name, precondition_script=None):
             # Read the module data
-            cache = module_cacher.ModuleCacher(module_name)
+            cache = module_cacher.ModuleCacher(
+                module_name,
+                precondition=precondition_script)
             cache = cache.make_cache()
             return cache
 
@@ -137,6 +139,13 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
             total_modules = 0
 
             for i, module in enumerate(self.modules):
+                if isinstance(module, dict):
+                    module, before = module['name'], module['init']
+                else:
+                    before = None
+
+                globals()
+
                 # Cache each module in a transaction.
                 async with conn.transaction(
                         isolation='serializable',
@@ -151,7 +160,8 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
 
                         # Ideally I want to use CPU pool, but pickling becomes
                         # an issue, and that is required for IPC.
-                        cache = await self.run_in_io_pool(cache_task, [module])
+                        cache = await self.run_in_io_pool(cache_task,
+                                                          [module, before])
 
                         module_name = cache['root']
                         hash_code = cache['hash']
@@ -228,22 +238,21 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
 
         start_time = time.time()
 
-        async with commands.StatusMessage(ctx) as status:
-            with ctx.typing():
-                await status.set_message('Rebuilding schema and installing '
-                                         'extensions.')
-                await self._wipe_schema()
-                attrs, modules = await self._cache_modules(ctx, status)
+        status = commands.StatusMessage(ctx)
+        with ctx.typing():
+            await status.set_message('Rebuilding schema and installing '
+                                     'extensions.')
+            await self._wipe_schema()
+            attrs, modules = await self._cache_modules(ctx, status)
 
-                runtime = time.time() - start_time
-                commands.acknowledge(ctx)
+            runtime = time.time() - start_time
+            commands.acknowledge(ctx)
 
-            message = (
-                f'Generated schema, tables, and cached {attrs} attributes '
-                f'across {modules} Python modules in approx {runtime:.2f}s.')
-            await status.set_message(message)
-            await ctx.author.send(message)
-            await asyncio.sleep(15)
+        message = (
+            f'Generated schema, tables, and cached {attrs} attributes '
+            f'across {modules} Python modules in approx {runtime:.2f}s.')
+        await status.set_message(message)
+        await ctx.author.send(message)
 
     ############################################################################
     # Helpers and other bits and pieces.                                       #
