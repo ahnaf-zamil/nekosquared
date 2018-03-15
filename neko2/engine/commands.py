@@ -213,6 +213,10 @@ async def wait_for_edit(*,
             to delete the response.
     :param timeout: the timeout to wait for before giving up.
     """
+    if not hasattr(ctx.command, 'qualified_names'):
+        raise TypeError('This utility coroutine only works on command types '
+                        'that are derived from '
+                        'neko2.engine.commands.CommandMixin.')
 
     def predicate(_before: discord.Message,
                   _after: discord.Message) -> bool:
