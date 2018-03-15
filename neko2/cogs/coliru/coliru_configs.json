@@ -16,5 +16,8 @@
   "awk": "awk main.cpp",
   "haskell": "runhaskell main.cpp",
   "lua": "lua main.cpp",
-  "make": "make -f main.cpp"
+  "make": "make -f main.cpp",
+  "js": "echo Never.",
+  "javascript": "echo Never.",
+  "nodejs": "echo Never."
 }
