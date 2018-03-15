@@ -1,7 +1,7 @@
 {
-  "c": "mv main.cpp main.c && gcc -Wall -Wextra -pedantic -O2 -std=c11 -o a.out main.c && ./a.out",
-  "c++": "g++ -Wall -Wextra -std=c++17 -pedantic -O2 -lstdc++fs -o a.out main.cpp && ./a.out",
-  "cpp": "g++ -Wall -Wextra -std=c++17 -pedantic -O2 -lstdc++fs -o a.out main.cpp && ./a.out",
+  "c": "mv main.cpp main.c \\\n    && gcc -Wall -Wextra -pedantic -O0 -lm -lpthread -std=c11 -o a.out main.c && ./a.out",
+  "c++": "g++ -Wall -Wextra -std=c++17 -pedantic -O0 -lm -lstdc++fs -lpthread -o a.out main.cpp && ./a.out",
+  "cpp": "g++ -Wall -Wextra -std=c++17 -pedantic -O0 -lm -lstdc++fs -lpthread -o a.out main.cpp && ./a.out",
   "python2": "python main.cpp",
   "python3": "python3.5 main.cpp",
   "python": "python3.5 main.cpp",
