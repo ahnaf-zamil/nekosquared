@@ -216,39 +216,32 @@ async def wait_for_edit(*,
 
     def predicate(_before: discord.Message,
                   _after: discord.Message) -> bool:
-        assert _before.id == _after.id
-        assert _before.author == _after.author
-        assert _before.channel == _after.channel
-
-        # Get the command prefix
-        if not _after.content.startswith(ctx.prefix):
+        if _after.id != ctx.message.id:
+            return False
+        elif not _after.content.startswith(ctx.prefix):
             return False
         else:
             _content = _after.content[len(ctx.prefix):].lstrip()
 
-            assert hasattr(ctx.command, 'qualified_names')
             return any(_content.startswith(a)
                        for a in ctx.command.qualified_names)
 
     try:
-        async def invoke_waiter():
-            _, after = await ctx.bot.wait_for('message_edit',
-                                              check=predicate,
-                                              timeout=timeout)
-            new_ctx = await ctx.bot.get_context(after)
+        _, after = await ctx.bot.wait_for('message_edit',
+                                          check=predicate,
+                                          timeout=timeout)
+        new_ctx = await ctx.bot.get_context(after)
 
-            # If we reach here, we are reinvoking. If we have a message to
-            # delete, try to do that.
-            async def reinvoker():
-                await ctx.command.invoke(new_ctx)
+        if msg is not None:
+            await try_delete(msg)
 
-                if msg is not None:
-                    await try_delete(msg)
-
-            asyncio.ensure_future(reinvoker())
+        # If we reach here, we are reinvoking. If we have a message to
+        # delete, try to do that.
+        await ctx.command.reinvoke(new_ctx)
+        # Force a 5 second timeout.
+        await asyncio.sleep(5)
 
         # Invoke asynchronously to allow the original caller to return.
-        asyncio.ensure_future(invoke_waiter())
     except asyncio.TimeoutError:
         # We timed out, so stop listening.
         return
