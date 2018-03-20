@@ -41,7 +41,7 @@ class AdminCog:
     async def on_ready(self):
         await self.bot.change_presence(
             activity=discord.Game(
-                name=f'Up since {datetime.datetime.now()}'))
+                name=f'ready since {datetime.datetime.now()}'))
 
 def setup(bot):
     bot.add_cog(AdminCog(bot))
