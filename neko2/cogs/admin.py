@@ -39,7 +39,7 @@ class AdminCog:
         await ctx.send(f'Pong! ({ctx.bot.latency * 1000:.2f}ms)')
 
     async def on_ready():
-        await bot.change_presence(
+        await self.bot.change_presence(
             game=discord.Game(
                 name=f'Up since {datetime.datetime.now()}'))
 
