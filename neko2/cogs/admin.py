@@ -14,7 +14,7 @@ from neko2.engine import commands   # command decorator
 
 class AdminCog:
     """Holds administrative utilities"""
-    def __init__(bot):
+    def __init__(self, bot):
         self.bot = bot
     
     @staticmethod
