@@ -5,12 +5,18 @@ Cog holding owner-only administrative commands, such as those for restarting
 the bot, inspecting/loading/unloading commands/cogs/extensions, etc.
 """
 import asyncio
+import datetime
+
+import discord
 
 from neko2.engine import commands   # command decorator
 
 
 class AdminCog:
     """Holds administrative utilities"""
+    def __init__(bot):
+        self.bot = bot
+    
     @staticmethod
     async def __local_check(ctx):
         return await ctx.bot.is_owner(ctx.author)
@@ -32,6 +38,10 @@ class AdminCog:
         """
         await ctx.send(f'Pong! ({ctx.bot.latency * 1000:.2f}ms)')
 
+    async def on_ready():
+        await bot.change_presence(
+            game=discord.Game(
+                name=f'Up since {datetime.datetime.now()}'))
 
 def setup(bot):
-    bot.add_cog(AdminCog())
+    bot.add_cog(AdminCog(bot))
