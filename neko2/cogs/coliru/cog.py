@@ -87,7 +87,7 @@ class ColiruCog(traits.HttpPool):
 
             output = await res.text()
 
-            pag = fsa.LinedPag(prefix='```', suffix='```')
+            pag = fsa.LinedPag(prefix='```', suffix='```', max_lines=40)
 
             pag.add_line(f'> {config.replace("main.cpp", "src")}\n---')
 
@@ -99,7 +99,7 @@ class ColiruCog(traits.HttpPool):
 
             if len(pag.pages) > 1:
                 fsm = fsa.PagMessage.from_paginator(
-                    pag=pag, bot=ctx.bot, invoked_by=ctx, timeout=120)
+                    pag=pag, bot=ctx.bot, invoked_by=ctx, timeout=1800)
 
                 # Prevents blocking the typing message.
                 msg = None
