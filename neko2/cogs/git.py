@@ -8,8 +8,10 @@ import io                           # StringIO
 import os                           # File path utils
 import shutil                       # which (find in $PATH env-var)
 import traceback                    # Traceback utils
+
+from discomaton.util import pag
+
 from neko2.engine import commands   # Command decorators
-from neko2.shared import fsa        # Finite state machines
 from neko2.shared import scribe     # Scribe
 from neko2.shared import traits     # CpuBoundPool
 
@@ -105,15 +107,15 @@ class GitCog(scribe.Scribe, traits.CpuBoundPool):
                         f'{ctx.author} Invoked destructive update from '
                         f'{ctx.guild}@#{ctx.channel}\n{log}')
 
-                    pag = fsa.Pag(prefix='```css', suffix='```')
+                    p = pag.Paginator(prefix='```css', suffix='```')
 
                     for line in log.split('\n'):
-                        pag.add_line(line)
+                        p.add_line(line)
 
                     await ctx.author.send(
-                        f'Will send {len(pag.pages)} messages of output!')
+                        f'Will send {len(p.pages)} messages of output!')
 
-                    for page in pag.pages:
+                    for page in p.pages:
                         await ctx.author.send(page)
 
         if did_fail:

@@ -41,22 +41,33 @@ dependencies = {
     'PIL': 'pillow',
     'wordnik': 'wordnik-py3',
     'yaml': 'pyyaml',
-    # Intentionally is incorrect. Don't alter until Danny releases
-    # the rewrite properly.
-    'discord.py': 'git+https://github.com/rapptz/discord.py@rewrite',
     # These are used only for caching purposes in the Py module :)
     'psycopg2': 'psycopg2',
     'requests': 'requests',
     'flask': 'flask',
     # Sphinx and docutils for cogs.py
     'sphinx': 'sphinx',
-    'docutils': 'docutils'
+    'docutils': 'docutils',
+
+    # Intentionally is incorrect. Don't alter until Danny releases
+    # the rewrite properly.
+    'discord.py': 'git+https://github.com/rapptz/discord.py@rewrite',
+
+    # My pagination utilities I have outsourced to a separate repository.
+    'discomaton': 'git+https://github.com/neko404notfound/discomaton'
 }
 
 python_command = 'python3'
 
 # Should we force update?
 args = sys.argv[1:]
+if any(args[0] == x for x in ('-h', '--help', 'help', '-?')):
+    print('Args:')
+    print('  update - updates all dependencies')
+    print('  onlydeps - does not set up a virtual environment, nor clone the '
+          'repo.')
+    exit(0)
+
 update_flag = '-U' if 'update' in args or 'upgrade' in args else None
 just_deps = '-D' if 'onlydeps' in args else None
 

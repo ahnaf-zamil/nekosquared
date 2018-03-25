@@ -3,13 +3,13 @@
 """
 Builtin extension that is loaded to implement a custom help method.
 """
+'''
 import typing                              # Type checking bits and pieces
 
 from discord import embeds                 # Embeds
 from neko2.engine import commands          # Command decorators
-from neko2.shared import fsa               # Finite state machines
+from neko2.shared import fsa, fuzzy        # Finite state machines
 from neko2.shared import string            # String voodoo
-from neko2.shared.other import fuzzy       # Fuzzy string matching
 
 
 class HelpCog:
@@ -273,3 +273,8 @@ def setup(bot):
     # Remove any existing help command first.
     bot.remove_command('help')
     bot.add_cog(HelpCog(bot))
+'''
+
+def setup(bot):
+    import warnings
+    warnings.warn('Please re-enable help once FSA is rewritten.')

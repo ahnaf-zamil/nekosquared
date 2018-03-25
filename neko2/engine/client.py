@@ -15,9 +15,8 @@ from discord.ext import commands        # Discord.py extensions.
 from discord.utils import oauth_url     # OAuth URL generator
 from neko2.engine import errorhandler   # Error handling routine.
 from neko2.engine import shutdown       # Hook to call on shutdown.
-from neko2.shared import scribe         # Logging
+from neko2.shared import scribe, perms  # Logging
 from neko2.shared import traits         # Cog and class traits.
-from neko2.shared.other import perms
 
 __all__ = ('BotInterrupt', 'Bot')
 
@@ -95,7 +94,7 @@ class Bot(commands.Bot, scribe.Scribe):
         try:
             auth = bot_config['auth']
             self.__token = auth['token']
-            self.client_id = auth['client_id']
+            self.client_id = auth.get('client_id', None)
 
             self.debug = bot_config.pop('debug', False)
         except KeyError:
@@ -108,6 +107,7 @@ class Bot(commands.Bot, scribe.Scribe):
         # Load version and help commands
         self.load_extension('neko2.engine.help')
         self.load_extension('neko2.engine.version')
+        self.logger.info(f'Using command prefix: {self.command_prefix}')
 
     @cached_property.cached_property
     def invite(self):

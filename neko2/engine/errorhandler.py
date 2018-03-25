@@ -6,8 +6,7 @@ import traceback                                      # Traceback utils.
 import discord                                        # Embeds
 import discord.errors as dpy_errors                   # Errors for dpy base.
 import discord.ext.commands.errors as dpyext_errors   # Errors for ext.
-from neko2.shared.other import excuses                # Random excuses to make
-
+from neko2.shared import excuses
 
 __all__ = ('handle_error', 'should_dm_on_error')
 

@@ -5,8 +5,9 @@ Urban Dictionary support.
 """
 import discord
 
+from discomaton import book
+
 from neko2.engine import commands
-from neko2.shared import fsa
 from neko2.shared import traits
 
 
@@ -90,11 +91,7 @@ class UrbanDictionaryCog(traits.HttpPool):
         if ctx.invoked_with in ('udd', 'urband'):
             await commands.try_delete(ctx)
 
-        if len(embeds) == 1:
-            await ctx.send(embed=embeds[0])
-        else:
-            await fsa.FocusedPagEmbed.from_embeds(
-                embeds, bot=ctx.bot, invoked_by=ctx, timeout=120).run()
+        book.EmbedBooklet(ctx=ctx, pages=embeds).start()
 
 
 def setup(bot):

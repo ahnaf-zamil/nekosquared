@@ -13,10 +13,11 @@ from discord import embeds
 from wordnik import swagger
 from wordnik import WordApi
 
+from discomaton import book
+
 from neko2.engine import commands
 from neko2.shared import configfiles
 from neko2.shared import errors
-from neko2.shared import fsa
 from neko2.shared import other
 from neko2.shared import traits
 
@@ -191,12 +192,7 @@ class WordnikCog(traits.IoBoundPool):
 
             pages.append(embed)
 
-        if len(pages) == 1:
-            await ctx.send(embed=pages[0])
-        else:
-            fsm = fsa.FocusedPagEmbed.from_embeds(
-                pages, bot=ctx.bot, invoked_by=ctx, timeout=300)
-            await fsm.run()
+        book.EmbedBooklet(ctx=ctx, pages=pages).start()
 
 
 def setup(bot):

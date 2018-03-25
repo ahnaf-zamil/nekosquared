@@ -5,9 +5,12 @@ Coliru API for executing code on the fly.
 """
 import json
 import re
+
+import asyncio
+from discomaton.factories import bookbinding
+
 from neko2.engine import commands     # Command decorators
 from neko2.shared import configfiles  # Config files
-from neko2.shared import fsa          # finite state machines
 from neko2.shared import traits       # HTTP pool
 
 
@@ -87,46 +90,48 @@ class ColiruCog(traits.HttpPool):
 
             output = await res.text()
 
-            pag = fsa.LinedPag(prefix='```', suffix='```', max_lines=40)
+            binder = bookbinding.StringBookBinder(ctx,
+                                                  prefix='```',
+                                                  suffix='```',
+                                                  max_lines=40)
 
-            pag.add_line(f'> {config.replace("main.cpp", "src")}\n---')
+            binder.add_line(f'> {config.replace("main.cpp", "src")}\n---')
 
             for line in output.split('\n'):
-                pag.add_line(line)
+                binder.add_line(line)
 
             if ctx.invoked_with in ('ccd', 'colirud'):
                 await commands.try_delete(ctx)
 
-            if len(pag.pages) > 1:
-                fsm = fsa.PagMessage.from_paginator(
-                    pag=pag, bot=ctx.bot, invoked_by=ctx, timeout=1800)
-
-                # Prevents blocking the typing message.
-                msg = None
-                async for _ in fsm:
-                    msg = await fsm.get_message()
-
-            elif pag.pages:
-                msg = await ctx.send(pag.pages[0])
-            else:
+            if len(output.strip()) == 0:
                 msg = await ctx.send('No output...')
+                return
 
-            # Allow editing to reinvoke.
-            await commands.wait_for_edit(ctx=ctx, msg=msg, timeout=1800)
+            booklet = binder.build()
+
+            booklet.start()
+
+            # Lets the book start up first, otherwise we get an error. If we
+            # cant send, then just give up.
+            for _ in range(0, 60):
+                if not len(booklet.response_stk):
+                    await asyncio.sleep(1)
+                else:
+                    await commands.wait_for_edit(ctx=ctx,
+                                                 msg=booklet.root_resp,
+                                                 timeout=1800)
+                    break
+
         except KeyError:
             await ctx.send('Invalid configuration.')
 
     @coliru.command(
         brief='Lists the supported configurations')
     async def configs(self, ctx):
-        paginator = fsa.LinedPag(max_lines=30)
+        binder = bookbinding.StringBookBinder(ctx, max_lines=20)
 
         for config, command in coliru_cfg.items():
-            paginator.add_line(f'_{config}_ - `{command}`')
+            binder.add_line(f'_{config}_ - `{command}`')
 
-        if len(paginator.pages) > 1:
-            fsm = fsa.PagMessage.from_paginator(
-                pag=paginator, bot=ctx.bot, invoked_by=ctx, timeout=120)
-            await fsm.run()
-        else:
-            await ctx.send(paginator.pages[0])
+        await binder.start()
+

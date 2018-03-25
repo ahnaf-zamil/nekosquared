@@ -3,13 +3,12 @@
 """
 Embed preview cog utility.
 """
-import io                             # StringIO
 import json                           # JSON
 import traceback                      # Traceback utils
 from discord import embeds            # Embeds
 from discord import utils             # OAuth2 URL generation
 from neko2.engine import commands     # Commands decorators
-from neko2.shared.other import perms  # Permission bits.
+from neko2.shared import perms
 
 
 class DiscordUtilCog:

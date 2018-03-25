@@ -199,7 +199,8 @@ async def try_delete(message: typing.Union[Context, discord.Message]):
 async def wait_for_edit(*,
                         ctx: Context,
                         msg: typing.Optional[discord.Message]=None,
-                        timeout: float):
+                        timeout: float,
+                        custom_delete=None):
     """
     Listens for the on_message_edit event for a given period of time, before
     returning. If nothing happens and the timeout is hit, we return quietly.
@@ -212,6 +213,8 @@ async def wait_for_edit(*,
     :param msg: the response message to delete. Set to None if you do not wish
             to delete the response.
     :param timeout: the timeout to wait for before giving up.
+    :param custom_delete: optional coroutine to handle deleting the initial
+            message.
     """
     if not hasattr(ctx.command, 'qualified_names'):
         raise TypeError('This utility coroutine only works on command types '
@@ -237,7 +240,10 @@ async def wait_for_edit(*,
         new_ctx = await ctx.bot.get_context(after)
 
         if msg is not None:
-            await try_delete(msg)
+            if custom_delete is None:
+                await try_delete(msg)
+            else:
+                await custom_delete()
 
         # If we reach here, we are reinvoking. If we have a message to
         # delete, try to do that.

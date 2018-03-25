@@ -1,6 +1,0 @@
----
-database: "database"
-host: "hostname.local"
-user: "postgres"
-password: "postgres"
-...

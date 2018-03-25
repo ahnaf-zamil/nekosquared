@@ -15,10 +15,14 @@ import time
 import traceback
 
 import asyncpg
+from discomaton import book
+from discomaton import optionpicker
+from discomaton.factories import bookbinding
+from discomaton.util import pag
 import discord
 
 from neko2.engine import commands
-from neko2.shared import configfiles, fsa
+from neko2.shared import configfiles
 from neko2.shared import scribe
 from neko2.shared import sql
 from neko2.shared import traits
@@ -43,7 +47,7 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
         brief='Searches the given module for the given attribute.',
         examples=['discord Bot.listen'],
         invoke_without_command=True)
-    async def py_group(self, ctx, module: str, *, attribute: str):
+    async def py_group(self, ctx, module: str, *, attribute: str=''):
         """
         Searches for documentation on the given module for the given
         attribute.
@@ -61,7 +65,10 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
             if not top_results:
                 return await ctx.send('No results were found...')
 
-                # Paginate the results.
+            # Get top 200 results.
+            top_results = top_results[:200]
+
+            # Paginate the results.
             options = {}
 
             for i, record in enumerate(top_results):
@@ -73,23 +80,20 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
                     'metadata': meta
                 }
 
-                string = fq_name
-
-                if (i + 1) < 10:
-                    emoji = f'{i + 1}\N{COMBINING ENCLOSING KEYCAP}'
-                else:
-                    emoji = '\N{KEYCAP TEN}'
-                options[emoji] = (string, obj)
+                options[fq_name] = obj
 
             if len(options) > 1:
                 # Last 180 seconds
-                picker = fsa.FocusedOptionPicker(options, ctx.bot, ctx, 180)
-
-                chosen_result = await picker.run()
+                chosen_result = await optionpicker.option_picker(
+                    ctx,
+                    *[f'`{option}`' for option in options.keys()],
+                    timeout=180)
 
                 # If we timed out...
                 if chosen_result is None:
                     return
+
+                chosen_result = options[chosen_result]
             else:
                 # Get the first (only) option.
                 chosen_result = list(options.values())[0][1]
@@ -106,11 +110,9 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
     @py_group.command(name='showconfig')
     async def show_config(self, ctx):
         """Dumps the config."""
-        pag = fsa.Pag()
-        pag.add_line(str(self.modules))
-
-        for page in pag.pages:
-            await ctx.send(page)
+        book = bookbinding.StringBookBinder(ctx)
+        book.add(str(self.modules))
+        book.start()
 
     async def _wipe_schema(self):
         """Call this to create the schema the first time you run this."""
@@ -412,7 +414,7 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
                 description=text[:2000]))
 
         if docstring:
-            doc_pag = fsa.LinedPag()
+            doc_pag = pag.Paginator(max_lines=20)
             for line in docstring.split('\n'):
                 doc_pag.add_line(line)
 
@@ -423,9 +425,5 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
                     description=page,
                     color=random.choice([0x4584b6, 0xffde57])))
 
-        if len(pages) > 1:
-            fsm = fsa.PagEmbed.from_embeds(
-                pages, bot=ctx.bot, invoked_by=ctx, timeout=600)
-            await fsm.run()
-        else:
-            await ctx.send(embed=pages[0])
+        booklet = book.EmbedBooklet(ctx=ctx, pages=pages)
+        booklet.start()

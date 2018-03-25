@@ -8,30 +8,32 @@ import random                         # RNG
 import re                             # Regex
 import typing                         # Type checking
 from urllib import parse              # URL validation/sanitation
+
+import asyncio
 import bs4                            # HTML parser
 import discord                        # discord.py
+
+from discomaton import optionpicker   # Option picker
+from discomaton.factories import bookbinding
+
 from neko2.engine import commands     # Command decorators
 from neko2.shared import errors       # standard errors
-from neko2.shared import fsa          # finite state machines
 from neko2.shared import traits       # HTTP pool
 
 
 # CppReference stuff
 result_path = re.compile(r'^/w/c(pp)?/', re.I)
-SearchResult = collections.namedtuple('SearchResult', 'text href')
-SearchResults = collections.namedtuple(
-    'SearchResults',
-    [
-        'cpp_general',
-        'cpp_concepts',
-        'cpp_keywords',
-        'cpp_experimental',
-        'c_general',
-        'c_keywords',
-        'c_experimental',
-        'other'
-    ]
-)
+
+
+class SearchResult:
+    def __init__(self, text, href):
+        self.text = text
+        self.href = href
+
+    def __str__(self):
+        return f'`{self.text}`'
+
+
 base_cppr = 'https://en.cppreference.com'
 search_cppr = base_cppr + '/mwiki/index.php'
 
@@ -68,47 +70,80 @@ class CppCog(traits.HttpPool):
 
             search_results.extend(results)
 
-        # Sort in lexicographical order.
-        search_results = sorted(search_results, key=lambda t: t.text)
-
-        cpp_general = []
-        cpp_concepts = []
-        cpp_keywords = []
-        cpp_experimental = []
-
-        c_general = []
-        c_keywords = []
-        c_experimental = []
-
+        c = []
+        cpp = []
         other = []
 
         for link in search_results:
             href = link['href']
             name = link.text
             if href.startswith('/w/c/'):
-                # This is a C-library link.
-                if href.startswith('/w/c/experimental'):
-                    c_experimental.append(SearchResult(name, href))
-                else:
-                    c_general.append(SearchResult(name, href))
+                # A C library link
+                name = f'[C] {name}'
+                c.append(SearchResult(name, href))
 
             elif href.startswith('/w/cpp/'):
                 # This is a C++ library link.
-                if href.startswith('/w/cpp/concept'):
-                    cpp_concepts.append(SearchResult(name, href))
-                elif href.startswith('/w/cpp/keyword'):
-                    cpp_keywords.append(SearchResult(name, href))
-                elif href.startswith('/w/cpp/experimental'):
-                    cpp_experimental.append(SearchResult(name, href))
-                else:
-                    cpp_general.append(SearchResult(name, href))
+                name = f'[C++] {name}'
+                cpp.append(SearchResult(name, href))
             else:
                 # This is an "other" link.
+                name = f'[Other] {name}'
                 other.append(SearchResult(name, href))
 
-        return SearchResults(
-            cpp_general, cpp_concepts, cpp_keywords, cpp_experimental,
-            c_general, c_keywords, c_experimental, other)
+        return [*c, *cpp, *other]
+
+    @classmethod
+    async def get_information(cls, href):
+        """
+        Gets information for the given search result.
+        """
+        url = base_cppr + href
+        conn = await cls.acquire_http()
+        response = await conn.get(url)
+        # Make soup.
+        bs = bs4.BeautifulSoup(await response.text())
+
+        taster_tbl: bs4.Tag = bs.find(name='table',
+                                      attrs={'class': 't-dcl-begin'})
+
+        if taster_tbl:
+            tasters = taster_tbl.find_all(
+                name='span',
+                attrs={'class': lambda c: c is not None and 'mw-geshi' in c})
+
+            if tasters:
+                # Fixes some formatting
+                for i, taster in enumerate(tasters):
+                    taster = taster.text.split('\n')
+                    taster = '\n'.join(t.rstrip() for t in taster)
+                    taster = taster.replace('\n\n', '\n')
+                    tasters[i] = taster
+
+            # Remove tasters from DOM
+            taster_tbl.replace_with(bs4.Tag(name='empty'))
+        else:
+            tasters = []
+
+        h1 = bs.find(name='h1').text
+
+        # Get the description
+        desc = bs.find(
+            name='div',
+            attrs={'id': 'mw-content-text'})
+
+        if desc:
+            desc = '\n'.join(p.text for p in desc.find_all(name='p'))
+        else:
+            desc = ''
+
+        header = bs.find(name='tr', attrs={'class': 't-dsc-header'})
+        if header:
+            header = header.text
+        else:
+            header = ''
+
+        return url, h1, tasters, header, desc
 
     @commands.command(
         brief='Searches en.cppreference.com for the given criteria',
@@ -117,55 +152,37 @@ class CppCog(traits.HttpPool):
     async def cppref(self, ctx, *terms):
         results = await self.results(*terms)
 
-        embeds = []
+        if not results:
+            return await ctx.send('No results were found.', delete_after=10)
 
-        result_url = (
-                search_cppr + '?' + parse.urlencode({'search': '|'.join(terms)})
-        )
+        if len(results) > 1:
+            # Show an option picker
+            result = await optionpicker.option_picker(
+                ctx, *results, max_lines=20)
+            await asyncio.sleep(0.25)
 
-        def process_results(lang, category, category_results):
-            # Skip if no results.
-            if not category_results:
+            if not result:
                 return
-
-            pag = fsa.LinedPag(10, max_size=fsa.EMBED_FIELD_MAX)
-            for result in category_results:
-                pag.add_line(f'- **{result.text}**:\r\t'
-                             f'{base_cppr}{result.href}')
-
-            for i, page in enumerate(pag.pages):
-                embed = discord.Embed(
-                    title=f'Search results for `{" ".join(terms)}`',
-                    colour=random.randint(0, 0xFFFFFF),
-                    url=result_url)
-
-                if lang:
-                    embed.description = f'Results that apply to **{lang}**'
-                else:
-                    embed.description = 'Other results'
-
-                embed.add_field(name=category, value=page)
-                if i + 1 < len(pag.pages):
-                    embed.set_footer(
-                        text='Current list continued on next page '
-                             f'({i + 1}/{len(pag.pages)})')
-                embeds.append(embed)
-
-        process_results('C++', 'General', results.cpp_general)
-        process_results('C++', 'Concepts', results.cpp_concepts)
-        process_results('C++', 'Keywords', results.cpp_keywords)
-        process_results('C++', 'Experimental', results.cpp_experimental)
-        process_results('C', 'General', results.c_general)
-        process_results('C', 'Keywords', results.c_keywords)
-        process_results('C', 'Experimental', results.c_experimental)
-        process_results(None, 'Other Results', results.other)
-
-        if len(embeds):
-            fsm = fsa.FocusedPagEmbed.from_embeds(
-                embeds, bot=ctx.bot, invoked_by=ctx, timeout=120)
-            await fsm.run()
         else:
-            await ctx.send('No results were found.', delete_after=10)
+            result = results[0]
+
+        # Fetch the result page.
+        url, h1, tasters, header, desc = await self.get_information(result.href)
+
+        binder = bookbinding.StringBookBinder(ctx, max_lines=None)
+
+        binder.add_line(f'**{h1}**\n<{url}>')
+        if header:
+            binder.add_line(f'`{header}`')
+
+        if tasters:
+            for taster in tasters:
+                binder.add_line(f'```cpp\n{taster}\n```\n')
+
+        if desc:
+            binder.add_line(desc)
+
+        binder.start()
 
 
 def setup(bot):

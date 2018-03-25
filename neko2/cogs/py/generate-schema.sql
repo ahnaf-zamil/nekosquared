@@ -1,9 +1,10 @@
+
+
 -- Generates the schema and base table structure. This will remove the existing
 -- schema if it exists. This is performed as a single transaction. It will
 -- either finish successfully, or just fail completely and not alter anything.
-BEGIN TRANSACTION;
-
-    -- Generate schema
+BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED READ WRITE;
+    -- Drop existing data.
     DROP SCHEMA IF EXISTS python_doc CASCADE;
     CREATE SCHEMA python_doc;
     SET search_path TO python_doc;
@@ -158,8 +159,8 @@ BEGIN TRANSACTION;
     */
 
     /**
-     * Looks up a given module and attribute, returning the top 10 (max) closest
-     * matches to the names.
+     * Looks up a given module and attribute, returning the matches ordered by
+     * the closest string first.
      *
      * @param module - the module to look up the attribute table for.
      * @param attr - the attribute to look up using fuzzy string matching.
@@ -181,6 +182,9 @@ BEGIN TRANSACTION;
         BEGIN
             SET search_path TO python_doc;
 
+            -- Practically return anything.
+            SELECT set_limit(0.1);
+
             -- Get table name
             SELECT tbl_name INTO STRICT _tbl_name
                 FROM module_index
@@ -193,7 +197,7 @@ BEGIN TRANSACTION;
                     similarity(tbl.fq_member_name, attr) AS fq_member_simil,
                     *
                 FROM get_table(_tbl_name) as tbl
-                WHERE tbl.fq_member_name % attr
+                WHERE tbl.fq_member_name % attr OR tbl.member_name % attr
                 ORDER BY
                     -- Forces us to place public before protected, before
                     -- private.
@@ -208,8 +212,7 @@ BEGIN TRANSACTION;
                     1 - fq_member_simil,
                     1 - member_simil,
                     tbl.fq_member_name
-                ASC
-                LIMIT 10;
+                ASC;
         END;
         $fuzzy_search_for$
         LANGUAGE plpgsql;
