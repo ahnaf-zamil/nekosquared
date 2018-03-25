@@ -93,7 +93,8 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
                 if chosen_result is None:
                     return
 
-                chosen_result = options[chosen_result]
+                # 1:-1 to trim backticks
+                chosen_result = options[chosen_result[1:-1]]
             else:
                 # Get the first (only) option.
                 chosen_result = list(options.values())[0][1]
