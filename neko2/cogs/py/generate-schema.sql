@@ -183,7 +183,7 @@ BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED READ WRITE;
             SET search_path TO python_doc;
 
             -- Practically return anything.
-            SELECT set_limit(0.1);
+            PERFORM set_limit(0.1);
 
             -- Get table name
             SELECT tbl_name INTO STRICT _tbl_name
