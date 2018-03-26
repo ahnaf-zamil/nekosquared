@@ -50,7 +50,7 @@ class CppCog(traits.HttpPool):
         if resp.status != 200:
             raise errors.HttpError(resp)
             
-        href = resp.url[len(base_cppr):]
+        href = str(resp.url)[len(base_cppr):]
             
         resp = await resp.text()
 
