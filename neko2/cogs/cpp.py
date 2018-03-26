@@ -112,6 +112,12 @@ class CppCog(traits.HttpPool):
         response = await conn.get(url)
         # Make soup.
         bs = bs4.BeautifulSoup(await response.text())
+        
+        header = bs.find(name='tr', attrs={'class': 't-dsc-header'})
+        if header:
+            header = header.text
+        else:
+            header = ''
 
         taster_tbl: bs4.Tag = bs.find(name='table',
                                       attrs={'class': 't-dcl-begin'})
@@ -145,12 +151,6 @@ class CppCog(traits.HttpPool):
             desc = '\n'.join(p.text for p in desc.find_all(name='p'))
         else:
             desc = ''
-
-        header = bs.find(name='tr', attrs={'class': 't-dsc-header'})
-        if header:
-            header = header.text
-        else:
-            header = ''
 
         return url, h1, tasters, header, desc
 
