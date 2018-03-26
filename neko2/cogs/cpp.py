@@ -49,11 +49,20 @@ class CppCog(traits.HttpPool):
         resp = await conn.get(search_cppr, params=params)
         if resp.status != 200:
             raise errors.HttpError(resp)
-        else:
-            resp = await resp.text()
+            
+        href = resp.url[len(base_cppr):]
+            
+        resp = await resp.text()
 
         # Parse the HTML response.
         tree = bs4.BeautifulSoup(resp)
+        
+        if href.starts_with('/w/'):
+            # Assume we are redirected to the first result page
+            # only.
+            title = tree.find(name='h1')
+            title = title.title if title else resp.url
+            return [SearchResult(title, href)]
 
         search_result_lists: typing.List[bs4.Tag] = tree.find_all(
             name='div',
