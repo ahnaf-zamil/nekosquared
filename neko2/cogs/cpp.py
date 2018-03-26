@@ -178,15 +178,15 @@ class CppCog(traits.HttpPool):
         # Fetch the result page.
         url, h1, tasters, header, desc = await self.get_information(result.href)
 
-        binder = bookbinding.StringBookBinder(ctx, max_lines=None)
+        binder = bookbinding.StringBookBinder(ctx, max_lines=50)
 
         binder.add_line(f'**{h1}**\n<{url}>')
         if header:
-            binder.add_line(f'`{header}`')
+            binder.add_line(f'\n`{header}`')
 
         if tasters:
             for taster in tasters:
-                binder.add_line(f'```cpp\n{taster}\n```\n')
+                binder.add_line(f'```cpp\n{taster}\n```')
 
         if desc:
             binder.add_line(desc)
