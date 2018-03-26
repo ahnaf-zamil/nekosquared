@@ -57,7 +57,7 @@ class CppCog(traits.HttpPool):
         # Parse the HTML response.
         tree = bs4.BeautifulSoup(resp)
         
-        if href.starts_with('/w/'):
+        if href.startswith('/w/'):
             # Assume we are redirected to the first result page
             # only.
             title = tree.find(name='h1')
