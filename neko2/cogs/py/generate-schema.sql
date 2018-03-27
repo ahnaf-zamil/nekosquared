@@ -169,8 +169,6 @@ BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED READ WRITE;
     CREATE OR REPLACE FUNCTION fuzzy_search_for(module   TEXT,
                                                 attr     TEXT)
         RETURNS TABLE (
-            member_simil     REAL,
-            fq_member_simil  REAL,
             member_num       INTEGER,
             member_name      TEXT,
             fq_member_name   TEXT,
@@ -191,16 +189,18 @@ BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED READ WRITE;
                 WHERE module_name ILIKE module;
 
             -- Fuzzy search
-            RETURN QUERY
-                SELECT
-                    similarity(tbl.member_name, attr) AS member_simil,
-                    similarity(tbl.fq_member_name, attr) AS fq_member_simil,
-                    *
-                FROM get_table(_tbl_name) as tbl
-                WHERE tbl.fq_member_name % attr
-                ORDER BY
-                    fq_member_simil DESC,
-					tbl.fq_member_name ASC;
+            IF TRIM(attr) = '' THEN
+                RETURN QUERY SELECT * FROM get_table(_tbl_name);
+            ELSE
+		RETURN QUERY
+                    SELECT
+                        *
+                    FROM get_table(_tbl_name) as tbl
+                    WHERE tbl.fq_member_name % attr
+                    ORDER BY
+                        similarity(tbl.fq_member_name, attr) DESC,
+	    		tbl.fq_member_name ASC;
+	    END IF;
         END;
         $fuzzy_search_for$
         LANGUAGE plpgsql;
