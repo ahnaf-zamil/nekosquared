@@ -190,7 +190,7 @@ BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED READ WRITE;
 
             -- Fuzzy search
             IF TRIM(attr) = '' THEN
-                RETURN QUERY SELECT * FROM get_table(_tbl_name);
+                RETURN QUERY SELECT * FROM get_table(_tbl_name) LIMIT 500;
             ELSE
 		RETURN QUERY
                     SELECT
