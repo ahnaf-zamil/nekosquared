@@ -48,20 +48,21 @@ dependencies = {
     # Sphinx and docutils for cogs.py
     'sphinx': 'sphinx',
     'docutils': 'docutils',
+    'sqlparams': 'sqlparams',
 
     # Intentionally is incorrect. Don't alter until Danny releases
     # the rewrite properly.
     'discord.py': 'git+https://github.com/rapptz/discord.py@rewrite',
 
     # My pagination utilities I have outsourced to a separate repository.
-    'discomaton': 'git+https://github.com/neko404notfound/discomaton'
+    'discomaton': 'git+https://github.com/neko404notfound/discomaton',
 }
 
 python_command = 'python3'
 
 # Should we force update?
 args = sys.argv[1:]
-if any(args[0] == x for x in ('-h', '--help', 'help', '-?')):
+if args and any(args[0] == x for x in ('-h', '--help', 'help', '-?')):
     print('Args:')
     print('  update - updates all dependencies')
     print('  onlydeps - does not set up a virtual environment, nor clone the '
@@ -141,7 +142,7 @@ if not just_deps:
         try:
             print('Creating venv...')
             venv.create('venv',
-                        prompt='(neko²)',
+                        prompt='neko²',
                         system_site_packages=True)
             assert os.path.isdir('venv'), 'Unknown error'
         except BaseException as ex:
@@ -163,6 +164,7 @@ with open('temp-install-script.sh', 'w') as script_file:
         #!/bin/bash
         function main() {{
             source venv/bin/activate
+            python3.6 -m pip install --upgrade pip
         '''.lstrip()
     for dep, pkg in dependencies.items():
         script += f'''

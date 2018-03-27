@@ -177,5 +177,7 @@
   "zipfile",
   "re",
   { "name": "flask", "init": "import flask; flask.Flask(__name__)" },
-  { "name": "itsdangerous", "init": "import flask; flask.Flask(__name__)"}
+  { "name": "itsdangerous", "init": "import flask; flask.Flask(__name__)"},
+  "discomaton",
+  "sqlparams"
 ]
