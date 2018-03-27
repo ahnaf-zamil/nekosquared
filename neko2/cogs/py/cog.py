@@ -97,7 +97,7 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
                 chosen_result = options[chosen_result[1:-1]]
             else:
                 # Get the first (only) option.
-                chosen_result = list(options.values())[0][1]
+                chosen_result = list(options.values())[0]
 
         await self._make_send_doc(ctx, chosen_result)
 
