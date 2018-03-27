@@ -72,7 +72,7 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
             options = {}
 
             for i, record in enumerate(top_results):
-                s, fq_s, pk, name, fq_name, meta = list(record.values())[0]
+                pk, name, fq_name, meta = list(record.values())[0]
 
                 obj = {
                     'member_name': name,
