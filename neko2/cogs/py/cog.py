@@ -390,13 +390,21 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
             attrs = sorted(attrs, key=lambda a: a.lower())
             attr_pag = pag.Paginator()
             is_first = True
+            line_len = 0
             for attr in attrs:
+                current = ''
                 if is_first:
                     is_first = False
                 else:
-                    attr_pag.add(', ')
+                    current += ', '
 
-                attr_pag.add(f'`{attr}`')
+                current += f'`{attr}`'
+                line_len += len(current)
+                if line_len > 1500:
+                    line_len = 0
+                    attr_pag.add_line(current)
+                else:
+                    attr_pag.add(current)
 
             for i, page in enumerate(attr_pag.pages):
                 pages.append(discord.Embed(
