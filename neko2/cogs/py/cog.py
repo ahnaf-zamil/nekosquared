@@ -279,7 +279,7 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
         end_line = meta.pop('end_line')
 
         if start_line < end_line:
-            sig = f'{start_line}⟶{end_line}'
+            sig = f'{start_line} ↦ {end_line}'
         elif start_line == end_line == 1:
             sig = ''
         else:
@@ -338,12 +338,11 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
         init = meta.pop('init', '')
         new = meta.pop('new', '')
 
-        attrs = [f'`{attr}`' for attr in sorted(meta.pop('attrs', []))]
+        attrs = [f'`{attr}`' for attr in meta.pop('attrs', [])]
 
-        prop = [f'`{p}`' for p in sorted(meta.pop('properties', []))]
+        prop = [f'`{p}`' for p in meta.pop('properties', [])]
 
-        roprop = [f'`{rop}`' for rop in
-                  sorted(meta.pop('readonly_properties', []))]
+        roprop = [f'`{rop}`' for rop in meta.pop('readonly_properties', [])]
 
         type_t = meta.pop('type', '')
         meta_class = meta.pop('metaclass', '')
@@ -353,7 +352,7 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
 
         if ops:
             embed.add_field(
-                name='Operators',
+                name='Operators and magic methods',
                 value=', '.join(f'`{o}`' for o in ops))
 
         if returns:
@@ -411,7 +410,6 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
                     colour=random.randint(0, 0xFFFFFF),
                     description=page))
 
-
         if roprop:
             add_page_attrs(roprop, 'Read-only Properties')
 
@@ -435,9 +433,10 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
                 doc_pag.add_line(line[indent:])
 
             # Generate embeds.
-            for page in doc_pag.pages:
+            for j, page in enumerate(doc_pag.pages):
                 pages.append(discord.Embed(
-                    title=f'`{element["member_name"]}`: Docstring',
+                    title=f'`{element["member_name"]}`: Docstring '
+                          f'[{i+1}/{len(doc_pag.pages)}]',
                     description=page,
                     colour=random.randint(0, 0xFFFFFF)))
 
