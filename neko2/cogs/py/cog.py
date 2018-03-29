@@ -47,13 +47,13 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
         brief='Searches the given module for the given attribute.',
         examples=['discord Bot.listen'],
         invoke_without_command=True)
+    @commands.guild_only()
     async def py_group(self, ctx, module: str, *, attribute: str=''):
         """
-        Searches for documentation on the given module for the given
+        Searches for documentation on the given Python module for the given
         attribute.
         """
         async with await self.acquire_db() as conn, ctx.typing():
-
             try:
                 top_results = await conn.fetch(
                     self.get_top_10_sql,
@@ -102,6 +102,7 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
         await self._make_send_doc(ctx, chosen_result)
 
     @py_group.command(name='modules', brief='Lists any modules documented.')
+    @commands.guild_only()
     async def list_modules(self, ctx):
         async with await self.acquire_db() as conn:
             result = await conn.fetch(self.list_modules_sql)
@@ -231,6 +232,7 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
         return total_attrs, total_modules
 
     @commands.is_owner()
+    @commands.guild_only()
     @py_group.command(brief='Recaches any missing or out-of-date modules.')
     async def recache(self, ctx):
         """
@@ -269,7 +271,7 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
 
         embed = discord.Embed(
             title=f'`{element["member_name"]}`: {category}',
-            colour=random.choice([0x4584b6, 0xffde57]))
+            colour=random.randint(0, 0xFFFFFF))
 
         docstring = meta.pop('docstring')
         file = meta.pop('file')
@@ -389,16 +391,12 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
             # Sort by string case insensitive
             attrs = sorted(attrs, key=lambda a: a.lower())
             attr_pag = pag.Paginator()
-            is_first = True
             line_len = 0
-            for attr in attrs:
-                current = ''
-                if is_first:
-                    is_first = False
-                else:
+            for i, attr in enumerate(attrs):
+                current = f'`{attr}`'
+                if i < len(attrs) - 1:
                     current += ', '
 
-                current += f'`{attr}`'
                 line_len += len(current)
                 if line_len > 1500:
                     line_len = 0
@@ -410,7 +408,7 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
                 pages.append(discord.Embed(
                     title=f'`{element["member_name"]}`: {title} '
                           f'[{i+1}/{len(attr_pag.pages)}]',
-                    colour=random.choice([0x4584b6, 0xffde57]),
+                    colour=random.randint(0, 0xFFFFFF),
                     description=page))
 
 
@@ -441,7 +439,7 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
                 pages.append(discord.Embed(
                     title=f'`{element["member_name"]}`: Docstring',
                     description=page,
-                    color=random.choice([0x4584b6, 0xffde57])))
+                    colour=random.randint(0, 0xFFFFFF)))
 
         booklet = book.EmbedBooklet(ctx=ctx, pages=pages)
         booklet.start()
