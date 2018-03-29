@@ -337,14 +337,11 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
         new = meta.pop('new', '')
 
         attrs = [f'`{attr}`' for attr in sorted(meta.pop('attrs', []))]
-        attrs = [*filter(lambda a: not a.startswith('_'), attrs)]
 
         prop = [f'`{p}`' for p in sorted(meta.pop('properties', []))]
-        prop = [*filter(lambda a: not a.startswith('_'), prop)]
 
         roprop = [f'`{rop}`' for rop in
                   sorted(meta.pop('readonly_properties', []))]
-        roprop = [*filter(lambda a: not a.startswith('_'), roprop)]
 
         type_t = meta.pop('type', '')
         meta_class = meta.pop('metaclass', '')
@@ -371,7 +368,7 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
             for i in range(0, len(bases), 50):
                 embed.add_field(
                     name='Base classes',
-                    value='\n'.join(bases[i:i+20]))
+                    value='\n'.join(bases))
         if meta_class:
             embed.add_field(name='Metaclass', value=f'`{meta_class}`')
         if type_t:
@@ -387,37 +384,49 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
 
         pages = [embed]
 
-        if roprop:
-            # Ignore protected/private members.
-            text = ', '.join(attrs)
+        def add_page_attrs(attrs, title):
+            nonlocal pages
+            # Sort by string case insensitive
+            attrs = sorted(attrs, key=lambda a: a.lower())
+            attr_pag = pag.Paginator()
+            is_first = True
+            for attr in attrs:
+                if is_first:
+                    is_first = False
+                else:
+                    attr_pag.add(', ')
 
-            pages.append(discord.Embed(
-                title=f'`{element["member_name"]}`: Read-only properties',
-                colour=random.choice([0x4584b6, 0xffde57]),
-                description=text[:2000]))
+                attr_pag.add(f'`{attr}`')
+
+            for i, page in enumerate(attr_pag.pages):
+                pages.append(discord.Embed(
+                    title=f'`{element["member_name"]}`: {title} '
+                          f'[{i+1}/{len(attr_pag.pages)}]',
+                    colour=random.choice([0x4584b6, 0xffde57]),
+                    description=page))
+
+
+        if roprop:
+            add_page_attrs(roprop, 'Read-only Properties')
 
         if prop:
-            # Ignore protected/private members.
-            text = ', '.join(prop)
-
-            pages.append(discord.Embed(
-                title=f'`{element["member_name"]}`: Properties',
-                colour=random.choice([0x4584b6, 0xffde57]),
-                description=text[:2000]))
+            add_page_attrs(prop, 'Properties')
 
         if attrs:
-            # Ignore protected/private members.
-            text = ', '.join(attrs)
-
-            pages.append(discord.Embed(
-                title=f'`{element["member_name"]}`: Attributes',
-                colour=random.choice([0x4584b6, 0xffde57]),
-                description=text[:2000]))
+            add_page_attrs(attrs, 'Attributes')
 
         if docstring:
-            doc_pag = pag.Paginator(max_lines=20)
+            doc_pag = pag.Paginator(max_lines=35, prefix='```', suffix='```')
+            # Calculate initial indent. First skip any leading whitespace.
+            i, indent = 0, 0
+            while i < len(docstring) and docstring[i] == '\n':
+                i += 1
+            while i < len(docstring) and docstring[i] in ('\t', ' '):
+                i += 1
+                indent += 1
+
             for line in docstring.split('\n'):
-                doc_pag.add_line(line)
+                doc_pag.add_line(line[indent:])
 
             # Generate embeds.
             for page in doc_pag.pages:
