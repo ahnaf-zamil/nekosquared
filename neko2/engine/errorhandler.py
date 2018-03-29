@@ -153,8 +153,13 @@ async def __handle_error(*, bot, cog=None, ctx=None, error, event_method=None):
             adj = 'Bad'
         reply = f'\N{SPEECH BALLOON} {adj} arguments'
 
+        if str(error).lower().startswith('expected closing'):
+            reply += f': {error!s}'
+        else:
+            reply += '.'
+
         if ctx is not None:
-            reply += f':\nCommand signature: {ctx.command.signature}'
+            reply += f'\nCommand signature: `{ctx.command.signature}`'
     elif is_disabled:
         reply = '\N{NO ENTRY SIGN} This command is disabled globally'
     elif is_not_found:
@@ -192,6 +197,9 @@ async def __handle_error(*, bot, cog=None, ctx=None, error, event_method=None):
         if ctx:
             futs.append(ctx.message.delete())
 
-        await asyncio.gather(*futs)
+        try:
+            await asyncio.gather(*futs)
+        except:
+            pass
 
     asyncio.ensure_future(fut())

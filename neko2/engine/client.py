@@ -9,10 +9,12 @@ import signal                           # Access to kernel signals.
 import sys                              # Most recent exception
 import time                             # Measuring uptime.
 import traceback                        # Exception traceback utilities.
+
 import cached_property                  # Cached properties.
 import discord                          # Basic discord.py bits and pieces.
 from discord.ext import commands        # Discord.py extensions.
 from discord.utils import oauth_url     # OAuth URL generator
+
 from neko2.engine import errorhandler   # Error handling routine.
 from neko2.engine import shutdown       # Hook to call on shutdown.
 from neko2.shared import scribe, perms  # Logging
