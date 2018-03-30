@@ -114,7 +114,7 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
             page_len = 0
             for r in result:
                 if page_len >= 1990:
-                    book.add_page_break()
+                    book.add_line()
                     page_len = 0
 
                 line = ''
