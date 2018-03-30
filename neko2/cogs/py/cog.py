@@ -112,7 +112,7 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
             # await ctx.send(', '.join(f'`{r["module_name"]}`' for r in result))
             book = bookbinding.StringBookBinder(ctx)
             for r in result:
-                line += f'- `{r["module_name"]}`'
+                line = f'- `{r["module_name"]}`'
                 book.add_line(line)           
             book.start()
 
