@@ -50,6 +50,7 @@ class DiscordUtilCog:
 
         Example:
 
+        ```json
         {
             "title": "Hello",
             "description": "World!",
@@ -60,6 +61,7 @@ class DiscordUtilCog:
             ],
             "inline": false
         }
+        ```
         """
 
         dom: str = dom.strip()
