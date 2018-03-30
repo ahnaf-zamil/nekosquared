@@ -36,9 +36,8 @@ BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED READ WRITE;
         RETURNS TEXT
         AS $random_string$
         DECLARE
-            valid_chars TEXT[]  := '{0,1,2,3,4,5,6,7,8,9,A,B,C,D,E,F,G,H,I,' ||
-                                   'J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z}';
-            result      TEXT    := '';
+            valid_chars TEXT[]  := '{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f}';
+            result      TEXT    := 'tbl';
             i           INTEGER := 0;
         BEGIN
             SET search_path TO python_doc;
