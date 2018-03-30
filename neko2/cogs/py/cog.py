@@ -165,8 +165,8 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
                         # Todo: stop this caching entire module into memory
                         # until we know whether we need to do it based on
                         # the equalities of the hashes.
-                        asyncio.ensure_future(status.set_message(
-                            f'[{i+1}/{tot}] Hashing/analysing `{module}`...'))
+                        await status.set_message(
+                            f'[{i+1}/{tot}] Hashing/analysing `{module}`...')
 
                         # Ideally I want to use CPU pool, but pickling becomes
                         # an issue, and that is required for IPC.
@@ -181,14 +181,14 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
                             existing_hash = await conn.fetchval(
                                 self.get_hash_sql, module_name)
                             if existing_hash == hash_code:
-                                asyncio.ensure_future(status.set_message(
+                                await status.set_message(
                                     f'[{i+1}/{tot}] {module_name} is already '
                                     'up-to-date, so will be skipped.'
-                                ))
+                                )
                                 await asyncio.sleep(5)
                                 continue
                             else:
-                                asyncio.ensure_future(status.set_message(
+                                await status.set_message(
                                     f'[{i+1}/{tot}] {module_name} is out of '
                                     'date. First clearing the table of data...'
                                 ))
@@ -242,7 +242,7 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
                                     f' Generating insert query [{j+1}'
                                     f'/{len(attrs)}] - `{attr["fqn"]}`')
 
-                                asyncio.ensure_future(status.set_message(
+                                aawait status.set_message(
                                     f'[{i+1}/{tot}] In `{module}`:'
                                     f' Generating insert query [{j+1}'
                                     f'/{len(attrs)}] - `{attr["fqn"]}`')
@@ -259,10 +259,10 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
                             f'[{i+1}/{tot}] In `{module}`; Executing '
                             f'{len(attrs)} insertions.')
 
-                        asyncio.ensure_future(status.set_message(
+                        await status.set_message(
                             f'[{i+1}/{tot}] In `{module}`; Executing '
                             f'{len(attrs)} insertions.'
-                        ))
+                        )
 
                         await conn.executemany(self.add_member_sql, arguments)
 
