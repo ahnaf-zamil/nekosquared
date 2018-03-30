@@ -13,7 +13,7 @@ import asyncio
 import bs4                            # HTML parser
 import discord                        # discord.py
 
-from discomaton import optionpicker   # Option picker
+from discomaton import userinput      # Option picker
 from discomaton.factories import bookbinding
 
 from neko2.engine import commands     # Command decorators
@@ -166,7 +166,7 @@ class CppCog(traits.HttpPool):
 
         if len(results) > 1:
             # Show an option picker
-            result = await optionpicker.option_picker(
+            result = await userinput.option_picker(
                 ctx, *results, max_lines=20)
             await asyncio.sleep(0.25)
 

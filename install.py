@@ -23,12 +23,8 @@ import traceback
 
 # Maps import name to pypi name.
 dependencies = {
-    # Async file io
-    'aiofiles': 'aiofiles',
     # Async http io
     'aiohttp': 'aiohttp',
-    # Async multiprocessing
-    'aioprocessing': 'aioprocessing',
     # Async postgresql wrapper.
     'asyncpg': 'asyncpg',
     # Beautiful soup 4 HTML parser
@@ -42,18 +38,9 @@ dependencies = {
     'wordnik': 'wordnik-py3',
     'yaml': 'pyyaml',
     # These are used only for caching purposes in the Py module :)
-    'psycopg2': 'psycopg2',
-    'requests': 'requests',
-    'flask': 'flask',
-    # Sphinx and docutils for cogs.py
-    'sphinx': 'sphinx',
-    'docutils': 'docutils',
-    'sqlparams': 'sqlparams',
-
     # Intentionally is incorrect. Don't alter until Danny releases
     # the rewrite properly.
     'discord.py': 'git+https://github.com/rapptz/discord.py@rewrite',
-
     # My pagination utilities I have outsourced to a separate repository.
     'discomaton': 'git+https://github.com/neko404notfound/discomaton',
 }

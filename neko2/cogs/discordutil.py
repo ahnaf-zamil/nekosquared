@@ -50,18 +50,16 @@ class DiscordUtilCog:
 
         Example:
 
-        ```json
         {
             "title": "Hello",
             "description": "World!",
-            "color": 0xF0F0F0,
+            "color": 15790320,
             "fields": [
                 {"name": "foo", "value": "bar"},
                 {"name": "baz", "value": "bork"}
             ],
             "inline": false
         }
-        ```
         """
 
         dom: str = dom.strip()

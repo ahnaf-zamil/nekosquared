@@ -16,7 +16,7 @@ import traceback
 
 import asyncpg
 from discomaton import book
-from discomaton import optionpicker
+from discomaton import userinput
 from discomaton.factories import bookbinding
 from discomaton.util import pag
 import discord
@@ -37,7 +37,7 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
     add_member_sql = sql.SqlQuery('add-member')
     add_module_sql = sql.SqlQuery('add-module')
     list_modules_sql = sql.SqlQuery('list-modules')
-    get_top_10_sql = sql.SqlQuery('get-top-10')
+    fuzzy_search_sql = sql.SqlQuery('fuzzy-search')
 
     def __init__(self):
         self.modules = configfiles.get_config_data(config_file)
@@ -56,7 +56,7 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
         async with await self.acquire_db() as conn, ctx.typing():
             try:
                 top_results = await conn.fetch(
-                    self.get_top_10_sql,
+                    self.fuzzy_search_sql,
                     module,
                     attribute)
             except asyncpg.NoDataFoundError:
@@ -84,7 +84,7 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
 
             if len(options) > 1:
                 # Last 180 seconds
-                chosen_result = await optionpicker.option_picker(
+                chosen_result = await userinput.option_picker(
                     ctx,
                     *[f'`{option}`' for option in options.keys()],
                     timeout=180)
