@@ -111,18 +111,18 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
             result = await conn.fetch(self.list_modules_sql)
             # await ctx.send(', '.join(f'`{r["module_name"]}`' for r in result))
             book = bookbinding.StringBookBinder(ctx)
-            is_start = True
+            page_len = 0
             for r in result:
-                if len(book.pages[-1:]) + len(r) >= 1990:
+                if page_len + len(r) >= 1990:
                     book.add_break()
-                    is_start = False
+                    page_len = 0
 
-                if is_start:
-                    is_start = False
-                else:
-                    book.add(', ')
-                book.add(f'`{r["module_name"]}`')
-                
+                line = ''
+                if page_len:
+                    line += ', '
+                line += f'`{r["module_name"]}`'
+                book.add(line)
+                page_len += len(line)               
             book.start()
 
     @commands.is_owner()
