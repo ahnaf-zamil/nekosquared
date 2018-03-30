@@ -109,7 +109,17 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
     async def list_modules(self, ctx):
         async with await self.acquire_db() as conn:
             result = await conn.fetch(self.list_modules_sql)
-            await ctx.send(', '.join(f'`{r["module_name"]}`' for r in result))
+            # await ctx.send(', '.join(f'`{r["module_name"]}`' for r in result))
+            book = bookbinding.StringBookBinder(ctx)
+            is_start = True
+            for r in result:
+                if is_start:
+                    is_start = False
+                else:
+                    book.add(', ')
+                book.add(f'`{r["module_name"]}`')
+                
+            book.start()
 
     @commands.is_owner()
     @py_group.command(name='showconfig')
