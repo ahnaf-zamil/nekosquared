@@ -198,10 +198,16 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
                                     f'`{module}` dynamically in schema... '
                                 )
 
-                                module_tbl_name = await conn.fetchval(
-                                    self.clean_table_sql,
-                                    module_name)
-                                await asyncio.sleep(5)
+                                # Easier to ask for forgiveness. The downside
+                                # being that if an error occurs, the transaction
+                                # will close, so we ensure to run it in a
+                                # separate connection
+                                # TODO: catch error on same connection.
+                                with await self.acquire_db() as temp_db:
+                                    module_tbl_name = await temp_db.fetchval(
+                                        self.clean_table_sql,
+                                        module_name)
+                                    await asyncio.sleep(5)
 
                         except BaseException:
                             # Generate new table.
