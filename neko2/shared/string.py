@@ -29,7 +29,7 @@ def remove_single_lines(string: str) -> str:
             return ''
 
     for line in string.splitlines():
-        line = line.strip()
+        line = line.rstrip()
 
         # Empty line
         if not line:
@@ -53,4 +53,4 @@ def remove_single_lines(string: str) -> str:
         else:
             lines.append(line)
 
-    return '\n'.join(lines).strip()
+    return '\n'.join(lines)

@@ -134,7 +134,6 @@ BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED READ WRITE;
         $add_attr$
         LANGUAGE plpgsql;
 
-
     /**
      * Returns the view of a given table name.
      * @param tbl_name - name of the table.
@@ -152,6 +151,30 @@ BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED READ WRITE;
             RETURN QUERY EXECUTE 'SELECT * FROM "' || tbl_name || '";';
         END;
         $get_table$
+        LANGUAGE plpgsql;
+
+    /**
+     * Cleans out an existing table of all the tuple records inside it.
+     * @param target_module_name - the module to find the table of.
+     * @returns the table name that was cleared.
+     */
+    CREATE OR REPLACE FUNCTION clean_table(target_module_name TEXT)
+        RETURNS TEXT
+        AS $clean_table$
+        DECLARE
+            target_tbl_name    TEXT;
+        BEGIN
+            SET search_path TO python_doc;
+
+            SELECT tbl_name INTO STRICT target_tbl_name
+                FROM module_index
+                WHERE module_name ILIKE target_module_name;
+
+            EXECUTE 'DELETE FROM "' || target_tbl_name || '";';
+
+            RETURN target_tbl_name;
+        END;
+        $clean_table$
         LANGUAGE plpgsql;
 
     /*

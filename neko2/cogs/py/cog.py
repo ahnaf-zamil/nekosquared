@@ -26,6 +26,7 @@ from neko2.shared import configfiles
 from neko2.shared import scribe
 from neko2.shared import sql
 from neko2.shared import traits
+
 from . import module_cacher
 
 
@@ -33,11 +34,13 @@ config_file = 'neko2.cogs.py.targets'
 
 
 class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
-    gen_schema_sql = sql.SqlQuery('generate-schema')
     add_member_sql = sql.SqlQuery('add-member')
     add_module_sql = sql.SqlQuery('add-module')
-    list_modules_sql = sql.SqlQuery('list-modules')
+    clean_table_sql = sql.SqlQuery('clean-table')
     fuzzy_search_sql = sql.SqlQuery('fuzzy-search')
+    gen_schema_sql = sql.SqlQuery('generate-schema')
+    get_hash_sql = sql.SqlQuery('get-hash')
+    list_modules_sql = sql.SqlQuery('list-modules')
 
     def __init__(self):
         self.modules = configfiles.get_config_data(config_file)
@@ -122,7 +125,9 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
             self.logger.warning('Destroying schema and rebuilding it.')
             await conn.execute(self.gen_schema_sql)
 
-    async def _cache_modules(self, ctx, status: commands.StatusMessage):
+    async def _cache_modules(self,
+                             ctx,
+                             status: commands.StatusMessage):
         """Caches all the modules."""
 
         # Cache the modules
@@ -148,8 +153,6 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
                 else:
                     before = None
 
-                globals()
-
                 # Cache each module in a transaction.
                 async with conn.transaction(
                         isolation='serializable',
@@ -159,8 +162,11 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
                     try:
                         self.logger.info(f'[{i+1}/{tot}] Analysing `{module}`')
 
+                        # Todo: stop this caching entire module into memory
+                        # until we know whether we need to do it based on
+                        # the equalities of the hashes.
                         asyncio.ensure_future(status.set_message(
-                            f'[{i+1}/{tot}] Analysing `{module}`... '))
+                            f'[{i+1}/{tot}] Hashing/analysing `{module}`...'))
 
                         # Ideally I want to use CPU pool, but pickling becomes
                         # an issue, and that is required for IPC.
@@ -170,21 +176,51 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
                         module_name = cache['root']
                         hash_code = cache['hash']
 
-                        # Insert an entry into the module index
-                        await status.set_message(
-                            f'[{i+1}/{tot}] Generating a new table for '
-                            f'`{module}` dynamically in schema... '
-                        )
+                        # Get existing hash_code
+                        try:
+                            existing_hash = await conn.fetchval(
+                                self.get_hash_sql, module_name)
+                            if existing_hash == hash_code:
+                                asyncio.ensure_future(status.set_message(
+                                    f'[{i+1}/{tot}] {module_name} is already '
+                                    'up-to-date, so will be skipped.'
+                                ))
+                                await asyncio.sleep(5)
+                                continue
+                            else:
+                                asyncio.ensure_future(status.set_message(
+                                    f'[{i+1}/{tot}] {module_name} is out of '
+                                    'date. First clearing the table of data...'
+                                ))
 
-                        self.logger.info(
-                            f'[{i+1}/{tot}] Generating a new table for '
-                            f'`{module}` dynamically in schema... '
-                        )
+                                self.logger.info(
+                                    f'[{i+1}/{tot}] Generating a new table for '
+                                    f'`{module}` dynamically in schema... '
+                                )
 
-                        module_tbl_name = await conn.fetchval(
-                            self.add_module_sql,
-                            module_name,
-                            hash_code)
+                                module_tbl_name = await conn.fetchval(
+                                    self.clean_table_sql,
+                                    module_name)
+                                await asyncio.sleep(5)
+
+                        except BaseException:
+                            # Generate new table.
+
+                            # Insert an entry into the module index
+                            await status.set_message(
+                                f'[{i+1}/{tot}] Generating a new table for '
+                                f'`{module}` dynamically in schema... '
+                            )
+
+                            self.logger.info(
+                                f'[{i+1}/{tot}] {module_name} is out of '
+                                'date. First clearing the table of data...'
+                            )
+
+                            module_tbl_name = await conn.fetchval(
+                                self.add_module_sql,
+                                module_name,
+                                hash_code)
 
                         # Collect all arguments we are concerned with. This is
                         # each record to insert.
@@ -234,10 +270,13 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
     @commands.is_owner()
     @commands.guild_only()
     @py_group.command(brief='Recaches any missing or out-of-date modules.')
-    async def recache(self, ctx):
+    async def recache(self, ctx, full_recache: bool=False):
         """
         This replaces any modules with a differing hash to the one we have
         stored, and modules that are not present.
+
+        Pass the `full_recache` option as `True` to force rebuild the entire
+        schema, which for around 200 modules, can take a few hours to complete.
         """
         self.logger.warning(f'{ctx.author} just invoked a complete recache.')
 
@@ -245,10 +284,15 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
 
         status = commands.StatusMessage(ctx)
         with ctx.typing():
-            await status.set_message('Rebuilding schema and installing '
-                                     'extensions.')
-            await self._wipe_schema()
-            attrs, modules = await self._cache_modules(ctx, status)
+            if full_recache:
+                await status.set_message('Rebuilding schema and installing '
+                                         'extensions.')
+                await self._wipe_schema()
+                attrs, modules = await self._cache_modules(ctx, status)
+            else:
+                await status.set_message('Calculating out of date modules and '
+                                         'recaching them.')
+                attrs, modules = await self._cache_modules(ctx, status)
 
             runtime = time.time() - start_time
             commands.acknowledge(ctx)
