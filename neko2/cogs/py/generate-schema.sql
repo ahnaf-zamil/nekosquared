@@ -198,6 +198,14 @@ BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED READ WRITE;
                     FROM get_table(_tbl_name) as tbl
                     WHERE tbl.fq_member_name % attr
                     ORDER BY
+                        char_length(tbl.fq_member_name) ASC,
+                        (SELECT CASE
+                            WHEN tbl.member_name ILIKE '__%' THEN 4
+                            WHEN tbl.fq_member_name ILIKE '%.__%' THEN 3
+                            WHEN tbl.member_name ILIKE '_%' THEN 2
+                            WHEN tbl.fq_member_name ILIKE '%._%' Then 1
+                            ELSE 0
+			END),
                         similarity(tbl.fq_member_name, attr) DESC,
 	    		tbl.fq_member_name ASC;
 	    END IF;
