@@ -246,7 +246,7 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
                                     f'[{i+1}/{tot}] In `{module}`:'
                                     f' Generating insert query [{j+1}'
                                     f'/{len(attrs)}] - `{attr["fqn"]}`')
-                                )
+                                
 
                             name = attr.pop('name')
                             fqn = attr.pop('fqn')
