@@ -191,7 +191,7 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
                                 await status.set_message(
                                     f'[{i+1}/{tot}] {module_name} is out of '
                                     'date. First clearing the table of data...'
-                                ))
+                                )
 
                                 self.logger.info(
                                     f'[{i+1}/{tot}] Generating a new table for '
