@@ -113,6 +113,10 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
             book = bookbinding.StringBookBinder(ctx)
             is_start = True
             for r in result:
+                if len(book.pages[-1:]) + len(r) >= 1990:
+                    book.add_break()
+                    is_start = False
+
                 if is_start:
                     is_start = False
                 else:
