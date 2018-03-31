@@ -21,6 +21,7 @@ from discomaton.factories import bookbinding
 from discomaton.util import pag
 import discord
 
+from neko2.cogs.py import module_walker, module_hasher
 from neko2.engine import commands
 from neko2.shared import configfiles
 from neko2.shared import scribe
@@ -132,7 +133,8 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
 
     async def _cache_modules(self,
                              ctx,
-                             status: commands.StatusMessage):
+                             status: commands.StatusMessage,
+                             check_existing=False):
         """Caches all the modules."""
 
         # Cache the modules
@@ -145,6 +147,11 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
                 precondition=precondition_script)
             cache = cache.make_cache()
             return cache
+
+        def hash_task(module_name):
+            walker = module_walker.ModuleWalker(module_name)
+            module_hash = module_hasher.get_module_hash(walker.start)
+            return module_hash
 
         tot = len(self.modules)
 
@@ -167,11 +174,8 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
                     try:
                         self.logger.info(f'[{i+1}/{tot}] Analysing `{module}`')
 
-                        # Todo: stop this caching entire module into memory
-                        # until we know whether we need to do it based on
-                        # the equalities of the hashes.
                         await status.set_message(
-                            f'[{i+1}/{tot}] Hashing/analysing `{module}`...')
+                            f'[{i+1}/{tot}] Analysing `{module}`...')
 
                         # Ideally I want to use CPU pool, but pickling becomes
                         # an issue, and that is required for IPC.
@@ -179,28 +183,25 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
                                                           [module, before])
 
                         module_name = cache['root']
-                        hash_code = cache['hash']
 
                         # Get existing hash_code
                         try:
                             existing_hash = await conn.fetchval(
-                                self.get_hash_sql, module_name)
-                            if existing_hash == hash_code:
-                                await status.set_message(
-                                    f'[{i+1}/{tot}] {module_name} is already '
-                                    'up-to-date, so will be skipped.'
-                                )
-                                await asyncio.sleep(5)
+                                self.get_hash_sql,
+                                module_name)
+
+                            if not check_existing:
+                                # Give up now if it already exists. This should
+                                # save time.
                                 continue
-                            else:
+
+                            actual_hash = await self.run_in_io_pool(
+                                hash_task, [module_name])
+
+                            if actual_hash != existing_hash:
                                 await status.set_message(
                                     f'[{i+1}/{tot}] {module_name} is out of '
                                     'date. First clearing the table of data...'
-                                )
-
-                                self.logger.info(
-                                    f'[{i+1}/{tot}] Generating a new table for '
-                                    f'`{module}` dynamically in schema... '
                                 )
 
                                 # Easier to ask for forgiveness. The downside
@@ -214,24 +215,33 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
                                         module_name)
                                     await asyncio.sleep(5)
 
+                                cache['hash'] = actual_hash
+                            else:
+                                continue
+
                         except BaseException:
                             # Generate new table.
 
                             # Insert an entry into the module index
                             await status.set_message(
                                 f'[{i+1}/{tot}] Generating a new table for '
-                                f'`{module}` dynamically in schema... '
-                            )
+                                f'`{module}` dynamically in schema and hashing '
+                                'module contents.')
 
                             self.logger.info(
-                                f'[{i+1}/{tot}] {module_name} is out of '
-                                'date. First clearing the table of data...'
-                            )
+                                f'[{i+1}/{tot}] Generating a new table for '
+                                f'`{module}` dynamically in schema and hashing '
+                                'module contents.')
+
+                            actual_hash = await self.run_in_io_pool(
+                                hash_task, [module_name])
 
                             module_tbl_name = await conn.fetchval(
                                 self.add_module_sql,
                                 module_name,
-                                hash_code)
+                                actual_hash)
+
+                            cache['hash'] = actual_hash
 
                         # Collect all arguments we are concerned with. This is
                         # each record to insert.
@@ -251,7 +261,6 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
                                     f'[{i+1}/{tot}] In `{module}`:'
                                     f' Generating insert query [{j+1}'
                                     f'/{len(attrs)}] - `{attr["fqn"]}`')
-                                
 
                             name = attr.pop('name')
                             fqn = attr.pop('fqn')
@@ -281,29 +290,39 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
     @commands.is_owner()
     @commands.guild_only()
     @py_group.command(brief='Recaches any missing or out-of-date modules.')
-    async def recache(self, ctx, full_recache: bool=False):
+    async def recache(self, ctx, mode='onlynew'):
         """
         This replaces any modules with a differing hash to the one we have
         stored, and modules that are not present.
 
-        Pass the `full_recache` option as `True` to force rebuild the entire
-        schema, which for around 200 modules, can take a few hours to complete.
+        The default mode is `onlynew`. This only caches missing modules, and
+        is the fastest. The next one is `rehash`. This will compute each
+        module's hash and ensure it is the same as the existing one. If it isn't
+        then the module is recached.
+        Finally there is `nuke` which will rip the schema to bits and start from
+        scratch, and will take a magnitude of a few hours to complete. In this
+        time, the schema will be in an unusable state.
         """
-        self.logger.warning(f'{ctx.author} just invoked a complete recache.')
+        if mode not in ('onlynew', 'rehash', 'nuke'):
+            return await ctx.send('Invalid option passed. Expected `onlynew`, '
+                                  '`rehash` or `nuke`.')
 
+        self.logger.warning(f'{ctx.author} just invoked a recache.')
         start_time = time.time()
-
         status = commands.StatusMessage(ctx)
         with ctx.typing():
-            if full_recache:
+            if mode == 'nuke':
                 await status.set_message('Rebuilding schema and installing '
                                          'extensions.')
                 await self._wipe_schema()
-                attrs, modules = await self._cache_modules(ctx, status)
-            else:
+                attrs, modules = await self._cache_modules(ctx, status, True)
+            elif mode == 'rehash':
                 await status.set_message('Calculating out of date modules and '
                                          'recaching them.')
-                attrs, modules = await self._cache_modules(ctx, status)
+                attrs, modules = await self._cache_modules(ctx, status, True)
+            else:
+                await status.set_message('Finding missing modules.')
+                attrs, modules = await self._cache_modules(ctx, status, False)
 
             runtime = time.time() - start_time
             commands.acknowledge(ctx)

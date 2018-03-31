@@ -309,17 +309,14 @@ class ModuleCacher:
         """
         if self._precondition:
             exec(self._precondition)
-
         walker = module_walker.ModuleWalker(self._name, self._rel)
-        module_hash = module_hasher.get_module_hash(walker.start)
+
         attrs = [attr for attr in walker]
 
         # Holds our metadata.
         attr_meta = {}
 
         data = {
-            "hash": module_hash,
-            'hashing_algorithm': module_hasher.hash_alg,
             "root": walker.start.__name__,
             "attrs": attr_meta
         }
