@@ -118,7 +118,7 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
             help(query)
             sys.stdout = old_stdout
             sys.stderr = old_stderr
-        content = fd.getvalue().splitlines()
+            content = fd.getvalue().splitlines()
         book = bookbinding.StringBookBinder(ctx)
         for line in content:
             book.add_line(line)
