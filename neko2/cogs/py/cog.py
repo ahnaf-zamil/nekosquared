@@ -9,8 +9,10 @@ since most Postgres builtin functions are compiled C source rather than
 interpreted Python source. Also the devs are probably a lot cleverer than I am.
 """
 import asyncio
+import io
 import json
 import random
+import sys
 import time
 import traceback
 
@@ -105,6 +107,23 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
 
         await self._make_send_doc(ctx, chosen_result)
 
+    @py_group.command(brief='Queries the python help builtin.')
+    async def help(self, ctx, *, query):
+        """Gives the query to the `help` builtin."""
+        old_stdout = sys.stdout
+        old_stderr = sys.stderr
+        with io.StringIO() as fd:
+            sys.stdout = fd
+            sys.stderr = fd
+            help(query)
+            sys.stdout = old_stdout
+            sys.stderr = old_stderr
+        content = fd.getvalue().splitlines()
+        book = bookbinding.StringBookBinder(ctx)
+        for line in content:
+            book.add_line(line)
+        book.start()
+
     @py_group.command(name='modules', brief='Lists any modules documented.')
     @commands.guild_only()
     async def list_modules(self, ctx):
@@ -114,7 +133,7 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
             book = bookbinding.StringBookBinder(ctx)
             for r in result:
                 line = f'- `{r["module_name"]}`'
-                book.add_line(line)           
+                book.add_line(line)
             book.start()
 
     @commands.is_owner()
