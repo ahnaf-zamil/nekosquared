@@ -107,6 +107,7 @@ class Bot(commands.Bot, scribe.Scribe):
 
         # Load version and help commands
         self.load_extension('neko2.engine.help')
+        self.load_extension('neko2.engine.ping')
         self.load_extension('neko2.engine.version')
         self.logger.info(f'Using command prefix: {self.command_prefix}')
 
