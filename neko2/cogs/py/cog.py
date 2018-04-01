@@ -119,7 +119,10 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
             sys.stdout = old_stdout
             sys.stderr = old_stderr
             content = fd.getvalue().splitlines()
-        book = bookbinding.StringBookBinder(ctx)
+        book = bookbinding.StringBookBinder(ctx)\
+                   .with_prefix('```css')\
+                   .with_suffix('```')\
+                   .with_max_lines(35)
         for line in content:
             book.add_line(line)
         book.start()
@@ -131,6 +134,7 @@ class PyCog2(traits.PostgresPool, traits.IoBoundPool, scribe.Scribe):
             result = await conn.fetch(self.list_modules_sql)
             # await ctx.send(', '.join(f'`{r["module_name"]}`' for r in result))
             book = bookbinding.StringBookBinder(ctx)
+
             for r in result:
                 line = f'- `{r["module_name"]}`'
                 book.add_line(line)
