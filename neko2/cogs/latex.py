@@ -47,9 +47,9 @@ backgrounds = {
     'blue': '\\bg_blue '
 }
 
-# We pad the image slightly
-padding_pct_height = 1.5
-padding_pct_width = 1.1
+padding_pct_height = 1.5  # %/100
+padding_pct_width = 1.15  # %/100
+padding_min_width = 100   # pixels
 
 
 class LatexCog(traits.IoBoundPool, traits.HttpPool, traits.CpuBoundPool):
@@ -134,6 +134,7 @@ class LatexCog(traits.IoBoundPool, traits.HttpPool, traits.CpuBoundPool):
             old_img: PIL.Image.Image = PIL.Image.open(in_img)
 
             new_w = int(old_img.width * padding_pct_width)
+            new_w = max(new_w, padding_min_width)
             new_h = int(old_img.height * padding_pct_height)
 
             new_x = int((new_w - old_img.width) / 2)

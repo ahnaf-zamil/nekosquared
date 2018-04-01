@@ -176,6 +176,11 @@ async def __handle_error(*, bot, cog=None, ctx=None, error, event_method=None):
         reply = '\N{SQUARED SOS} Something serious went wrong... '
         reply += excuses.get_excuse()
 
+        if bot.debug:
+            reply += '\n\nThe following is included while debug mode is on\n\n'
+            reply += ''.join(traceback.format_exception(
+                type(error), error, error.__traceback__))
+
         if should_dm_on_error:
             # DM me some information about what went wrong.
             await __dm_me_error(bot=bot, ctx=ctx, cog=cog, error=error,
@@ -191,15 +196,16 @@ async def __handle_error(*, bot, cog=None, ctx=None, error, event_method=None):
     async def fut():
         resp = await destination.send(reply[:2000])
 
-        await asyncio.sleep(15)
+        if not bot.debug:
+            await asyncio.sleep(15)
 
-        futs = [resp.delete()]
-        if ctx:
-            futs.append(ctx.message.delete())
+            futs = [resp.delete()]
+            if ctx:
+                futs.append(ctx.message.delete())
 
-        try:
-            await asyncio.gather(*futs)
-        except:
-            pass
+            try:
+                await asyncio.gather(*futs)
+            except:
+                pass
 
     asyncio.ensure_future(fut())

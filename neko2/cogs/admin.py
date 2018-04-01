@@ -31,17 +31,6 @@ class AdminCog:
         await asyncio.sleep(2)
         await ctx.bot.logout()
 
-    @commands.command()
-    async def ping(self, ctx):
-        """
-        Checks whether the bot is online and responsive or not.
-        """
-        await ctx.send(f'Pong! ({ctx.bot.latency * 1000:.2f}ms)')
-
-    async def on_ready(self):
-        await self.bot.change_presence(
-            activity=discord.Game(
-                name=f'ready since {datetime.datetime.now()}'))
 
 def setup(bot):
     bot.add_cog(AdminCog(bot))

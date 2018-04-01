@@ -97,7 +97,6 @@ class Bot(commands.Bot, scribe.Scribe):
             auth = bot_config['auth']
             self.__token = auth['token']
             self.client_id = auth.get('client_id', None)
-
             self.debug = bot_config.pop('debug', False)
         except KeyError:
             raise SyntaxError('Ensure config has `auth\' section containing '

@@ -12,7 +12,7 @@ __all__ = ('find', 'find_async', 'find_async_iterator', 'find_all',
            'time_it', 'time_it_async')
 
 
-def find(predicate, iterable):
+def find(predicate, iterable, default=None):
     """
     Attempts to find the first match for the given predicate in the iterable.
 
@@ -22,8 +22,10 @@ def find(predicate, iterable):
         if predicate(el):
             return el
 
+    return default
 
-async def find_async(async_predicate, iterable):
+
+async def find_async(async_predicate, iterable, default=None):
     """
     See ``find``. This operates in the same way, except we await the
     predicate on each call.
@@ -31,6 +33,8 @@ async def find_async(async_predicate, iterable):
     for el in iterable:
         if await async_predicate(el):
             return el
+
+    return default
 
 
 async def find_async_iterator(async_predicate, async_iterator):

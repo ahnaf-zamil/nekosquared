@@ -5,7 +5,10 @@ Builtin extension that is loaded to implement a version message.
 """
 import inspect                          # Object introspection
 import platform                         # Platform information
+import random                           # RNG
 import subprocess                       # Process forking
+import threading                        # Thread count
+
 from discord import embeds              # Embeds
 import neko2                            # neko2 package info
 from neko2.engine import commands       # commands
@@ -16,16 +19,29 @@ from neko2.shared import string         # string manipulations
 try:
     lines_of_code: str = subprocess.check_output(
         [
-            '/bin/sh',
+            '/bin/bash',
             '-c',
             'wc -l $(find neko2 -name "*.py" -o -name "*.sql")'
         ],
         universal_newlines=True)
     # Gets the number from the total line of the output for wc
     lines_of_code = lines_of_code.strip().split('\n')[-1].strip().split(' ')[0]
-    lines_of_code = f'{int(lines_of_code):,} lines of code!'
+    lines_of_code = f'{int(lines_of_code):,} lines of code'
 except:
-    lines_of_code = 'No idea on how many lines of code!'
+    lines_of_code = 'No idea on how many lines of code'
+
+
+# Most recent commit
+try:
+    mrc = subprocess.check_output([
+        '/bin/bash',
+        '-c',
+        'git log --pretty="(%h)%nCommit #$(git log --oneline | wc -l) by %an '
+        '%ar%n%n%s" '
+        '--date=relative -n1'
+    ], universal_newlines=True)
+except:
+    mrc = 'No VCS info was found.'
 
 
 @commands.command()
@@ -53,6 +69,8 @@ async def version(ctx):
         '- Contributed to by ' + ', '.join(contrib) + '\n' if contrib else '',
     ]).strip()
 
+    threads = threading.active_count()
+
     environment = '\n'.join([
         f'- {platform.system()} {platform.release()} {platform.machine()}',
         '',
@@ -61,7 +79,18 @@ async def version(ctx):
         f'   compiled with {platform.python_compiler()}',
         f'   built on {platform.python_build()[1]}',
         '',
-        f'- {lines_of_code}'
+        f'- {lines_of_code}',
+        '',
+        f'- {len(set(ctx.bot.walk_commands())):,} commands '
+        f' with {len(list(ctx.bot.walk_commands())):,} total aliases',
+        '',
+        f'- {len(ctx.bot.extensions)} loaded extensions',
+        '',
+        f'- {len(ctx.bot.cogs)} loaded cogs',
+        '',
+        f'- {threads} active thread{"s" if threads - 1 else ""}',
+        '',
+        f'- {random.randint(0, 123432):,} reticulated splines'
     ])
 
     embed = embeds.Embed(
@@ -71,7 +100,10 @@ async def version(ctx):
         url=repo)
 
     embed.add_field(name='Ownership and licensing', value=info, inline=False)
-    embed.add_field(name='Techspecs for nerds', value=environment, inline=False)
+    embed.add_field(name='Stats for nerds', value=environment, inline=False)
+
+    embed.add_field(name='Most recent commit', value=mrc)
+
     embed.set_author(name=f'{author} presents...')
 
     if uptime >= 60 * 60 * 24:
