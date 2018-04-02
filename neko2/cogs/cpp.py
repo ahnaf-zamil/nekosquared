@@ -180,13 +180,13 @@ class CppCog(traits.HttpPool):
 
         binder = bookbinding.StringBookBinder(ctx, max_lines=50)
 
-        binder.add_line(f'**{h1}**\n<{url}>')
+        binder.add_line(f'**{h1}**\n<{url}>', dont_alter=True)
         if header:
-            binder.add_line(f'\n`{header}`')
+            binder.add_line(f'\n`{header}`', dont_alter=True)
 
         if tasters:
             for taster in tasters:
-                binder.add_line(f'```cpp\n{taster}\n```')
+                binder.add_line(f'```cpp\n{taster}\n```', dont_alter=True)
 
         if desc:
             binder.add_line(desc)

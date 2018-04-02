@@ -6,6 +6,7 @@ Allows the bot owner to update the bot using Git, if it is installed.
 import asyncio                      # Asyncio subprocess
 import io                           # StringIO
 import os                           # File path utils
+import random
 import shutil                       # which (find in $PATH env-var)
 import traceback                    # Traceback utils
 
@@ -14,6 +15,17 @@ from discomaton.util import pag
 from neko2.engine import commands   # Command decorators
 from neko2.shared import scribe     # Scribe
 from neko2.shared import traits     # CpuBoundPool
+
+
+keks = (
+    '*Slides into DMs*',
+    '*sigh*',
+    'k.',
+    'Please don\'t break anything this time...',
+    'Again?!',
+    '~~Better get ready to stop working then!~~',
+    '\N{OK HAND SIGN}'
+)
 
 
 class GitCog(scribe.Scribe, traits.CpuBoundPool):
@@ -36,8 +48,7 @@ class GitCog(scribe.Scribe, traits.CpuBoundPool):
         # Ensure git is installed first
         git_path = shutil.which('git')
 
-        msg = await ctx.send('I will now destructively sync with GitHub! ' +
-                             ('*slides into DMs*...' if ctx.guild else ''))
+        msg = await ctx.send(random.choice(keks))
 
         did_fail = False
 
@@ -81,9 +92,7 @@ class GitCog(scribe.Scribe, traits.CpuBoundPool):
                 try:
                     await call(f'{git_path} fetch --all')
                     await call(f'{git_path} diff --stat HEAD origin/master')
-                    await call(f'{git_path} status --porcelain --ignored '
-                               f'--verbose')
-
+                    await call(f'{git_path} status --porcelain')
                     await call(f'{git_path} reset --hard origin/master')
                     await call(f'{git_path} stash list && {git_path} stash '
                                'drop')
@@ -107,7 +116,7 @@ class GitCog(scribe.Scribe, traits.CpuBoundPool):
                         f'{ctx.author} Invoked destructive update from '
                         f'{ctx.guild}@#{ctx.channel}\n{log}')
 
-                    p = pag.Paginator(prefix='```css', suffix='```')
+                    p = pag.Paginator()
 
                     for line in log.split('\n'):
                         p.add_line(line)
@@ -116,7 +125,8 @@ class GitCog(scribe.Scribe, traits.CpuBoundPool):
                         f'Will send {len(p.pages)} messages of output!')
 
                     for page in p.pages:
-                        await ctx.author.send(page)
+                        if page:
+                            await ctx.author.send(page)
 
         if did_fail:
             await ctx.author.send('The fix process failed at some point '

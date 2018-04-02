@@ -65,7 +65,7 @@ class ManCog:
                     .with_max_lines(30))
 
             for line in main_stream.splitlines():
-                book.add_line(line)
+                book.add_line(line, dont_alter=True)
 
             await book.start()
 

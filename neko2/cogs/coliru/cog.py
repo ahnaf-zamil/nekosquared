@@ -98,7 +98,7 @@ class ColiruCog(traits.HttpPool):
             binder.add_line(f'> {config.replace("main.cpp", "src")}\n---')
 
             for line in output.split('\n'):
-                binder.add_line(line)
+                binder.add_line(line, dont_alter=True)
 
             if ctx.invoked_with in ('ccd', 'colirud'):
                 await commands.try_delete(ctx)
@@ -131,7 +131,7 @@ class ColiruCog(traits.HttpPool):
         binder = bookbinding.StringBookBinder(ctx, max_lines=20)
 
         for config, command in coliru_cfg.items():
-            binder.add_line(f'_{config}_ - `{command}`')
+            binder.add_line(f'_{config}_ - `{command}`', dont_alter=True)
 
         await binder.start()
 
