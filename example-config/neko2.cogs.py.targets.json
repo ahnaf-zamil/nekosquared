@@ -138,6 +138,8 @@
   "socketserver",
   "sqlite3",
   "sqlparams",
+  "sphinx",
+  "docutils",
   "sre_compile",
   "sre_constants",
   "ssl",
@@ -223,5 +225,6 @@
   "gevent",
   "wordnik",
   "disco",
-  "fuckit"
+  "fuckit",
+  "aiopg"
 ]
