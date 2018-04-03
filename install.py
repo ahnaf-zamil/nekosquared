@@ -23,6 +23,8 @@ import traceback
 
 # Maps import name to pypi name.
 dependencies = {
+    # Async file io
+    'aiofiles': 'aiofiles',
     # Async http io
     'aiohttp': 'aiohttp',
     # Async postgresql wrapper.
