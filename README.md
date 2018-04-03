@@ -21,6 +21,9 @@ A sample systemd service file is also produced, as I find this useful.
 You need to have `git`, `python3.6` or `python3.7`, and `pip` installed,
 and have the `python3-virtualenv package installed.`
 
+For `py` to work, any listed modules to index must be installed. See 
+`example-config/py-deps.txt` for a list of additional dependency modules
+for our example.
 
 ## Running
 
@@ -76,7 +79,7 @@ The current config files are required for the bot to work:
 
 | Name | Description |
 |---|---|
-| `discord` | Basic Discord config and authentication. Holds a dictionary of two dictionaries: `bot` and `auth`. `bot` contains `command_prefix` (string) and `owner_id` (int); `auth` contains `client_id` (int) and `token` (string). |
+| `discord` | Basic Discord config and authentication. Holds a dictionary of two dictionaries: `bot` and `auth`. `bot` contains `command_prefix` (string) and `owner_id` (int); `auth` contains `client_id` (int) and `token` (string). An additional `debug` boolean config value can be supplied to enable verbose stack traces. This defaults to `false` if unspecified. |
 | `database` | Holds PostgreSQL credentials. This is a dictionary of four strings: `database`, `host`, `user`, and `password`. |
 | `modules` | Holds a list of fully qualified extensions to load (e.g. `neko2.cogs.latex`) |
 
