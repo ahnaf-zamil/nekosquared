@@ -39,6 +39,9 @@ dependencies = {
     'PIL': 'pillow',
     'wordnik': 'wordnik-py3',
     'yaml': 'pyyaml',
+    # Used by the `py` cog.
+    'docutils': 'docutils',
+    'sphinx': 'sphinx',
     # These are used only for caching purposes in the Py module :)
     # Intentionally is incorrect. Don't alter until Danny releases
     # the rewrite properly.
