@@ -1,0 +1,6 @@
+{
+  "database": "postgres",
+  "user": "someuser",
+  "password": "some super secret password",
+  "host": "127.0.0.1"
+}
