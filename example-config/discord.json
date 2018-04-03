@@ -1,0 +1,6 @@
+{
+  "note": "you don't think I would be dumb enough to keep real info here, do you?",
+  "auth": { "client_id": 389373476215193601, "token": "NDE4ODIzODc0MjIzMDEzODg4.DYMlVw.uBIeOIP8VJWFlRJnIWqICAsv4gU" },
+  "bot": { "command_prefix": "n2", "owner_id": 389373476215193601 },
+  "debug": false
+}
