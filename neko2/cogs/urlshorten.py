@@ -16,7 +16,7 @@ from neko2.shared import configfiles
 from neko2.shared import errors
 from neko2.shared import traits
 
-config_file = 'neko2.cogs.urlshorten.key'
+config_file = 'urlshorten'
 
 
 class UrlShortenerCog(traits.HttpPool):

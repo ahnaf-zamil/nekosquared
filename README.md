@@ -79,7 +79,7 @@ The current config files are required for the bot to work:
 
 | Name | Description |
 |---|---|
-| `discord` | Basic Discord config and authentication. Holds a dictionary of two dictionaries: `bot` and `auth`. `bot` contains `command_prefix` (string) and `owner_id` (int); `auth` contains `client_id` (int) and `token` (string). An additional `debug` boolean config value can be supplied to enable verbose stack traces. This defaults to `false` if unspecified. |
+| `discord` | Basic Discord config and authentication. Holds a dictionary of two dictionaries: `bot` and `auth`. `bot` contains `command_prefix` (string) and `owner_id` (int); `auth` contains `client_id` (int) and `token` (string). An additional `debug` boolean config value can be supplied to enable verbose stack traces. This defaults to `false` if unspecified. The `dm_errors` parameter can also be specified to control whether errors get sent to the bot owner's inbox. This defaults to true if not specified. |
 | `database` | Holds PostgreSQL credentials. This is a dictionary of four strings: `database`, `host`, `user`, and `password`. |
 | `modules` | Holds a list of fully qualified extensions to load (e.g. `neko2.cogs.latex`) |
 
@@ -87,9 +87,8 @@ Cogs require the following additional configurations:
 
 | Cog | Name | Description |
 |---|---|---|
-| `neko2.cogs.py` | `neko2.cogs.py.targets` | A list of modules to cache for the `py` command. |
-| `neko2.cogs.urlshorten` | `neko2.cogs.urlshorten.key` | [String API key](https://console.developers.google.com/apis/credentials) for the `goo.gl` API for URL shortening. |
-| `neko2.cogs.wordnik` | `neko2.cogs.wordnik.key` | [String API key](http://developer.wordnik.com/) for the `wordnik` API for dictionary access. |
+| `neko2.cogs.urlshorten` | `urlshorten` | [String API key](https://console.developers.google.com/apis/credentials) for the `goo.gl` API for URL shortening. |
+| `neko2.cogs.wordnik` | `wordnik` | [String API key](http://developer.wordnik.com/) for the `wordnik` API for dictionary access. |
 
 ## Contributing
 

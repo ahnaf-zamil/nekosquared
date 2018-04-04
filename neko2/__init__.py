@@ -1,20 +1,21 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
 """
-Implementation of Neko²: a bot built from the learnings and mistakes
-of _Nekozilla_, hopefully to replace Nekozilla entirely.
+A bot designed to do some fun and random bits and pieces to liven up a server
+(eventually, once I finish implementing it!)
 
-This is still in active development, so many features may still not work
-correctly, or may not be available yet.
+Also providing several helpful development utilities such as manpage viewing,
+unicode character lookup, Python and en.cppreference.com searching, and
+a REPL for over a dozen different programming languages.
 """
 import neko2.shared
 import neko2.cogs
 import neko2.engine
 
 
-__author__ = '404'
+__author__ = 'Neko404NotFound'
 __license__ = 'Mozilla Public License Version 2.0'
 __url__ = 'https://github.com/neko404notfound/nekosquared'
-__version__ = '0.0.0'
+__version__ = '1.0.0-alpha'
 __repository__ = __url__
 __contributors__ = (__author__, 'Zcissors')

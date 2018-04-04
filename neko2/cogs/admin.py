@@ -5,10 +5,8 @@ Cog holding owner-only administrative commands, such as those for restarting
 the bot, inspecting/loading/unloading commands/cogs/extensions, etc.
 """
 import asyncio
-import datetime
-
+import random
 import discord
-
 from neko2.engine import commands   # command decorator
 
 
@@ -30,6 +28,24 @@ class AdminCog:
         commands.acknowledge(ctx)
         await asyncio.sleep(2)
         await ctx.bot.logout()
+
+    @commands.command(hidden=True)
+    async def error(self, ctx):
+        """Tests error handling."""
+        raise random.choice((
+            Exception, RuntimeError, IOError, BlockingIOError,
+            UnboundLocalError, UnicodeDecodeError, SyntaxError, SystemError,
+            NotImplementedError, FileExistsError, FileNotFoundError,
+            InterruptedError, EOFError, NameError, AttributeError, ValueError,
+            KeyError, FutureWarning, DeprecationWarning,
+            PendingDeprecationWarning, discord.ClientException,
+            discord.DiscordException, discord.HTTPException,
+            commands.CommandError, commands.DisabledCommand,
+            commands.CheckFailure, commands.MissingRequiredArgument,
+            commands.BotMissingPermissions('abc'), commands.UserInputError,
+            commands.TooManyArguments, commands.NoPrivateMessage,
+            commands.MissingPermissions, commands.NotOwner
+        ))()
 
 
 def setup(bot):

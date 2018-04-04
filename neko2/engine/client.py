@@ -6,7 +6,6 @@ Holds the bot implementation.
 import copy                             # Deep and shallow copies of objects.
 import os                               # Access to file system tools.
 import signal                           # Access to kernel signals.
-import sys                              # Most recent exception
 import time                             # Measuring uptime.
 import traceback                        # Exception traceback utilities.
 
@@ -15,7 +14,6 @@ import discord                          # Basic discord.py bits and pieces.
 from discord.ext import commands        # Discord.py extensions.
 from discord.utils import oauth_url     # OAuth URL generator
 
-from neko2.engine import errorhandler   # Error handling routine.
 from neko2.engine import shutdown       # Hook to call on shutdown.
 from neko2.shared import scribe, perms  # Logging
 from neko2.shared import traits         # Cog and class traits.
@@ -106,9 +104,13 @@ class Bot(commands.Bot, scribe.Scribe):
         self._logged_in = False
 
         # Load version and help commands
-        self.load_extension('neko2.engine.help')
-        self.load_extension('neko2.engine.ping')
-        self.load_extension('neko2.engine.version')
+        self.load_extension('neko2.engine.builtins')
+
+        from . import errorhandler
+
+        self.add_cog(errorhandler.ErrorHandler(
+            bot_config.pop('dm_errors', True), self))
+
         self.logger.info(f'Using command prefix: {self.command_prefix}')
 
     @cached_property.cached_property
@@ -283,28 +285,3 @@ class Bot(commands.Bot, scribe.Scribe):
             # For some reason, keyboard interrupt still propagates out of
             # this try catch unless I do this.
             return
-
-    async def on_command_error(self, context, exception):
-        """
-        Handles invoking command error handlers.
-        """
-        # noinspection PyBroadException
-        try:
-            await errorhandler.handle_error(
-                bot=self, ctx=context, error=exception)
-        except BaseException:
-            traceback.print_exc()
-
-    async def on_error(self, event_method, *args, **kwargs):
-        """
-        General error handling mechanism.
-        """
-        # noinspection PyBroadException
-        try:
-            _, err, _ = sys.exc_info()
-            await errorhandler.handle_error(
-                bot=self, event_method=event_method, error=err)
-        except BaseException:
-            traceback.print_exc()
-        finally:
-            await super().on_error(event_method, *args, **kwargs)

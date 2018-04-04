@@ -3,20 +3,46 @@
 """
 Builtin extension that is loaded to implement a custom help method.
 """
-
+import asyncio                             # Async subprocess.
+import inspect                             # Inspection
+import subprocess                          # Sync subprocess.
 import typing                              # Type checking bits and pieces
 
 from discord import embeds                 # Embeds
 import discomaton                          # Finite state machines.
 
+import neko2
 from neko2.engine import commands          # Command decorators
 from neko2.shared import fuzzy             # Fuzzy string matching
 from neko2.shared import string            # String voodoo
+from neko2.shared import traits            # Traits
 
 
-class HelpCog:
+class Builtins(traits.CpuBoundPool):
     def __init__(self, bot):
+        """Init the cog."""
+        bot.remove_command('help')
         self.bot = bot
+
+        try:
+            lines_of_code: str = subprocess.check_output(
+                [
+                    '/bin/bash',
+                    '-c',
+                    'wc -l $(find neko2 -name "*.py" -o -name "*.sql" -o -name '
+                    '"*.json" -o -name "*.yaml") '
+                ],
+                universal_newlines=True)
+            # Gets the number from the total line of the output for wc
+            lines_of_code = (
+                lines_of_code.strip()
+                .split('\n')[-1]
+                .strip()
+                .split(' ')[0])
+
+            self.lines_of_code = f'{int(lines_of_code):,} lines of code'
+        except:
+            self.lines_of_code = 'No idea on how many lines of code'
 
     @commands.command(brief='Gets usage information for commands.')
     async def help(self, ctx, *, query: str=None):
@@ -267,8 +293,107 @@ class HelpCog:
 
         return None
 
+    @staticmethod
+    async def get_commit():
+        # Returns a tuple of how long ago, the body, and the number of commits.
+        # %ar = how long ago
+        # %b  = body
+        # %h  = shortened hash
+        # $(git log --oneline | wc -l) - commit count.
+
+        f1 = asyncio.create_subprocess_exec(
+            'git',
+            'log',
+            '--pretty=%ar',
+            '--relative-date',
+            '-n1',
+            encoding='utf-8',
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.DEVNULL,
+            stdin=asyncio.subprocess.DEVNULL)
+
+        f2 = asyncio.create_subprocess_exec(
+            'git', 'log', '--pretty=%s%n%n%b', '-n1',
+            encoding='utf-8',
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.DEVNULL,
+            stdin=asyncio.subprocess.DEVNULL)
+
+        f3 = asyncio.create_subprocess_shell(
+            'git log --oneline | wc -l',
+            encoding='utf-8',
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.DEVNULL,
+            stdin=asyncio.subprocess.DEVNULL)
+
+        f1_res, f2_res, f3_res = await asyncio.gather(f1, f2, f3)
+
+        return (
+            b''.join([await f1_res.stdout.read()]).decode('utf-8').strip(),
+            b''.join([await f2_res.stdout.read()]).decode('utf-8').strip(),
+            int(b''.join([await f3_res.stdout.read()]).decode('utf-8'))
+        )
+
+    @commands.command(aliases=['v'])
+    async def version(self, ctx):
+        """Shows versioning information and some other useful statistics."""
+        author = neko2.__author__
+        licence = neko2.__license__
+        repo = neko2.__repository__
+        version = neko2.__version__
+        uptime = ctx.bot.uptime
+        docstring = inspect.getdoc(neko2)
+        if docstring:
+            docstring = [
+                string.remove_single_lines(inspect.cleandoc(docstring))]
+        else:
+            docstring = []
+
+        docstring.append(f'_Licensed under the **{licence}**_')
+
+        embed = embeds.Embed(
+            title=f'Neko² v{version}',
+            colour=0xc70025,
+            description='\n\n'.join(docstring),
+            url=repo)
+
+        # Most recent changes
+        when, update, count = await self.get_commit()
+
+        embed.add_field(name=f'Update #{count} ({when})',
+                        value=update, inline=False)
+
+        embed.set_author(name=author)
+
+        if uptime >= 60 * 60 * 24:
+            uptime /= (60.0 * 60 * 24)
+            uptime = round(uptime, 1)
+            uptime = f'{uptime} day{"s" if uptime != 1 else ""}'
+        elif uptime >= 60 * 60:
+            uptime /= (60.0 * 60)
+            uptime = round(uptime, 1)
+            uptime = f'{uptime} hour{"s" if uptime != 1 else ""}'
+        elif uptime >= 60:
+            uptime /= 60.0
+            uptime = round(uptime, 1)
+            uptime = f'{uptime} minute{"s" if uptime != 1 else ""}'
+        else:
+            uptime = int(uptime)
+            uptime = f'{uptime} second{"s" if uptime != 1 else ""}'
+
+        embed.set_footer(text=f'Uptime: {uptime}')
+        embed.set_thumbnail(url=ctx.bot.user.avatar_url)
+
+        embed.add_field(name='Current high score', value=self.lines_of_code)
+        await ctx.send(embed=embed)
+
+    @commands.command()
+    async def ping(self, ctx):
+        """
+        Checks whether the bot is online and responsive or not.
+        """
+        await ctx.send(f'Pong! ({ctx.bot.latency * 1000:.2f}ms)')
+
 
 def setup(bot):
-    # Remove any existing help command first.
-    bot.remove_command('help')
-    bot.add_cog(HelpCog(bot))
+    bot.add_cog(Builtins(bot))

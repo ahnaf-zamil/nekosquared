@@ -22,7 +22,7 @@ from neko2.shared import other
 from neko2.shared import traits
 
 
-config_file = 'neko2.cogs.wordnik.key'
+config_file = 'wordnik'
 
 wordnik_endpoint = 'http://api.wordnik.com/v4'
 
