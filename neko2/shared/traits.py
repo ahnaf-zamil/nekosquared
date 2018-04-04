@@ -201,7 +201,7 @@ class PostgresPool(scribe.Scribe):
     @classmethod
     async def acquire_db(cls, timeout=None):
         if not hasattr(cls, '_postgres_pool'):
-            config = await configfiles.get_config_data_async('database.yaml')
+            config = await configfiles.get_config_data_async('database')
             cls._postgres_pool = await asyncpg.create_pool(**config)
 
             @shutdown.on_shutdown
