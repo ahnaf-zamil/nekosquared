@@ -21,7 +21,7 @@ try:
         [
             '/bin/bash',
             '-c',
-            'wc -l $(find neko2 -name "*.py" -o -name "*.sql")'
+            'wc -l $(find neko2 -name "*.py" -o -name "*.sql" -o -name "*.json" -o -name "*.yaml")'
         ],
         universal_newlines=True)
     # Gets the number from the total line of the output for wc
@@ -37,7 +37,7 @@ try:
         '/bin/bash',
         '-c',
         'git log --pretty="(%h)%nCommit #$(git log --oneline | wc -l) by %an '
-        '%ar%n%n%s" '
+        '%ar%n%s" '
         '--date=relative -n1'
     ], universal_newlines=True)
 except:
@@ -72,24 +72,17 @@ async def version(ctx):
     threads = threading.active_count()
 
     environment = '\n'.join([
-        f'- {platform.system()} {platform.release()} {platform.machine()}',
-        '',
+        f'- {platform.platform().replace("-", " ")}',
         f'- Python {platform.python_version()} '
         f'({platform.python_implementation()}) ',
         f'   compiled with {platform.python_compiler()}',
         f'   built on {platform.python_build()[1]}',
-        '',
         f'- {lines_of_code}',
-        '',
         f'- {len(set(ctx.bot.walk_commands())):,} commands '
-        f' with {len(list(ctx.bot.walk_commands())):,} total aliases',
-        '',
+        f'   with {len(list(ctx.bot.walk_commands())):,} total aliases',
         f'- {len(ctx.bot.extensions)} loaded extensions',
-        '',
         f'- {len(ctx.bot.cogs)} loaded cogs',
-        '',
         f'- {threads} active thread{"s" if threads - 1 else ""}',
-        '',
         f'- {random.randint(0, 123432):,} reticulated splines'
     ])
 
