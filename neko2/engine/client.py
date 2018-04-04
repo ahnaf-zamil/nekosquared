@@ -285,3 +285,13 @@ class Bot(commands.Bot, scribe.Scribe):
             # For some reason, keyboard interrupt still propagates out of
             # this try catch unless I do this.
             return
+
+    async def on_connect(self):
+        await self.change_presence(status=discord.Status.dnd)
+
+    async def on_ready(self):
+        await self.change_presence(status=discord.Status.online,
+                                   activity=discord.Activity(
+                                       type=discord.ActivityType.watching,
+                                       name=f'say {self.command_prefix}help'
+                                   ))

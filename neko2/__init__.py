@@ -1,12 +1,13 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
 """
-A bot designed to do some fun and random bits and pieces to liven up a server
-(eventually, once I finish implementing it!)
+A bot designed to do some fun and random bits and pieces to liven up a server.
 
-Also providing several helpful development utilities such as manpage viewing,
-unicode character lookup, Python and en.cppreference.com searching, and
-a REPL for over a dozen different programming languages.
+(...eventually, once I finish implementing it!)
+
+Additionally, this several helpful development utilities such as manpage
+viewing, unicode character lookup, Python and en.cppreference.com searching,
+and a REPL for over a dozen different programming languages.
 """
 import neko2.shared
 import neko2.cogs
