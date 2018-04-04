@@ -74,12 +74,11 @@ async def version(ctx):
     environment = '\n'.join([
         f'- {platform.platform().replace("-", " ")}',
         f'- Python {platform.python_version()} '
-        f'({platform.python_implementation()}) ',
-        f'   compiled with {platform.python_compiler()}',
-        f'   built on {platform.python_build()[1]}',
+        f'({platform.python_implementation()}); compiled with '
+        f'{platform.python_compiler()}; built on {platform.python_build()[1]}',
         f'- {lines_of_code}',
         f'- {len(set(ctx.bot.walk_commands())):,} commands '
-        f'   with {len(list(ctx.bot.walk_commands())):,} total aliases',
+        f' with {len(list(ctx.bot.walk_commands())):,} total aliases',
         f'- {len(ctx.bot.extensions)} loaded extensions',
         f'- {len(ctx.bot.cogs)} loaded cogs',
         f'- {threads} active thread{"s" if threads - 1 else ""}',
