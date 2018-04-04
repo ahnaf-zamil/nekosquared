@@ -32,6 +32,6 @@ sqlparams
 websockets
 Werkzeug
 wheel
-wordnik
+python3-wordnik
 git+https://github.com/neko404notfound/discomaton
 git+https://github.com/rapptz/discord.py@rewrite
