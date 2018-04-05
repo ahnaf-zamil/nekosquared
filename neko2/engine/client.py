@@ -178,7 +178,9 @@ class Bot(commands.Bot, scribe.Scribe):
             except BaseException:
                 traceback.print_exc()
 
-        for cog in self.cogs:
+        # Cannot resize dict as we iterate across it.
+        cached_cogs = copy.copy(self.cogs)
+        for cog in cached_cogs:
             try:
                 self.remove_cog(cog)
             except BaseException:
