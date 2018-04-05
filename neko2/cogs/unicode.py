@@ -204,7 +204,7 @@ class UnicodeCog(traits.HttpPool):
         """Creates a markdown formatted table of results for characters."""
         results = [
             f'**Character info (Unicode v{unicodedata.unidata_version})**',
-            '__**`##  Ct UTF-CODE₁₆ DECIMAL₁₀ DESCRIPTION`**__']
+            '__**`##  Ct UTF-CODE DECIMAL DESCRIPTION`**__']
 
         categories = set()
 
@@ -216,7 +216,7 @@ class UnicodeCog(traits.HttpPool):
             lit = chr(char.raw)
 
             line = (
-                f'`{i+1:02}  {category} {hexd:>10} {decimal:>8} '
+                f'`{i+1:02}  {category} {hexd:>8} {decimal:>7} '
                 f'{name}  {lit}`  {lit}')
             results.append(line)
             categories.add(category)
