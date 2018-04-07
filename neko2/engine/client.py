@@ -141,13 +141,13 @@ class Bot(commands.Bot, scribe.Scribe):
 
         return user
 
-    async def start(self):
-        """Starts the bot with the pre-loaded token."""
+    async def start(self, token):
+        """Starts the bot with the given token."""
         self.logger.info(f'Invite me to your server at {self.invite}')
         self._logged_in = True
         self.dispatch('start')
         setattr(self, 'start_time', time.time())
-        await super().start(self.__token)
+        await super().start(token)
 
     # noinspection PyBroadException
     async def logout(self):
@@ -261,8 +261,12 @@ class Bot(commands.Bot, scribe.Scribe):
         Alters the event loop code ever-so-slightly to ensure all modules
         are safely unloaded.
         """
+        # Extract the token while the bot is running to ensure
+        # it is not available to any cogs.
+        token = self.__token 
+        del self.__token
         try:
-            self.loop.run_until_complete(self.start())
+            self.loop.run_until_complete(self.start(token))
         except BotInterrupt as ex:
             self.logger.warning(f'Received interrupt {ex}')
         except BaseException:
@@ -286,6 +290,8 @@ class Bot(commands.Bot, scribe.Scribe):
         finally:
             # For some reason, keyboard interrupt still propagates out of
             # this try catch unless I do this.
+            # Reassign token again.
+            self.__token = token
             return
 
     async def on_connect(self):
