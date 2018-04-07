@@ -6,11 +6,15 @@ the bot, inspecting/loading/unloading commands/cogs/extensions, etc.
 """
 import asyncio
 import random
+import traceback
+import async_timeout
+from discomaton.factories import bookbinding
 import discord
 from neko2.engine import commands   # command decorator
+from neko2.shared import scribe     # scribe
 
 
-class AdminCog:
+class AdminCog(scribe.Scribe):
     """Holds administrative utilities"""
     def __init__(self, bot):
         self.bot = bot
@@ -46,6 +50,24 @@ class AdminCog:
             commands.TooManyArguments, commands.NoPrivateMessage,
             commands.MissingPermissions, commands.NotOwner
         ))()
+        
+    @commands.command(hidden=True)
+    async def eval(self, ctx, *, command):
+        self.logger.warning(
+            f'{ctx.author} executed {command!r} in {ctx.channel}')
+        
+        output = ''
+        
+        try:
+            with async_timeout.timeout(5):
+                output = str(await eval(command))
+        except:
+            output = traceback.format_exc()
+        finally:
+            self.logger.warning(f'...output was {output!r}')
+            binder = bookbinding.StringBookBinder(ctx, max_lines=50)
+            binder.add(output if output else "No output")
+            await binder.start()
 
 
 def setup(bot):
