@@ -53,28 +53,7 @@ class AdminCog(scribe.Scribe):
             commands.TooManyArguments, commands.NoPrivateMessage,
             commands.MissingPermissions, commands.NotOwner
         ))()
-        
-    @commands.command(hidden=True)
-    async def eval(self, ctx, *, command):
-        self.logger.warning(
-            f'{ctx.author} executed {command!r} in {ctx.channel}')
-        
-        output = ''
-        
-        try:
-            with async_timeout.timeout(5):
-                output = eval(command)
-                if inspect.isawaitable(output):
-                    output = await output
-                output = str(output)
-        except:
-            output = traceback.format_exc()
-        finally:
-            self.logger.warning(f'...output was {output!r}')
-            binder = bookbinding.StringBookBinder(ctx, max_lines=50)
-            binder.add(output if output else "No return value.")
-            await binder.start()
-            
+                   
     @commands.command(hidden=True)
     async def exec(self, ctx, *, command):
         self.logger.warning(
@@ -82,12 +61,28 @@ class AdminCog(scribe.Scribe):
         binder = bookbinding.StringBookBinder(ctx, max_lines=50)
         
         try:
-            with async_timeout.timeout(60):
-                with io.StringIO() as output_stream:
-                    with contextlib.redirect_stdout(output_stream):
-                        with contextlib.redirect_stderr(output_stream):
-                            exec(command)
-                    binder.add(output_stream.getvalue())
+            binder.add_line('Output:')
+            if command.count('\n') == 0:
+                with async_timeout.timeout(10):
+                    result = eval(command)
+                    if inspect.isawaitable(result):
+                        binder.add_line(f'> automatically awaiting result {result}')
+                        result = await result
+                    binder.add(str(result))
+            else:
+                with async_timeout.timeout(60):
+                    with io.StringIO() as output_stream:
+                        with contextlib.redirect_stdout(output_stream):
+                            with contextlib.redirect_stderr(output_stream):
+                                wrapped_command = (
+                                    'async def aexec():\n' +
+                                    '\n'.join(f'    {line}' 
+                                              for line 
+                                              in command.split('\n')) +
+                                    '\n')
+                        fut = await eval(wrapped_command)        
+                        binder.add(output_stream.getvalue())
+                        binder.add(str(result))
         except:
             binder.add(traceback.format_exc())
         finally:
