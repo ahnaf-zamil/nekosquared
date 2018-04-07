@@ -75,15 +75,16 @@ class AdminCog(scribe.Scribe):
                         with contextlib.redirect_stdout(output_stream):
                             with contextlib.redirect_stderr(output_stream):
                                 wrapped_command = (
-                                    '@asyncio.coroutine\n' +
-                                    'def aexec():\n' +
+                                    'async def _aexec():\n' +
                                     '\n'.join(f'    {line}' 
                                               for line 
                                               in command.split('\n')) +
                                     '\n')
-                        fut = await eval(wrapped_command)        
+                                exec(wrapped_command)
+                                result = await globals['_aexec']
+                        del globals['_aexec']
                         binder.add(output_stream.getvalue())
-                        binder.add(str(result))
+                        binder.add('Returned ' + str(result))
         except:
             binder.add(traceback.format_exc())
         finally:
