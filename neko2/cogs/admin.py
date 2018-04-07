@@ -58,7 +58,9 @@ class AdminCog(scribe.Scribe):
     async def exec(self, ctx, *, command):
         self.logger.warning(
             f'{ctx.author} executed {command!r} in {ctx.channel}')
-        binder = bookbinding.StringBookBinder(ctx, max_lines=50)
+        binder = bookbinding.StringBookBinder(ctx, max_lines=50,
+                                              prefix='```python',
+                                              suffix='```')
         
         try:
             binder.add_line('Output:')
