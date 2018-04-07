@@ -5,6 +5,7 @@ Cog holding owner-only administrative commands, such as those for restarting
 the bot, inspecting/loading/unloading commands/cogs/extensions, etc.
 """
 import asyncio
+import inspect
 import random
 import traceback
 import async_timeout
@@ -60,7 +61,10 @@ class AdminCog(scribe.Scribe):
         
         try:
             with async_timeout.timeout(5):
-                output = str(await eval(command))
+                output = eval(command)
+                if inspect.isawaitable(output):
+                    output = await output
+                output = str(output)
         except:
             output = traceback.format_exc()
         finally:
