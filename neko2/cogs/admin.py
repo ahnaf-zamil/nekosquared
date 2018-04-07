@@ -75,7 +75,6 @@ class AdminCog(scribe.Scribe):
                         with contextlib.redirect_stdout(output_stream):
                             with contextlib.redirect_stderr(output_stream):
                                 wrapped_command = (
-                                    'import asyncio\n' +
                                     '@asyncio.coroutine\n' +
                                     'def aexec():\n' +
                                     '\n'.join(f'    {line}' 
