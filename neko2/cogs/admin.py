@@ -5,7 +5,9 @@ Cog holding owner-only administrative commands, such as those for restarting
 the bot, inspecting/loading/unloading commands/cogs/extensions, etc.
 """
 import asyncio
+import contextlib
 import inspect
+import io
 import random
 import traceback
 import async_timeout
@@ -70,9 +72,26 @@ class AdminCog(scribe.Scribe):
         finally:
             self.logger.warning(f'...output was {output!r}')
             binder = bookbinding.StringBookBinder(ctx, max_lines=50)
-            binder.add(output if output else "No output")
+            binder.add(output if output else "No return value.")
             await binder.start()
-
+            
+    @commands.command(hidden=True)
+    async def exec(self, ctx, *, command):
+        self.logger.warning(
+            f'{ctx.author} executed {command!r} in {ctx.channel}')
+        binder = bookbinding.StringBookBinder(ctx, max_lines=50)
+        
+        try:
+            with async_timeout.timeout(60):
+                with io.StringIO() as output_stream:
+                    with contextlib.redirect_stdout(output_stream):
+                        with contextlib.redirect_stderr(output_stream):
+                            exec(command)
+                    binder.add(output_stream.getvalue())
+        except:
+            binder.add(traceback.format_exc())
+        finally:
+            await binder.start()
 
 def setup(bot):
     bot.add_cog(AdminCog(bot))
