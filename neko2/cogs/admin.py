@@ -64,6 +64,8 @@ class AdminCog(scribe.Scribe):
             binder.add_line('Output:')
             if command.count('\n') == 0:
                 with async_timeout.timeout(10):
+                    if command.startswith('await '):
+                        command = command[6:]
                     result = eval(command)
                     if inspect.isawaitable(result):
                         binder.add_line(f'> automatically awaiting result {result}')
@@ -75,14 +77,13 @@ class AdminCog(scribe.Scribe):
                         with contextlib.redirect_stdout(output_stream):
                             with contextlib.redirect_stderr(output_stream):
                                 wrapped_command = (
-                                    'async def _aexec():\n' +
+                                    'async def _aexec(ctx):\n' +
                                     '\n'.join(f'    {line}' 
                                               for line 
                                               in command.split('\n')) +
                                     '\n')
                                 exec(wrapped_command)
-                                result = await globals['_aexec']
-                        del globals['_aexec']
+                                result = await (locals()['_aexec'](ctx))
                         binder.add(output_stream.getvalue())
                         binder.add('Returned ' + str(result))
         except:
