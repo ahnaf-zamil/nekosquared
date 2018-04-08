@@ -61,38 +61,39 @@ class AdminCog(scribe.Scribe):
         binder = bookbinding.StringBookBinder(ctx, max_lines=50,
                                               prefix='```python',
                                               suffix='```')
-        
-        try:
-            binder.add_line('Output:')
-            if command.count('\n') == 0:
-                with async_timeout.timeout(10):
-                    if command.startswith('await '):
-                        command = command[6:]
-                    result = eval(command)
-                    if inspect.isawaitable(result):
-                        binder.add_line(
-                            f'> automatically awaiting result {result}')
-                        result = await result
-                    binder.add(str(result))
-            else:
-                with async_timeout.timeout(60):
-                    with io.StringIO() as output_stream:
-                        with contextlib.redirect_stdout(output_stream):
-                            with contextlib.redirect_stderr(output_stream):
-                                wrapped_command = (
-                                    'async def _aexec(ctx):\n' +
-                                    '\n'.join(f'    {line}' 
-                                              for line 
-                                              in command.split('\n')) +
-                                    '\n')
-                                exec(wrapped_command)
-                                result = await (locals()['_aexec'](ctx))
-                        binder.add(output_stream.getvalue())
-                        binder.add('Returned ' + str(result))
-        except:
-            binder.add(traceback.format_exc())
-        finally:
-            await binder.start()
+
+        with ctx.typing():
+            try:
+                binder.add_line('Output:')
+                if command.count('\n') == 0:
+                    with async_timeout.timeout(10):
+                        if command.startswith('await '):
+                            command = command[6:]
+                        result = eval(command)
+                        if inspect.isawaitable(result):
+                            binder.add_line(
+                                f'> automatically awaiting result {result}')
+                            result = await result
+                        binder.add(str(result))
+                else:
+                    with async_timeout.timeout(60):
+                        with io.StringIO() as output_stream:
+                            with contextlib.redirect_stdout(output_stream):
+                                with contextlib.redirect_stderr(output_stream):
+                                    wrapped_command = (
+                                        'async def _aexec(ctx):\n' +
+                                        '\n'.join(f'    {line}'
+                                                  for line
+                                                  in command.split('\n')) +
+                                        '\n')
+                                    exec(wrapped_command)
+                                    result = await (locals()['_aexec'](ctx))
+                            binder.add(output_stream.getvalue())
+                            binder.add('Returned ' + str(result))
+            except:
+                binder.add(traceback.format_exc())
+            finally:
+                await binder.start()
 
 def setup(bot):
     bot.add_cog(AdminCog(bot))
