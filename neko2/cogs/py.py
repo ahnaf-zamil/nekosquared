@@ -126,9 +126,8 @@ class PyCog:
         query = query[1:]
 
         for i in range(0, len(query)):
-            if query[i] == '-f' and not flags and len(query) > i + 1:
-                i += 1
-                for flag in query[i]:
+            if query[i].startswith('-f') and not flags:
+                for flag in query[i][2:]:
                     if flag not in str2flags:
                         return await ctx.send(f'Unrecognised flag `{flag}`',
                                               delete_after=5)
@@ -151,6 +150,8 @@ class PyCog:
                                               max_lines=None)
 
         result.add_line(f'Regex: {regex_str}', empty_after=True)
+        result.add_line(f'Flags: {", ".join(f.name for f in flags)}',
+                        empty_after=True)
 
         if tests:
             # Print whether each test matches
@@ -161,8 +162,12 @@ class PyCog:
                 result.add_line(f'  {test!r}:')
                 matches = regex.match(test)
                 if matches:
-                    for match in matches.groups():
-                        result.add_line(f'    {match}')
+                    result.add_line('    ...matched.')
+                    for i, match in enumerate(matches.groups()):
+                        result.add_line(f'    > Group ${i} {match!r}')
+                else:
+                    result.add_line('    ...no match.')
+            result.add_line('')
 
         result.add_page_break()
 
