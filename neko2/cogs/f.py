@@ -11,10 +11,11 @@ class RespectsCog:
         try:
             if message.content.lower() == 'f':
                 await message.delete()
-                await message.channel.send(embed=discord.Embed(
+                resp = await message.channel.send(embed=discord.Embed(
                     title=f'{message.author} paid their respects.',
                     colour=0x551a8b
                 ))
+                await resp.add_reaction('\N{REGIONAL INDICATOR SYMBOL LETTER F}')
         except:
             pass
 
