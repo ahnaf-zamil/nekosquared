@@ -79,10 +79,10 @@ class Builtins(traits.CpuBoundPool):
         full_doc = command.help if command.help else ''
         full_doc = string.remove_single_lines(full_doc)
         examples = getattr(command, 'examples', [])
-        signature = command.signature
+        signature = command.usage if command.usage else command.signature
         parent = command.full_parent_name
 
-        description = [f'```css\n{signature}\n```']
+        description = [f'```bash\n{signature}\n```']
 
         if not real_match:
             description.insert(0, f'Closest match for `{query}`')
