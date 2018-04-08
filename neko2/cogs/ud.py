@@ -9,6 +9,7 @@ from discomaton import book
 
 from neko2.engine import commands
 from neko2.shared import traits
+from neko2.shared import string
 
 
 urban_random = 'http://api.urbandictionary.com/v0/random'
@@ -39,7 +40,7 @@ class UrbanDictionaryCog(traits.HttpPool):
         # Sanitise backticks and place in a code block if applicable.
         example = dots(definition['example'].replace('`', '’'))
         if example:
-            example = f'`{example}`'
+            example = f'`{string.trunc(example, 1000)}`'
 
         author = definition['author']
         yes = definition['thumbs_up']
@@ -48,7 +49,7 @@ class UrbanDictionaryCog(traits.HttpPool):
 
         embed = discord.Embed(
             title=title,
-            description=defn,
+            description=string.trunc(defn),
             colour=0xFFFF00,
             url=permalink)
 
@@ -60,7 +61,7 @@ class UrbanDictionaryCog(traits.HttpPool):
 
         if 'tags' in definition and definition['tags']:
             tags = ', '.join(sorted({*definition['tags']}))
-            embed.set_footer(text=tags)
+            embed.set_footer(text=string.trunc(tags))
         return embed
 
     @commands.command(

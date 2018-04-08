@@ -60,7 +60,7 @@ class LatexCog(traits.IoBoundPool, traits.HttpPool, traits.CpuBoundPool):
                      size: int = 12,
                      font: str = 'Latin Modern',
                      bg_colour: str = 'transparent',
-                     fg_colour: str = 'black',
+                     fg_colour: str = 'white',
                      dpi: int = 200) -> str:
         """
         Generates the URL containing the LaTeX preview for the given content.
@@ -117,7 +117,7 @@ class LatexCog(traits.IoBoundPool, traits.HttpPool, traits.CpuBoundPool):
     async def pad_convert_image(cls,
                                 in_img: io.BytesIO,
                                 out_img: io.BytesIO,
-                                bg_colour: int):
+                                bg_colour: tuple):
         """
         Takes input image bytes and constructs the image in memory in a
         CPU worker. We then add a padded border around the edge of the image
@@ -137,19 +137,30 @@ class LatexCog(traits.IoBoundPool, traits.HttpPool, traits.CpuBoundPool):
             new_w = max(new_w, padding_min_width)
             new_h = int(old_img.height * padding_pct_height)
 
+            background = PIL.Image.new('RGBA', (old_img.width, old_img.height),
+                                       bg_colour)
+
             new_x = int((new_w - old_img.width) / 2)
             new_y = int((new_h - old_img.height) / 2)
 
             new_img = PIL.Image.new(
-                'RGB',
+                'RGBA',
                 (new_w, new_h),
-                bg_colour
+                (0x0, 0x0, 0x0, 0x0)
             )
 
             new_img.paste(
                 old_img,
-                (new_x, new_y)
+                (new_x, new_y),
             )
+
+            non_transparent = PIL.Image.new(
+                'RGBA',
+                (new_w, new_h),
+                bg_colour
+            )
+
+            new_img = PIL.Image.alpha_composite(non_transparent, new_img)
 
             new_img.save(out_img, 'PNG')
 
@@ -158,9 +169,7 @@ class LatexCog(traits.IoBoundPool, traits.HttpPool, traits.CpuBoundPool):
     async def get_send_image(self, ctx, content: str) -> discord.Message:
         # Append a tex newline to the start to force the content to
         # left-align.
-        url = self.generate_url(f'\\\\{content}',
-                                bg_colour='white',
-                                size=10)
+        url = self.generate_url(f'\\\\{content}', size=10)
 
         conn = await self.acquire_http()
 
@@ -169,7 +178,7 @@ class LatexCog(traits.IoBoundPool, traits.HttpPool, traits.CpuBoundPool):
 
         with io.BytesIO(data) as in_data, io.BytesIO() as out_data:
             in_data.seek(0)
-            await self.pad_convert_image(in_data, out_data, 0xFFFFFF)
+            await self.pad_convert_image(in_data, out_data, (0x36, 0x39, 0x3E))
             out_data.seek(0)
             file = discord.File(out_data, 'latex.png')
 

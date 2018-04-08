@@ -54,3 +54,11 @@ def remove_single_lines(string: str) -> str:
             lines.append(line)
 
     return '\n'.join(lines)
+
+
+def trunc(text, max_length: int=2000):
+    """Truncates output if it is too long."""
+    if len(text) <= max_length:
+        return text
+    else:
+        return text[0:max_length - 3] + '...'

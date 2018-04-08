@@ -14,7 +14,7 @@ class RespectsCog:
                 await message.delete()
 
                 text = f'{message.author} paid their respects'
-                if kwargs["for_what"]:
+                if kwargs.get("for_what"):
                     text += f' for {kwargs["for_what"]}.'
                 else:
                     text += '.'
@@ -27,9 +27,9 @@ class RespectsCog:
                     '\N{REGIONAL INDICATOR SYMBOL LETTER F}')
         except:
             raise
-            pass
 
-    @commands.command(brief='Pay your respects.')
+    @commands.command(brief='Pay your respects.',
+                      examples=['me', 'you', 'the in-laws', 'the police'])
     async def f(self, ctx, *, what=None):
         prefix = ctx.prefix + ctx.invoked_with
         await self.on_message(

@@ -70,7 +70,8 @@ class AdminCog(scribe.Scribe):
                         command = command[6:]
                     result = eval(command)
                     if inspect.isawaitable(result):
-                        binder.add_line(f'> automatically awaiting result {result}')
+                        binder.add_line(
+                            f'> automatically awaiting result {result}')
                         result = await result
                     binder.add(str(result))
             else:

@@ -25,14 +25,5 @@ neko2.sh
 enable.sh
 update.sh
 
-# Important shit
-config
-
-# Symbolic link to old neko repository for indexing.
-neko
-neko1
-nekocogs
-neko1cogs
-nssm
-neko1nssm
-
+# Discomaton debugging symlink.
+discomaton
