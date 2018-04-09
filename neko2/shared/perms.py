@@ -4,6 +4,8 @@
 Copied from Neko.
 """
 import enum
+import typing
+
 import discord
 
 
@@ -51,6 +53,17 @@ class Permissions(enum.IntFlag):
     MANAGE_ROLES = 0x10000000
     MANAGE_WEBHOOKS = 0x20000000
     MANAGE_EMOJIS = 0x40000000
+
+    def unmask(self) -> typing.List[str]:
+        """
+        Takes a masked set of permissions and returns each set bit as a string
+        of the corresponding permission names in a list.
+        """
+        perms = []
+        for name, value in type(self).__members__.items():
+            if value & self:
+                perms.append(name)
+        return perms
 
     def to_discord_type(self):
         """

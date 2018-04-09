@@ -30,3 +30,19 @@ class NotFound(RuntimeError):
 
     def __str__(self):
         return self.message
+
+
+class CommandExecutionError(RuntimeError):
+    """
+    Should be raised if something goes wrong in a command. Deriving from
+    this ensures the correct type of error message is shown to the user.
+
+    This should send the raw message to the user in any error handler
+    implementation.
+    """
+    def __init__(self, message: str):
+        self.message = message
+
+
+    def __str__(self):
+        return self.message

@@ -7,7 +7,7 @@ import traceback  # Traceback utils.
 import discord  # Embeds
 import discord.errors as dpy_errors  # Errors for dpy base.
 import discord.ext.commands.errors as dpyext_errors  # Errors for ext.
-from neko2.shared import excuses
+from neko2.shared import excuses, errors
 from neko2.shared import scribe
 
 
@@ -111,6 +111,11 @@ class ErrorHandler(scribe.Scribe):
                                             PendingDeprecationWarning))
         is_unfinished = isinstance(error, NotImplementedError)
         is_warning = isinstance(error, Warning)
+        is_command_execution_error = isinstance(error,
+                                                errors.CommandExecutionError)
+
+        if is_command_execution_error:
+            return await ctx.message.send(f'\N{WARNING SIGN} {error!s}')
 
         # Don't reply to errors with cool downs. Just add a reaction and stop.
         if on_cool_down:
@@ -154,10 +159,7 @@ class ErrorHandler(scribe.Scribe):
                 adj = 'Bad'
             reply = f'\N{SPEECH BALLOON} {adj} arguments'
 
-            if str(error).lower().startswith('expected closing'):
-                reply += f': {error!s}'
-            else:
-                reply += '.'
+            reply += f': {error!s}'
 
             if ctx is not None:
                 reply += f'\nCommand signature: `{ctx.command.signature}`'

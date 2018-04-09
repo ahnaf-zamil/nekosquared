@@ -62,3 +62,20 @@ def trunc(text, max_length: int=2000):
         return text
     else:
         return text[0:max_length - 3] + '...'
+
+
+def plur_simple(cardinality: int, word: str, suffix='s'):
+    """Pluralises words that just have a suffix if pluralised."""
+    if cardinality - 1:
+        word += suffix
+    return f'{cardinality} {word}'
+
+
+def plur_diff(cardinality: int, singular: str, plural: str):
+    """Pluralises words that change spelling when pluralised."""
+    return f'{cardinality} {plural if cardinality - 1 else singular}'
+
+
+def yn(boolean: bool) -> str:
+    """Converts 'True' or 'False' to 'Yes' or 'No'"""
+    return 'Yes' if boolean else 'No'
