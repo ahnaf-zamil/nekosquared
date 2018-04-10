@@ -43,6 +43,7 @@ class DiscordUtilCog:
                     invoke_without_command=True)
     async def inspect_group(self,
                             ctx,
+                            *,
                             what: mentionconverter.MentionConverter):
         """
         Inspects something by passing a mention. This will not support
@@ -54,7 +55,7 @@ class DiscordUtilCog:
 
     @inspect_group.command(name='role', brief='Inspects a given role.',
                            examples=['@Role Name'])
-    async def inspect_role(self, ctx, role: discord.Role):
+    async def inspect_role(self, ctx, *, role: discord.Role):
         role: discord.Role
         permissions = perms.Permissions.from_discord_type(role.permissions)
 
