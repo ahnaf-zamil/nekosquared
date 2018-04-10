@@ -21,6 +21,8 @@ from neko2.shared import traits       # HTTP pool
 # are concerned with.
 code_block_re = re.compile(r'```([a-zA-Z0-9]+)\s([\s\S(^\\`{3})]*?)\s*```')
 coliru_cfg = configfiles.get_from_here('coliru_configs').sync_get()
+coliru_cfg = {k.lower(): v for k, v in coliru_cfg.items()}
+
 coliru_endpoint = 'http://coliru.stacked-crooked.com/compile'
 four_space_re = re.compile(r'^ {4}')
 
