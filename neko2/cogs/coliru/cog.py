@@ -19,7 +19,7 @@ from neko2.shared import traits       # HTTP pool
 # including ^\```, until the first instance of ``` is hit. This denotes the
 # end of the block, and the capture group will be the content within that we
 # are concerned with.
-code_block_re = re.compile(r'```(\w+)\s([\s\S(^\\`{3})]*?)\s*```')
+code_block_re = re.compile(r'```([a-zA-Z0-9]+)\s([\s\S(^\\`{3})]*?)\s*```')
 coliru_cfg = configfiles.get_from_here('coliru_configs').sync_get()
 coliru_endpoint = 'http://coliru.stacked-crooked.com/compile'
 four_space_re = re.compile(r'^ {4}')
