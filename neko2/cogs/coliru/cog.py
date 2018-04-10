@@ -72,6 +72,7 @@ class ColiruCog(traits.HttpPool):
             return await ctx.send('Please provide some highlighted code')
         else:
             lang, code = code.groups()
+            lang = lang.lower()
 
             if lang == 'make':
                 code = self.fix_makefile(code)
