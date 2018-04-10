@@ -24,6 +24,6 @@
   "asm": "mv main.cpp main.s && gcc main.s && ./a.out; echo \"Returned $?\"",
   "casm": "mv main.cpp main.c && gcc -std=c11 -g -O0 -c -fverbose-asm -Wa,-adhln main.c > test.lst && cat test.lst",
   "casmO3": "mv main.cpp main.c && gcc -std=c11 -O3 -c -fverbose-asm -Wa,-adhln main.c > test.lst && cat test.lst",
-  "cppasm": "g++ -std=c++17 -g -O0 -c -fverbose-asm -Wa,-adhln main.cpp > test.lst && cat test.lst"
+  "cppasm": "g++ -std=c++17 -g -O0 -c -fverbose-asm -Wa,-adhln main.cpp > test.lst && cat test.lst",
   "cppasmO3": "g++ -std=c++17 -O3 -c -fverbose-asm -Wa,-adhln main.cpp > test.lst && cat test.lst"
 }
