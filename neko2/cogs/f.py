@@ -20,7 +20,7 @@ class RespectsCog:
                     text += '.'
 
                 resp = await message.channel.send(embed=discord.Embed(
-                    title=text,
+                    description=text,
                     colour=0x551a8b
                 ))
                 await resp.add_reaction(
