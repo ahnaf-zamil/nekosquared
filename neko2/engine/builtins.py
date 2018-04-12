@@ -74,7 +74,9 @@ class Builtins(traits.CpuBoundPool):
         :param real_match: true if we had a perfect match, false if we fell back
             to fuzzy.
         """
-        embed = embeds.Embed(title=command.qualified_name, colour=0xc70025)
+        embed = embeds.Embed(
+            title=f'Help for {ctx.bot.command_prefix}{command.qualified_name}',
+            colour=0x000663)
 
         brief = command.brief
         full_doc = command.help if command.help else ''
@@ -83,7 +85,7 @@ class Builtins(traits.CpuBoundPool):
         signature = command.usage if command.usage else command.signature
         parent = command.full_parent_name
 
-        description = [f'```bash\n{signature}\n```']
+        description = [f'```bash\n{ctx.bot.command_prefix}{signature}\n```']
 
         if not real_match:
             description.insert(0, f'Closest match for `{query}`')
@@ -100,7 +102,8 @@ class Builtins(traits.CpuBoundPool):
 
         if examples:
             examples = '\n'.join(
-                f'- `{command.qualified_name} {ex}`' for ex in examples)
+                f'- `{ctx.bot.command_prefix}{command.qualified_name} '
+                f'{ex}`' for ex in examples)
             embed.add_field(name='Examples', value=examples)
 
         if isinstance(command, commands.BaseGroupMixin):
@@ -176,11 +179,16 @@ class Builtins(traits.CpuBoundPool):
         def mk_page(body):
             page = embeds.Embed(
                 title='Available Neko² Commands',
-                colour=0xc70025,
+                colour=0x000663,
                 description='The following can be run in this channel:\n\n'
                             f'{body}')
             page.set_footer(text='Commands proceeded by ellipses signify '
                                  'command groups with sub-commands available.')
+            page.add_field(
+                name='Want more information?',
+                value=f'Run `{ctx.bot.command_prefix}help <command>` '
+                      f'for more details on a specific command!',
+                inline=False)
             page.set_thumbnail(url=ctx.bot.user.avatar_url)
             return page
 
