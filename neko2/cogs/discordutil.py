@@ -3,6 +3,7 @@
 """
 Embed preview cog utility.
 """
+import asyncio                             # Async bits and bobs
 import json                                # JSON
 import traceback                           # Traceback utils
 
@@ -12,10 +13,14 @@ from neko2.engine import commands          # Commands decorators
 from neko2.shared import perms             # Permission help
 from neko2.shared import mentionconverter  # Mentioning
 from neko2.shared import string            # String helpers
+from neko2.shared import scribe            # Logging
+from neko2.shared import traits            # HTTPS
 
 
+class DiscordUtilCog(traits.HttpPool, scribe.Scribe):
+    def __init__(self, bot):
+        self.bot = bot
 
-class DiscordUtilCog:
     @commands.command(
         name='geninvite',
         brief='Generates an OAuth invite URL from a given snowflake client ID',
@@ -87,5 +92,67 @@ class DiscordUtilCog:
         await ctx.send(embed=embed)
 
 
+    async def on_ready(self):
+        """
+        Starts a coroutine background worker to periodically change the
+        bot status if Discord is playing up.
+        """
+        self.maybe_spawn_status_worker()
+
+    def maybe_spawn_status_worker(self):
+        task = getattr(self, '_status_task', None)
+        if not task or task.done() or task.cancelled():
+            task = asyncio.ensure_future(self.check_status())
+            setattr(self, '_status_task', task)
+            setattr(self, '_discord_down', False)
+
+    async def check_status(self):
+        """
+        Checks Discord's status each minute. If an issue occurs with their
+        systems, we change the bot's status to reflect this, otherwise, the
+        bot will just say "watching for n.help".
+        """
+        while self.bot.is_ready():
+            try:
+                conn = await self.acquire_http()
+                # We use unresolved as status does not seem to provide
+                # information about outages. Source: tried it when discord
+                # went down and it said "all systems operational" despite the
+                # main page saying "major service outage."
+                resp = await conn.get(
+                    'https://status.discordapp.com/api/v2'
+                    '/incidents/unresolved.json')
+                assert resp.status == 200, resp.reason
+                data = await resp.json()
+
+                # https://status.discordapp.com/api#incidents-unresolved
+                problems = data.get('incidents')
+                if problems:
+                    problem = problems.pop(0)
+                    name = problem['name']
+                    await self.bot.change_presence(
+                        activity=discord.Activity(
+                            type=discord.ActivityType.watching,
+                            name=f'Discord: {name}'),
+                        status=discord.Status.dnd)
+                    setattr(self, '_discord_down', True)
+                else:
+                    # Only change presence if discord has just gone
+                    # back up again. This way, we can allow other cogs
+                    # to change the message if they fancy.
+                    if getattr(self, '_discord_down'):
+                        await self.bot.change_presence(
+                            activity=discord.Activity(
+                                type=discord.ActivityType.watching,
+                                name=f'for {self.bot.command_prefix}help'),
+                            status=discord.Status.online)
+                        setattr(self, '_discord_down', False)
+            except BaseException as ex:
+                self.logger.warning('Background checker for Discord status: ' +
+                                    type(ex).__qualname__ + ': ' + str(ex))
+            finally:
+                await asyncio.sleep(60)
+
+
 def setup(bot):
-    bot.add_cog(DiscordUtilCog())
+    bot.add_cog(DiscordUtilCog(bot))

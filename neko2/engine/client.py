@@ -298,8 +298,4 @@ class Bot(commands.Bot, scribe.Scribe):
         await self.change_presence(status=discord.Status.dnd)
 
     async def on_ready(self):
-        await self.change_presence(status=discord.Status.online,
-                                   activity=discord.Activity(
-                                       type=discord.ActivityType.watching,
-                                       name=f'say {self.command_prefix}help'
-                                   ))
+        await self.change_presence(status=discord.Status.online)

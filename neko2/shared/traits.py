@@ -27,7 +27,7 @@ def _magic_number(*, cpu_bound=False):
     concurrent execution media to spawn in a pool.
     :param cpu_bound: defaults to false. Determines if we are considering
         IO bound work (the default) or CPU bound.
-    :return: 5 * the number of USABLE logical cores if we are IO bound. If we
+    :return: 3 * the number of USABLE logical cores if we are IO bound. If we
         are CPU bound, we return 2 * the number of processor cores, as CPU
         bound work utilises the majority of it's allocated time to doing
         meaningful work, whereas IO is usually slow and consists of thread
@@ -41,7 +41,7 @@ def _magic_number(*, cpu_bound=False):
     if cpu_bound:
         return 2 * (os.cpu_count() or 1)
     else:
-        return 5 * (len(os.sched_getaffinity(0)) or 1)
+        return 3 * (len(os.sched_getaffinity(0)) or 1)
 
 
 _processes, _threads = _magic_number(cpu_bound=True), _magic_number()
@@ -187,7 +187,7 @@ class HttpPool(scribe.Scribe):
                 cls.logger.info('Closing HTTP pool.')
                 await cls._http_pool.close()
         else:
-            cls.logger.info(f'Acquiring existing HTTP pool.')
+            cls.logger.debug(f'Acquiring existing HTTP pool.')
 
         # noinspection PyTypeChecker
         return cls._http_pool
