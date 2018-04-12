@@ -6,16 +6,17 @@ Builtin extension that is loaded to implement a custom help method.
 import asyncio                             # Async subprocess.
 import inspect                             # Inspection
 import subprocess                          # Sync subprocess.
-import typing                              # Type checking bits and pieces
+import time                                # Timing stuff.
+import typing                              # Type checking bits and pieces.
 
-from discord import embeds                 # Embeds
+from discord import embeds                 # Embeds.
 import discomaton                          # Finite state machines.
 
 import neko2
-from neko2.engine import commands          # Command decorators
-from neko2.shared import fuzzy             # Fuzzy string matching
-from neko2.shared import string            # String voodoo
-from neko2.shared import traits            # Traits
+from neko2.engine import commands          # Command decorators.
+from neko2.shared import fuzzy             # Fuzzy string matching.
+from neko2.shared import string            # String voodoo.
+from neko2.shared import traits            # Traits.
 
 
 class Builtins(traits.CpuBoundPool):
@@ -392,7 +393,13 @@ class Builtins(traits.CpuBoundPool):
         """
         Checks whether the bot is online and responsive or not.
         """
-        await ctx.send(f'Pong! ({ctx.bot.latency * 1000:.2f}ms)')
+        start = time.monotonic()
+        message = await ctx.send(f'Pong!')
+        rtt = (time.monotonic() - start) * 1000
+        await message.edit(
+            content=f'Pong! (Latency: ~{ctx.bot.latency * 1000:,.2f}ms | '
+                    f'`ACK` time: ~{rtt:,.2f}ms | '
+                    f'System local time: `{time.asctime()}`)')
 
 
 def setup(bot):
