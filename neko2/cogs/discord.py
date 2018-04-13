@@ -99,7 +99,8 @@ class DiscordUtilCog(traits.CogTraits, scribe.Scribe):
         if not task or task.done() or task.cancelled():
             task = asyncio.ensure_future(self.check_status())
             setattr(self, '_status_task', task)
-            setattr(self, '_discord_down', False)
+            # Invokes the message to spawn the first time.
+            setattr(self, '_discord_down', True)
 
     async def check_status(self):
         """
@@ -135,7 +136,7 @@ class DiscordUtilCog(traits.CogTraits, scribe.Scribe):
                     # Only change presence if discord has just gone
                     # back up again. This way, we can allow other cogs
                     # to change the message if they fancy.
-                    if getattr(self, '_discord_down'):
+                    if getattr(self, '_discord_down', False):
                         await self.bot.change_presence(
                             activity=discord.Activity(
                                 type=discord.ActivityType.watching,
