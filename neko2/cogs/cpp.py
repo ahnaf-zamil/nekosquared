@@ -143,15 +143,15 @@ class CppCog(traits.CogTraits):
             attrs={'id': 'mw-content-text'})
 
         if desc:
-            #first_par_node = desc.find(name='p')
-            #description = first_par_node.text + '\n'
-            #sibs = first_par_node.find_next_siblings()
-            #for sib in sibs:
+            # first_par_node = desc.find(name='p')
+            # description = first_par_node.text + '\n'
+            # sibs = first_par_node.find_next_siblings()
+            # for sib in sibs:
             #    description += sib.text + '\n'
             description = '\n'.join(p.text for p in desc.find_all(name='p')
-                             if not p.text.strip().endswith(':') and
-                             not p.text.strip().startswith('(') and
-                             not p.text.strip().endswith(')'))
+                                    if not p.text.strip().endswith(':') and
+                                    not p.text.strip().startswith('(') and
+                                    not p.text.strip().endswith(')'))
         else:
             description = ''
 

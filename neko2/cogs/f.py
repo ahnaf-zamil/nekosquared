@@ -8,6 +8,7 @@ from neko2.shared import commands
 
 
 class RespectsCog:
+    # noinspection PyMethodMayBeStatic
     async def on_message(self, message, **kwargs):
         try:
             if message.content.lower() == 'f' or 'for_what' in kwargs:
@@ -28,6 +29,7 @@ class RespectsCog:
         except:
             raise
 
+    # noinspection PyUnusedLocal
     @commands.command(brief='Pay your respects.',
                       examples=['me', 'you', 'the in-laws', 'the police'])
     async def f(self, ctx, *, what=None):

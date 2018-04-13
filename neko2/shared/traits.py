@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Various thread and process pool templates.
 """

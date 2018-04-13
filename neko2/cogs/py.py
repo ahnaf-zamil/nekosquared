@@ -21,6 +21,8 @@ str2flags = {
 }
 
 
+# noinspection PyUnusedLocal,PyAssignmentToLoopOrWithParameter,PyCallByClass
+# noinspection PyAssignmentToLoopOrWithParameter,PyCallByClass,PyTypeChecker
 class SubPatternDebug(sre_parse.SubPattern):
     """
     Overrides dump method implementation by sre_parse.py
@@ -177,7 +179,8 @@ class PyCog:
 
         await result.start()
 
-    def parse_regex_tree(self, pattern, flags):
+    @staticmethod
+    def parse_regex_tree(pattern, flags):
         import sre_parse
         tree = sre_parse.parse(pattern, flags)
         tree = SubPatternDebug.coerce(tree)
@@ -186,7 +189,6 @@ class PyCog:
             with contextlib.redirect_stdout(string):
                 tree.dump()
                 return string.getvalue()
-
 
 
 def setup(bot):

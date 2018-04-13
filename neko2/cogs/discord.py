@@ -58,7 +58,6 @@ class DiscordUtilCog(traits.CogTraits, scribe.Scribe):
     @inspect_group.command(name='role', brief='Inspects a given role.',
                            examples=['@Role Name'])
     async def inspect_role(self, ctx, *, role: discord.Role):
-        role: discord.Role
         permissions = perms.Permissions.from_discord_type(role.permissions)
 
         permissions = sorted(f'`{name}`' for name in permissions.unmask())

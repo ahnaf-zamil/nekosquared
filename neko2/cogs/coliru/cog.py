@@ -106,7 +106,7 @@ class ColiruCog(traits.CogTraits):
                 await commands.try_delete(ctx)
 
             if len(output.strip()) == 0:
-                msg = await ctx.send('No output...')
+                await ctx.send('No output...')
                 return
 
             booklet = binder.build()

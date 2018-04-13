@@ -24,11 +24,9 @@ This is done to support the following design.
      `--config files
 """
 import sys
-import traceback
 
 from neko2.engine import autoloader
 from neko2.engine import client
-from neko2.engine import errorhandler
 from neko2.shared import configfiles
 
 if len(sys.argv) > 1:

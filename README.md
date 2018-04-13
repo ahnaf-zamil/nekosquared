@@ -81,7 +81,6 @@ The current config files are required for the bot to work:
 |---|---|
 | `discord` | Basic Discord config and authentication. Holds a dictionary of two dictionaries: `bot` and `auth`. `bot` contains `command_prefix` (string) and `owner_id` (int); `auth` contains `client_id` (int) and `token` (string). An additional `debug` boolean config value can be supplied to enable verbose stack traces. This defaults to `false` if unspecified. The `dm_errors` parameter can also be specified to control whether errors get sent to the bot owner's inbox. This defaults to true if not specified. |
 | `database` | Holds PostgreSQL credentials. This is a dictionary of four strings: `database`, `host`, `user`, and `password`. |
-| `modules` | Holds a list of fully qualified extensions to load (e.g. `neko2.cogs.latex`) |
 
 Cogs require the following additional configurations:
 
@@ -134,7 +133,7 @@ Feel free to contribute. Just remember the following when writing code:
     
     class SomeCog(traits.PostgresPool):
         # Loads the query from the file.
-        my_sql_query = sql.SqlQuery('my_sql_query')
+        my_sql_query = sql.sql_query('my_sql_query')
  
         @commands.command()
         async def my_command(self, ctx, some_parameter):

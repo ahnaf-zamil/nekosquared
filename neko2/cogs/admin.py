@@ -93,5 +93,6 @@ class AdminCog(scribe.Scribe):
         finally:
                 await binder.start()
 
+
 def setup(bot):
     bot.add_cog(AdminCog(bot))

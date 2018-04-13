@@ -4,7 +4,7 @@
 IO bits and pieces.
 """
 import inspect      # Stack frame inspection
-import os.path      # OS path utils
+import os           # OS path utils
 
 
 __all__ = ('in_here', 'json', 'yaml', 'get_inode_type')

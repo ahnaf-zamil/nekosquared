@@ -189,6 +189,7 @@ class LatexCog(traits.CogTraits):
 
             return msg
 
+    # noinspection PyMethodMayBeStatic
     def mk_edit_predicate(self, ctx: commands.Context):
         """
         Generates a predicate for listening to edit events.

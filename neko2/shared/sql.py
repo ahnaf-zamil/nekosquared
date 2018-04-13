@@ -8,13 +8,13 @@ import logging
 from neko2.shared import ioutil      # in_here
 
 
-__all__ = ('SqlQuery',)
+__all__ = ('sql_query',)
 
 
 __logger = logging.getLogger(__name__)
 
 
-def SqlQuery(file_name: str, *, relative_to_here=True) -> str:
+def sql_query(file_name: str, *, relative_to_here=True) -> str:
     """
     Reads the query from file, and initialises the object.
 

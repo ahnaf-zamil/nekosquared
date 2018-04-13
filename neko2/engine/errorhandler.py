@@ -225,7 +225,7 @@ class ErrorHandler(scribe.Scribe):
         except BaseException:
             traceback.print_exc()
 
-    async def on_error(self, event_method, *args, **kwargs):
+    async def on_error(self, event_method, *_unused_args, **_unused_kwargs):
         """
         General error handling mechanism.
         """

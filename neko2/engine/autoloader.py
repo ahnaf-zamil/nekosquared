@@ -10,16 +10,13 @@ import logging                         # Loggers.
 import traceback                       # Traceback utils.
 import typing                          # Type checking
 from neko2.shared import alg           # Timing.
-from neko2.shared import configfiles   # Config file utils.
+from neko2.modules import modules      # Modules to load with.
 
 
-__all__ = ('FILE', 'auto_load_modules')
+__all__ = ('auto_load_modules',)
 
 
-FILE = 'modules'
-
-
-def auto_load_modules(bot, *, config_file=FILE) \
+def auto_load_modules(bot) \
         -> typing.List[typing.Tuple[BaseException, str]]:
     """
     Auto-loads any modules into the given bot.
@@ -31,17 +28,14 @@ def auto_load_modules(bot, *, config_file=FILE) \
     and we continue. Any errors are returned in a collection of 2-tuples paired
     with the name of the corresponding extension that caused the error.
     """
-    config = configfiles.get_config_data(config_file)
     logger = logging.getLogger(__name__)
 
     errors = []
 
-    if config is None:
+    if modules is None:
         logger.warning('No modules were listed.')
-    elif not isinstance(config, list):
-        raise TypeError('Expected list of module names.')
     else:
-        for module in config:
+        for module in modules:
             # noinspection PyBroadException
             try:
                 _, time = alg.time_it(lambda: bot.load_extension(module))
