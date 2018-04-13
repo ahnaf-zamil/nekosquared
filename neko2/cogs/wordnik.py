@@ -115,7 +115,7 @@ class WordnikCog(traits.CogTraits):
             includeTags=True)
 
         try:
-            results = await self.run_in_io_executor(partial, bot=bot)
+            results = await self.run_in_io_executor(bot, partial)
             if not isinstance(results, list):
                 raise errors.NotFound('No result was found.')
             else:

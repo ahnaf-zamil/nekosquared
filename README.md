@@ -25,6 +25,13 @@ For `py` to work, any listed modules to index must be installed. See
 `example-config/py-deps.txt` for a list of additional dependency modules
 for our example.
 
+### Non-python stuff
+
+You will need `libjpeg8` installed to access any modules using imaging.
+
+The audio modules will require `libopus0` and `ffmpeg` to be on the system you
+are using.
+
 ## Running
 
 To run the bot, you should run the following:

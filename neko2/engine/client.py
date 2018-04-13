@@ -15,6 +15,7 @@ import discord                          # Basic discord.py bits and pieces.
 from discord.ext import commands        # Discord.py extensions.
 from discord.utils import oauth_url     # OAuth URL generator
 
+from neko2.engine import errorhandler   # Error handling.
 from neko2.shared import scribe, perms  # Logging
 
 __all__ = ('BotInterrupt', 'Bot')
@@ -103,13 +104,13 @@ class Bot(commands.Bot, scribe.Scribe):
         self._logged_in = False
 
         # Load version and help commands
-        self.load_extension('neko2.engine.builtins')
-
         self.logger.info(f'Using command prefix: {self.command_prefix}')
 
         self._on_exit_funcs = []
         self._on_exit_coros = []
 
+        self.load_extension('neko2.engine.builtins')
+        self.add_cog(errorhandler.ErrorHandler(True, self))
         self.add_listener(self._on_connect)
         self.add_listener(self._on_ready)
 

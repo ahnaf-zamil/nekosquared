@@ -99,7 +99,7 @@ def group(**kwargs):
 def acknowledge(ctx: Context,
                 *,
                 emoji: str = '\N{OK HAND SIGN}',
-                timeout: float = 15) -> None:
+                timeout: typing.Optional[float] = 15) -> None:
     """
     Acknowledges the message in the given context. This tries to add a reaction
     and if this is not possible, it replies with a message holding the emoji

@@ -91,7 +91,9 @@ class GitCog(scribe.Scribe):
                     await call(f'{git_path} fetch --all')
                     await call(f'{git_path} diff --stat HEAD origin/master')
                     await call(f'{git_path} status --porcelain')
-                    await call(f'{git_path} reset --hard origin/master')
+                    await call(f'{git_path} reset --hard origin/$(git '
+                               'rev-parse --symbolic-full-name --abbrev-ref '
+                               'HEAD)')
                     await call(f'{git_path} stash list && {git_path} stash '
                                'drop')
                 except BaseException as ex:

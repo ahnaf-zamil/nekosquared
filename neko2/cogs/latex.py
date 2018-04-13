@@ -160,7 +160,7 @@ class LatexCog(traits.CogTraits):
 
             new_img.save(out_img, 'PNG')
 
-        await cls.run_in_io_executor(cpu_work, bot=bot)
+        await cls.run_in_io_executor(bot, cpu_work)
 
     async def get_send_image(self, ctx, content: str) -> discord.Message:
         # Append a tex newline to the start to force the content to

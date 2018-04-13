@@ -33,6 +33,8 @@ dependencies = {
     'bs4': 'beautifulsoup4',
     # Cached property
     'cached_property': 'cached_property',
+    # Youtube streaming
+    'youtube_dl': 'youtube_dl',
     # Python3.7 cached property backport.
     'dataclasses': 'dataclasses',
     # PILLOW image manip lib
@@ -45,7 +47,8 @@ dependencies = {
     # These are used only for caching purposes in the Py module :)
     # Intentionally is incorrect. Don't alter until Danny releases
     # the rewrite properly.
-    'discord.py': 'git+https://github.com/rapptz/discord.py@rewrite',
+    'discord.py': 'git+https://github.com/rapptz/discord.py@rewrite#egg'
+                  '=discord.py[voice]',
     # My pagination utilities I have outsourced to a separate repository.
     'discomaton': 'git+https://github.com/neko404notfound/discomaton',
 }

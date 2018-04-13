@@ -2,8 +2,8 @@
 """
 Various thread and process pool templates.
 """
-import asyncio
 import concurrent.futures             # Executors.
+import functools
 import os                             # File system access.
 
 import aiohttp
@@ -58,7 +58,7 @@ class CogTraits(scribe.Scribe):
         return cls.__http_pool
 
     @classmethod
-    async def run_in_io_executor(cls, *args, bot, loop=None, **kwargs):
+    async def run_in_io_executor(cls, bot, call, *args, **kwargs):
         if not cls.__io_pool:
             cls.logger.info('Creating thread pool executor.')
             cls.__io_pool = concurrent.futures.ThreadPoolExecutor(
@@ -72,13 +72,14 @@ class CogTraits(scribe.Scribe):
                 cls.__io_pool.shutdown(True)
                 cls.__io_pool = None
 
-        if not loop:
-            loop = asyncio.get_event_loop()
+        loop = bot.loop
 
-        return await loop.run_in_executor(cls.__io_pool, *args, **kwargs)
+        partial = functools.partial(call, *args, **kwargs)
+
+        return await loop.run_in_executor(cls.__io_pool, partial)
 
     @classmethod
-    async def run_in_cpu_executor(cls, *args, bot, loop=None, **kwargs):
+    async def run_in_cpu_executor(cls, bot, call, *args, **kwargs):
         if not cls.__cpu_pool:
             cls.logger.info('Creating process pool executor.')
             cls.__cpu_pool = concurrent.futures.ProcessPoolExecutor(
@@ -91,7 +92,8 @@ class CogTraits(scribe.Scribe):
                 cls.__cpu_pool.shutdown(True)
                 cls.__cpu_pool = None
 
-        if not loop:
-            loop = asyncio.get_event_loop()
+        loop = bot.loop
 
-        return await loop.run_in_executor(cls.__cpu_pool, *args, **kwargs)
+        partial = functools.partial(call, *args, **kwargs)
+
+        return await loop.run_in_executor(cls.__cpu_pool, partial)

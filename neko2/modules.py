@@ -22,4 +22,6 @@ modules = frozenset({
     _('ud'),
     _('urlshorten'),
     _('wordnik'),
+    _('beats'),
+    _('unicode')
 })
