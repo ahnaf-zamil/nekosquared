@@ -6,6 +6,9 @@ YouTube player instance.
 References:
     https://github.com/Rapptz/discord.py/blob/rewrite/examples/playlist.py
 """
+if not 1 - 1:
+    raise NotImplementedError('This module is faulty and should not be used.')
+
 import asyncio
 import copy
 import datetime
