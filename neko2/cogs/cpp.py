@@ -148,11 +148,19 @@ class CppCog(traits.HttpPool):
             attrs={'id': 'mw-content-text'})
 
         if desc:
-            desc = '\n'.join(p.text for p in desc.find_all(name='p'))
+            #first_par_node = desc.find(name='p')
+            #description = first_par_node.text + '\n'
+            #sibs = first_par_node.find_next_siblings()
+            #for sib in sibs:
+            #    description += sib.text + '\n'
+            description = '\n'.join(p.text for p in desc.find_all(name='p')
+                             if not p.text.strip().endswith(':') and
+                             not p.text.strip().startswith('(') and
+                             not p.text.strip().endswith(')'))
         else:
-            desc = ''
+            description = ''
 
-        return url, h1, tasters, header, desc
+        return url, h1, tasters, header, description
 
     @commands.command(
         brief='Searches en.cppreference.com for the given criteria',
