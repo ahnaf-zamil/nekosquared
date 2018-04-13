@@ -8,8 +8,7 @@ import io
 import re
 import sre_parse
 from discomaton.factories import bookbinding
-from neko2.engine import commands
-
+from neko2.shared import commands
 
 str2flags = {
   'a': re.ASCII,

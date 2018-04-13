@@ -7,8 +7,7 @@ import discord
 
 from discomaton import book
 
-from neko2.engine import commands
-from neko2.shared import traits
+from neko2.shared import traits, commands
 from neko2.shared import string
 
 
@@ -16,7 +15,7 @@ urban_random = 'http://api.urbandictionary.com/v0/random'
 urban_search = 'http://api.urbandictionary.com/v0/define'
 
 
-class UrbanDictionaryCog(traits.HttpPool):
+class UrbanDictionaryCog(traits.CogTraits):
     """Urban dictionary cog."""
     @staticmethod
     def _format_urban_defn(definition: dict) -> discord.Embed:
@@ -70,7 +69,7 @@ class UrbanDictionaryCog(traits.HttpPool):
     async def urban(self, ctx: commands.Context, *, phrase: str=None):
         """If no phrase is given, we pick some random ones to show."""
 
-        conn = await self.acquire_http()
+        conn = await self.acquire_http(ctx.bot)
 
         with ctx.typing():
             # Get the response

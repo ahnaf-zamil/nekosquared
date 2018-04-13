@@ -18,8 +18,7 @@ import unicodedata
 import bs4
 from dataclasses import dataclass
 
-from neko2.engine import commands
-from neko2.shared import alg
+from neko2.shared import alg, commands
 from neko2.shared import collections
 from neko2.shared import errors
 from neko2.shared import traits
@@ -66,7 +65,7 @@ _char2category = {
 }
 
 
-class UnicodeCog(traits.HttpPool):
+class UnicodeCog(traits.CogTraits):
     # noinspection PyUnresolvedReferences
     @dataclass
     class Unicode:
@@ -96,12 +95,12 @@ class UnicodeCog(traits.HttpPool):
             """Looks up a given character by hex/octal/binary/integer value."""
             pass
 
-    async def __lookup_online(self, code_point: int):
+    async def __lookup_online(self, bot, code_point: int):
         """
         Looks up the code point online to get the Unicode object.
         If nothing is returned, then we assume it is not found.
         """
-        conn = await self.acquire_http()
+        conn = await self.acquire_http(bot)
         url = _make_fileformat_url(code_point)
         resp = await conn.get(url)
         if resp.status == 404:
@@ -185,7 +184,7 @@ class UnicodeCog(traits.HttpPool):
 
         return self.Unicode(name, category, code_point)
 
-    async def _lookup_literal(self, character: str) -> Unicode:
+    async def _lookup_literal(self, bot, character: str) -> Unicode:
         """
         Looks up the given literal to get data. If it cannot be resolved
         by unicodedata, then it will resort to searching online.
@@ -197,7 +196,7 @@ class UnicodeCog(traits.HttpPool):
             category = unicodedata.category(character)
             return self.Unicode(name, category, ord(character))
         except Exception:
-            return await self.__lookup_online(ord(character))
+            return await self.__lookup_online(bot, ord(character))
 
     @staticmethod
     async def _send_table(ctx, *unicodes):
@@ -242,7 +241,7 @@ class UnicodeCog(traits.HttpPool):
         charlist = []
         i = 0
         while i < len(characters) and len(charlist) < 20:
-            character = await self._lookup_literal(characters[i])
+            character = await self._lookup_literal(ctx.bot, characters[i])
             if character:
                 charlist.append(character)
             i += 1
@@ -258,6 +257,7 @@ class UnicodeCog(traits.HttpPool):
         """
         try:
             await self._send_table(ctx, await self._lookup_literal(
+                ctx.bot,
                 unicodedata.lookup(description)
             ))
         except:
@@ -280,7 +280,7 @@ class UnicodeCog(traits.HttpPool):
             while i < len(ordinals) and len(charlist) < 20:
                 ordinal = int(ordinals[i].replace('#', '0x'), 0)
 
-                character = await self._lookup_literal(chr(ordinal))
+                character = await self._lookup_literal(ctx.bot, chr(ordinal))
                 if character:
                     charlist.append(character)
                 i += 1

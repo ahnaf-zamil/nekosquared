@@ -4,7 +4,7 @@
 Press F to pay respects.
 """
 import discord
-from neko2.engine import commands
+from neko2.shared import commands
 
 
 class RespectsCog:

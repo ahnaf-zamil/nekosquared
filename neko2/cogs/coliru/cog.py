@@ -9,8 +9,7 @@ import re
 import asyncio
 from discomaton.factories import bookbinding
 
-from neko2.engine import commands     # Command decorators
-from neko2.shared import configfiles  # Config files
+from neko2.shared import configfiles, commands  # Config files
 from neko2.shared import traits       # HTTP pool
 
 
@@ -27,7 +26,7 @@ coliru_endpoint = 'http://coliru.stacked-crooked.com/compile'
 four_space_re = re.compile(r'^ {4}')
 
 
-class ColiruCog(traits.HttpPool):
+class ColiruCog(traits.CogTraits):
     @staticmethod
     async def fix_makefile(input_code: str) -> str:
         """
@@ -84,7 +83,7 @@ class ColiruCog(traits.HttpPool):
 
             with ctx.typing():
 
-                http = await self.acquire_http()
+                http = await self.acquire_http(ctx.bot)
 
                 res = await http.post(
                     coliru_endpoint,

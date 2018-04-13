@@ -4,6 +4,7 @@
 Holds the bot implementation.
 """
 import copy                             # Deep and shallow copies of objects.
+import inspect                          # Inspection
 import os                               # Access to file system tools.
 import signal                           # Access to kernel signals.
 import time                             # Measuring uptime.
@@ -14,9 +15,7 @@ import discord                          # Basic discord.py bits and pieces.
 from discord.ext import commands        # Discord.py extensions.
 from discord.utils import oauth_url     # OAuth URL generator
 
-from neko2.engine import shutdown       # Hook to call on shutdown.
 from neko2.shared import scribe, perms  # Logging
-from neko2.shared import traits         # Cog and class traits.
 
 __all__ = ('BotInterrupt', 'Bot')
 
@@ -106,12 +105,25 @@ class Bot(commands.Bot, scribe.Scribe):
         # Load version and help commands
         self.load_extension('neko2.engine.builtins')
 
-        from . import errorhandler
-
-        self.add_cog(errorhandler.ErrorHandler(
-            bot_config.pop('dm_errors', True), self))
-
         self.logger.info(f'Using command prefix: {self.command_prefix}')
+
+        self._on_exit_funcs = []
+        self._on_exit_coros = []
+
+        self.add_listener(self._on_connect)
+        self.add_listener(self._on_ready)
+
+    def on_exit(self, func):
+        """
+        Registers a function or coroutine to be called when we exit, before
+        the event loop is shut down.
+        :param func: the function or coroutine to call.
+        """
+        if inspect.iscoroutinefunction(func):
+            self._on_exit_coros.append(func)
+        else:
+            self._on_exit_funcs.append(func)
+        return func
 
     @cached_property.cached_property
     def invite(self):
@@ -190,6 +202,12 @@ class Bot(commands.Bot, scribe.Scribe):
 
         self._logged_in = False
 
+        # Call on_exit handlers
+        for handler in self._on_exit_funcs:
+            handler()
+        for handler in self._on_exit_coros:
+            await handler()
+
     # OCD.
     stop = logout
 
@@ -201,10 +219,6 @@ class Bot(commands.Bot, scribe.Scribe):
         """
         try:
             self.logger.info(f'Loading cog {type(cog).__name__!r}')
-
-            if isinstance(cog, traits.Disabled):
-                self.logger.warning(f'Skipping {cog} as it is marked disabled.')
-                return
 
             super().add_cog(cog)
             self.dispatch('add_cog', cog)
@@ -261,12 +275,8 @@ class Bot(commands.Bot, scribe.Scribe):
         Alters the event loop code ever-so-slightly to ensure all modules
         are safely unloaded.
         """
-        # Extract the token while the bot is running to ensure
-        # it is not available to any cogs.
-        token = self.__token 
-        del self.__token
         try:
-            self.loop.run_until_complete(self.start(token))
+            self.loop.run_until_complete(self.start(self.__token))
         except BotInterrupt as ex:
             self.logger.warning(f'Received interrupt {ex}')
         except BaseException:
@@ -276,10 +286,6 @@ class Bot(commands.Bot, scribe.Scribe):
         try:
             if self._logged_in:
                 self.loop.run_until_complete(self.logout())
-
-            # Executes all shutdown callbacks to deallocate database
-            # and HTTP socket resources, etc.
-            self.loop.run_until_complete(shutdown.terminate())
         except BotInterrupt:
             self.logger.fatal('Giving up all hope of a safe exit')
         except BaseException:
@@ -290,12 +296,10 @@ class Bot(commands.Bot, scribe.Scribe):
         finally:
             # For some reason, keyboard interrupt still propagates out of
             # this try catch unless I do this.
-            # Reassign token again.
-            self.__token = token
             return
 
-    async def on_connect(self):
+    async def _on_connect(self):
         await self.change_presence(status=discord.Status.dnd)
 
-    async def on_ready(self):
+    async def _on_ready(self):
         await self.change_presence(status=discord.Status.online)

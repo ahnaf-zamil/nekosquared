@@ -7,7 +7,7 @@ import asyncio
 
 from discomaton.factories import bookbinding
 
-from neko2.engine import commands
+from neko2.shared import commands
 
 
 class ManCog:

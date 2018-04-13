@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 import discord
 
-from neko2.engine import commands
-from neko2.shared import traits
+from neko2.shared import traits, commands
 
-class CatCog(traits.HttpPool):
+
+class CatCog(traits.CogTraits):
     @commands.command(brief='Gets a random cat!')
     async def cat(self, ctx):
         # This endpoint will redirect us.
-        conn = await self.acquire_http()
+        conn = await self.acquire_http(ctx.bot)
         resp = await conn.get('http://thecatapi.com/api/images/get')
         url = resp.url
         e = discord.Embed()
@@ -17,6 +17,7 @@ class CatCog(traits.HttpPool):
         e.set_footer(text='Provided by TheCatAPI')
         await ctx.send(embed=e)
         await resp.release()
+
 
 def setup(bot):
     bot.add_cog(CatCog())

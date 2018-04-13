@@ -26,3 +26,11 @@ def patches(original_kass):
                 pass
         return new_klass
     return decorator
+
+
+class ClassProperty:
+    def __init__(self, getter):
+        self.getter = getter
+
+    def __get__(self, _, owner):
+        return self.getter(owner)

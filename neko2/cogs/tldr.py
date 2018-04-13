@@ -11,11 +11,10 @@ from discomaton.util import pag
 
 import discord
 
-from neko2.engine import commands
-from neko2.shared import traits
+from neko2.shared import traits, commands
 
 
-class TldrCog(traits.HttpPool):
+class TldrCog(traits.CogTraits):
     @commands.command(brief='Shows TLDR pages (like man, but simpler).')
     async def tldr(self, ctx, page: str, platform: str='common'):
         """
@@ -44,7 +43,7 @@ class TldrCog(traits.HttpPool):
         url = 'https://raw.githubusercontent.com/tldr-pages/tldr/master/pages/'
         url += f'{platform}/{page}.md'
 
-        conn = await self.acquire_http()
+        conn = await self.acquire_http(ctx.bot)
         resp = await conn.get(url)
         if resp.status != 200:
             return await ctx.send(f'Error: {resp.reason}.', delete_after=10)

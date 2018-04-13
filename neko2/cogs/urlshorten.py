@@ -11,15 +11,14 @@ https://developers.google.com/url-shortener/v1/getting_started#APIKey
 """
 import aiohttp
 
-from neko2.engine import commands
-from neko2.shared import configfiles
+from neko2.shared import configfiles, commands
 from neko2.shared import errors
 from neko2.shared import traits
 
 config_file = 'urlshorten'
 
 
-class UrlShortenerCog(traits.HttpPool):
+class UrlShortenerCog(traits.CogTraits):
     """Shortens URLS"""
     def __init__(self):
         self._key: str = configfiles.get_config_data(config_file)
@@ -29,7 +28,7 @@ class UrlShortenerCog(traits.HttpPool):
         """
         You can pass a description to put with the link if you like.
         """
-        conn = await self.acquire_http()
+        conn = await self.acquire_http(ctx.bot)
 
         res = await conn.post('https://www.googleapis.com/urlshortener/v1/url',
                               params={'key': self._key},

@@ -13,13 +13,11 @@ from discord import embeds                 # Embeds.
 import discomaton                          # Finite state machines.
 
 import neko2
-from neko2.engine import commands          # Command decorators.
-from neko2.shared import fuzzy             # Fuzzy string matching.
+from neko2.shared import fuzzy, commands  # Fuzzy string matching.
 from neko2.shared import string            # String voodoo.
-from neko2.shared import traits            # Traits.
 
 
-class Builtins(traits.CpuBoundPool):
+class Builtins:
     def __init__(self, bot):
         """Init the cog."""
         bot.remove_command('help')

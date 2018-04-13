@@ -9,8 +9,7 @@ import traceback
 
 import discord
 
-from neko2.engine import commands
-from neko2.shared import configfiles
+from neko2.shared import configfiles, commands
 from neko2.shared import ioutil
 from neko2.shared import scribe
 

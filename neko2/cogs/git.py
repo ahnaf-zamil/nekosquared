@@ -12,9 +12,7 @@ import traceback                    # Traceback utils
 
 from discomaton.util import pag
 
-from neko2.engine import commands   # Command decorators
-from neko2.shared import scribe     # Scribe
-from neko2.shared import traits     # CpuBoundPool
+from neko2.shared import scribe, commands  # Scribe
 
 
 keks = (
@@ -28,7 +26,7 @@ keks = (
 )
 
 
-class GitCog(scribe.Scribe, traits.CpuBoundPool):
+class GitCog(scribe.Scribe):
     @commands.is_owner()
     @commands.command(
         brief='Clears the stash, and ensures we are up to date with master, '

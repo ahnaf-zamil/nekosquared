@@ -15,8 +15,7 @@ from wordnik import WordApi
 
 from discomaton import book
 
-from neko2.engine import commands
-from neko2.shared import configfiles
+from neko2.shared import configfiles, commands
 from neko2.shared import errors
 from neko2.shared import other
 from neko2.shared import traits
@@ -94,7 +93,7 @@ def quote(text: str):
     return f'“{text}”'
 
 
-class WordnikCog(traits.IoBoundPool):
+class WordnikCog(traits.CogTraits):
     """
     Wordnik support cog. Allows searching for words through a selection
     of online dictionaries.
@@ -104,7 +103,7 @@ class WordnikCog(traits.IoBoundPool):
         self.api_client = swagger.ApiClient(self._token, wordnik_endpoint)
         self.api = WordApi.WordApi(self.api_client)
 
-    async def _lookup(self, phrase: str) -> typing.List[dict]:
+    async def _lookup(self, bot, phrase: str) -> typing.List[dict]:
         """Executes the lookup in a thread pool to prevent blocking."""
 
         partial = functools.partial(
@@ -116,7 +115,7 @@ class WordnikCog(traits.IoBoundPool):
             includeTags=True)
 
         try:
-            results = await self.run_in_io_pool(partial)
+            results = await self.run_in_io_executor(partial, bot=bot)
             if not isinstance(results, list):
                 raise errors.NotFound('No result was found.')
             else:
@@ -139,7 +138,7 @@ class WordnikCog(traits.IoBoundPool):
 
         try:
             with ctx.typing():
-                results: typing.List[dict] = await self._lookup(phrase)
+                results: typing.List[dict] = await self._lookup(ctx.bot, phrase)
         except errors.NotFound as ex:
             return await ctx.send(str(ex), delete_after=10)
 

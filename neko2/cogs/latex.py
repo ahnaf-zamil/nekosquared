@@ -4,13 +4,11 @@
 Formats and makes use of the code-cogs equation editor API to generate
 previews for LaTeX strings.
 """
-import asyncio
 import io                            # BytesIO
 import discord                       # Discord.py
 import PIL.Image                     # PIL Image loading
 import PIL.ImageDraw                 # PIL Image drawing
-from neko2.engine import commands    # Command decorators
-from neko2.shared import traits      # IOBound, CpuBound, and HTTP pools.
+from neko2.shared import traits, commands  # IOBound, CpuBound, and HTTP pools.
 
 # URL endpoint to use.
 end_point = 'http://latex.codecogs.com/'
@@ -52,7 +50,7 @@ padding_pct_width = 1.15  # %/100
 padding_min_width = 100   # pixels
 
 
-class LatexCog(traits.IoBoundPool, traits.HttpPool, traits.CpuBoundPool):
+class LatexCog(traits.CogTraits):
     @staticmethod
     def generate_url(content,
                      *,
@@ -115,6 +113,7 @@ class LatexCog(traits.IoBoundPool, traits.HttpPool, traits.CpuBoundPool):
 
     @classmethod
     async def pad_convert_image(cls,
+                                bot,
                                 in_img: io.BytesIO,
                                 out_img: io.BytesIO,
                                 bg_colour: tuple):
@@ -136,9 +135,6 @@ class LatexCog(traits.IoBoundPool, traits.HttpPool, traits.CpuBoundPool):
             new_w = int(old_img.width * padding_pct_width)
             new_w = max(new_w, padding_min_width)
             new_h = int(old_img.height * padding_pct_height)
-
-            background = PIL.Image.new('RGBA', (old_img.width, old_img.height),
-                                       bg_colour)
 
             new_x = int((new_w - old_img.width) / 2)
             new_y = int((new_h - old_img.height) / 2)
@@ -164,21 +160,26 @@ class LatexCog(traits.IoBoundPool, traits.HttpPool, traits.CpuBoundPool):
 
             new_img.save(out_img, 'PNG')
 
-        await cls.run_in_io_pool(cpu_work)
+        await cls.run_in_io_executor(cpu_work, bot=bot)
 
     async def get_send_image(self, ctx, content: str) -> discord.Message:
         # Append a tex newline to the start to force the content to
         # left-align.
         url = self.generate_url(f'\\\\{content}', size=10)
 
-        conn = await self.acquire_http()
+        conn = await self.acquire_http(ctx.bot)
 
         resp = await conn.get(url)
         data = await resp.read()
 
         with io.BytesIO(data) as in_data, io.BytesIO() as out_data:
             in_data.seek(0)
-            await self.pad_convert_image(in_data, out_data, (0x36, 0x39, 0x3E))
+            await self.pad_convert_image(
+                ctx.bot,
+                in_data,
+                out_data,
+                (0x36, 0x39, 0x3E))
+
             out_data.seek(0)
             file = discord.File(out_data, 'latex.png')
 

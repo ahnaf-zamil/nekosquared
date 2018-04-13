@@ -13,8 +13,7 @@ import traceback
 import async_timeout
 from discomaton.factories import bookbinding
 import discord
-from neko2.engine import commands   # command decorator
-from neko2.shared import scribe     # scribe
+from neko2.shared import scribe, commands  # scribe
 
 
 class AdminCog(scribe.Scribe):

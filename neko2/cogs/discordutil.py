@@ -4,20 +4,17 @@
 Embed preview cog utility.
 """
 import asyncio                             # Async bits and bobs
-import json                                # JSON
-import traceback                           # Traceback utils
 
 import discord
 from discord import utils                  # OAuth2 URL generation
-from neko2.engine import commands          # Commands decorators
-from neko2.shared import perms             # Permission help
+from neko2.shared import perms, commands  # Permission help
 from neko2.shared import mentionconverter  # Mentioning
 from neko2.shared import string            # String helpers
 from neko2.shared import scribe            # Logging
 from neko2.shared import traits            # HTTPS
 
 
-class DiscordUtilCog(traits.HttpPool, scribe.Scribe):
+class DiscordUtilCog(traits.CogTraits, scribe.Scribe):
     def __init__(self, bot):
         self.bot = bot
 
@@ -91,7 +88,6 @@ class DiscordUtilCog(traits.HttpPool, scribe.Scribe):
 
         await ctx.send(embed=embed)
 
-
     async def on_ready(self):
         """
         Starts a coroutine background worker to periodically change the
@@ -114,7 +110,7 @@ class DiscordUtilCog(traits.HttpPool, scribe.Scribe):
         """
         while self.bot.is_ready():
             try:
-                conn = await self.acquire_http()
+                conn = await self.acquire_http(self.bot)
                 # We use unresolved as status does not seem to provide
                 # information about outages. Source: tried it when discord
                 # went down and it said "all systems operational" despite the

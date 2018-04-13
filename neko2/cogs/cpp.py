@@ -3,21 +3,16 @@
 """
 C and C++ utilities.
 """
-import collections                    # Named tuple
-import random                         # RNG
 import re                             # Regex
 import typing                         # Type checking
-from urllib import parse              # URL validation/sanitation
 
 import asyncio
 import bs4                            # HTML parser
-import discord                        # discord.py
 
 from discomaton import userinput      # Option picker
 from discomaton.factories import bookbinding
 
-from neko2.engine import commands     # Command decorators
-from neko2.shared import errors       # standard errors
+from neko2.shared import errors, commands  # standard errors
 from neko2.shared import traits       # HTTP pool
 
 
@@ -38,13 +33,13 @@ base_cppr = 'https://en.cppreference.com'
 search_cppr = base_cppr + '/mwiki/index.php'
 
 
-class CppCog(traits.HttpPool):
+class CppCog(traits.CogTraits):
     @classmethod
-    async def results(cls, *terms):
+    async def results(cls, bot, *terms):
         """Gathers the results for the given search terms from Cppreference."""
         params = {'search': '|'.join(terms)}
 
-        conn = await cls.acquire_http()
+        conn = await cls.acquire_http(bot)
 
         resp = await conn.get(search_cppr, params=params)
         if resp.status != 200:
@@ -103,12 +98,12 @@ class CppCog(traits.HttpPool):
         return [*c, *cpp, *other]
 
     @classmethod
-    async def get_information(cls, href):
+    async def get_information(cls, bot, href):
         """
         Gets information for the given search result.
         """
         url = base_cppr + href
-        conn = await cls.acquire_http()
+        conn = await cls.acquire_http(bot)
         response = await conn.get(url)
         # Make soup.
         bs = bs4.BeautifulSoup(await response.text())
@@ -167,7 +162,7 @@ class CppCog(traits.HttpPool):
         aliases=['cref', 'cpp'],
         examples=['std::string', 'stringstream'])
     async def cppref(self, ctx, *terms):
-        results = await self.results(*terms)
+        results = await self.results(ctx.bot, *terms)
 
         if not results:
             return await ctx.send('No results were found.', delete_after=10)
@@ -184,7 +179,9 @@ class CppCog(traits.HttpPool):
             result = results[0]
 
         # Fetch the result page.
-        url, h1, tasters, header, desc = await self.get_information(result.href)
+        url, h1, tasters, header, desc = await self.get_information(
+            ctx.bot,
+            result.href)
 
         binder = bookbinding.StringBookBinder(ctx, max_lines=50)
 
