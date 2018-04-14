@@ -120,21 +120,21 @@ class Session(traits.CogTraits):
             await asyncio.sleep(1)
 
             # Get next song
-            video = await self.queue.get()
-            self.current_item = video
-
-            embed = discord.Embed(title=f'NOW PLAYING {video.yt_url}')
-
-            await self.text_channel.send(embed=embed)
-
-            await self.run_in_io_executor(self.bot,
-                                          self.voice_client.play,
-                                          self.current_item.player,
-                                          after=self.next)
-
             try:
                 with timeout(600):
-                    await self.play_next_event.wait()
+                    video = await self.queue.get()
+                self.current_item = video
+
+                embed = discord.Embed(title=f'NOW PLAYING {video.yt_url}')
+
+                await self.text_channel.send(embed=embed)
+
+                await self.run_in_io_executor(self.bot,
+                                              self.voice_client.play,
+                                              self.current_item.player,
+                                              after=self.next)
+
+                await self.play_next_event.wait()
             except asyncio.TimeoutError:
                 await self.text_channel.send(
                     'You were idle too long \N{FROWNING FACE WITH OPEN MOUTH}')
