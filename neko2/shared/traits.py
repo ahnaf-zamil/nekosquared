@@ -69,7 +69,7 @@ class CogTraits(scribe.Scribe):
             @bot.on_exit
             def on_exit():
                 cls.logger.info('Shutting down thread pool executor.')
-                cls.__io_pool.shutdown(True)
+                cls.__io_pool.shutdown(False)
                 cls.__io_pool = None
 
         loop = bot.loop
@@ -89,7 +89,7 @@ class CogTraits(scribe.Scribe):
             @bot.on_exit
             def on_exit():
                 cls.logger.info('Shutting down process pool executor.')
-                cls.__cpu_pool.shutdown(True)
+                cls.__cpu_pool.shutdown(False)
                 cls.__cpu_pool = None
 
         loop = bot.loop
