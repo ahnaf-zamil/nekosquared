@@ -54,7 +54,7 @@ class DiscordUtilCog(traits.CogTraits, scribe.Scribe):
         entity type to be recognised, or cannot mention the entity.
         """
         if isinstance(what, discord.Role):
-            await self.inspect_role.callback(ctx, role=what)
+            await self.inspect_role.callback(self, ctx, role=what)
         else:
             raise NotImplementedError
 
