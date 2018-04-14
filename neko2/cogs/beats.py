@@ -5,6 +5,8 @@ YouTube player instance.
 
 References:
     https://github.com/Rapptz/discord.py/blob/rewrite/examples/playlist.py
+    
+Currently in a broken state, unfortunately.
 """
 
 import asyncio
@@ -309,4 +311,5 @@ class YouTubePlayerCog(traits.CogTraits):
             acknowledge(ctx)
 
 def setup(bot):
-    bot.add_cog(YouTubePlayerCog())
+    # bot.add_cog(YouTubePlayerCog())
+    pass
