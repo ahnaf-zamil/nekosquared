@@ -89,7 +89,10 @@ class GitCog(scribe.Scribe):
 
                 try:
                     await call(f'{git_path} fetch --all')
+                    await call(f'echo "The following changes will be lost:"')
                     await call(f'{git_path} diff --stat HEAD origin/master')
+                    await call(f'echo "...and replaced with: "')
+                    await call(f'{git_path} show --stat | sed s/.*@.*[.].*/"<email>"/g')
                     await call(f'{git_path} status --porcelain')
                     await call(f'{git_path} reset --hard origin/$(git '
                                'rev-parse --symbolic-full-name --abbrev-ref '
