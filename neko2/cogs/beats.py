@@ -57,9 +57,11 @@ class Session(traits.CogTraits):
     def __init__(self,
                  bot: discord.Client,
                  voice_channel: discord.VoiceChannel,
-                 text_channel: discord.TextChannel):
+                 text_channel: discord.TextChannel,
+                 sessions: Dict[discord.Guild, 'Session']):
         self.voice_channel = voice_channel
         self.text_channel = text_channel
+        self.__sessions = sessions
 
         # Our queue of tracks.
         self.queue = asyncio.Queue()
@@ -84,11 +86,13 @@ class Session(traits.CogTraits):
     async def initialise(self):
         # noinspection PyUnresolvedReferences
         self.voice_client = await self.voice_channel.connect()
+        self.__sessions[self.voice_channel.guild] = self
 
     async def deinitialise(self):
         if self.voice_client:
             self.voice_client.stop()
-            await self.voice_client.disconnect()
+            await self.voice_client.disconnect(force=True)
+            del self.__sessions[self.voice_channel.guild]
 
     @property
     def is_playing(self):
@@ -179,8 +183,7 @@ class YouTubePlayerCog(traits.CogTraits):
             await self.sessions[ctx.guild].voice_client.move_to(voice_channel)
             acknowledge(ctx)
         else:
-            sesh = Session(ctx.bot, voice_channel, text_channel)
-            self.sessions[ctx.guild] = sesh
+            sesh = Session(ctx.bot, voice_channel, text_channel, self.sessions)
             await sesh.initialise()
             acknowledge(ctx)
 
@@ -195,7 +198,6 @@ class YouTubePlayerCog(traits.CogTraits):
         else:
             sesh = self.sessions[ctx.guild]
             await sesh.deinitialise()
-            del self.sessions[ctx.guild]
             acknowledge(ctx)
 
     @yt.command()
@@ -203,7 +205,6 @@ class YouTubePlayerCog(traits.CogTraits):
     async def leaveall(self, ctx: commands.Context):
         for channel in copy.copy(self.sessions):
             await self.sessions[channel].deinitialise()
-            del self.sessions[channel]
         acknowledge(ctx)
 
     def make_player(self, url):
