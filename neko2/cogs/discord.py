@@ -53,7 +53,10 @@ class DiscordUtilCog(traits.CogTraits, scribe.Scribe):
         for all inspection sub-commands if you require parsing a specific
         entity type to be recognised, or cannot mention the entity.
         """
-        raise NotImplementedError
+        if isinstance(what, discord.Role):
+            await self.inspect_role.callback(ctx, role=what)
+        else:
+            raise NotImplementedError
 
     @inspect_group.command(name='role', brief='Inspects a given role.',
                            examples=['@Role Name'])
