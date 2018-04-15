@@ -94,7 +94,7 @@ else:
             if len(expression) == 1 and expression[0].lower() == 'help':
                 await ctx.send(
                     '**Supported Operators:**\n' +
-                    ', '.join(sorted(str(o) for o in operations)) + '\n\n' +
+                    ', '.join(sorted(f'`{o}`') for o in operations)) + '\n\n' +
                     '**"What the hell is this?"**\n' + 
                     '<http://en.wikipedia.org/wiki/' +
                     'Reverse_Polish_notation>')
