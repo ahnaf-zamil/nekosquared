@@ -6,10 +6,11 @@ import concurrent.futures             # Executors.
 import functools
 import os                             # File system access.
 
+import aiofiles
 import aiohttp
 
 from neko2.shared import scribe       # Scribe
-
+from neko2.shared.classtools import ClassProperty
 
 __all__ = ('CogTraits',)
 
@@ -56,6 +57,11 @@ class CogTraits(scribe.Scribe):
                 cls.__http_pool = None
 
         return cls.__http_pool
+
+    @classmethod
+    def file(cls, file_name, *args, **kwargs):
+        kwargs.setdefault('executor', cls.__io_pool)
+        return functools.partial(aiofiles.open, file_name, *args, **kwargs)()
 
     @classmethod
     async def run_in_io_executor(cls, bot, call, *args, **kwargs):

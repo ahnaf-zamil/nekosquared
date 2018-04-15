@@ -201,6 +201,7 @@ def extract(query: str,
     iterable ``choices`` using the ``scoring_algorithm`` and ignoring any
     scores less than ``min_score``.
     """
+
     it = _results_iterator(
         query,
         choices,
@@ -227,6 +228,7 @@ def extract_best(query: str,
     Extracts the best result for the query in the given choices... if there is
     one!
     """
+
     result = extract(
             query,
             choices,

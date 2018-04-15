@@ -24,5 +24,6 @@ modules = frozenset({
     _('wordnik'),
     _('beats'),
     _('unicode'),
-    _('rpn')
+    _('rpn'),
+    _('xkcd')
 })

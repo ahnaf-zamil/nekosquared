@@ -29,8 +29,26 @@ def patches(original_kass):
 
 
 class ClassProperty:
+    """
+    A property that belongs to the class it is defined in, rather than the
+    object instances themselves.
+    """
     def __init__(self, getter):
         self.getter = getter
 
     def __get__(self, _, owner):
         return self.getter(owner)
+
+
+
+
+class SingletonMeta(type):
+    """Metaclass to enforce the singleton pattern."""
+    _cache = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._cache:
+            inst = super(SingletonMeta, cls).__call__(*args, **kwargs)
+            cls._cache[cls] = inst
+
+        return cls._cache[cls]

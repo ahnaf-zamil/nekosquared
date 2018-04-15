@@ -53,8 +53,11 @@ class ColiruCog(traits.CogTraits):
 
         Format like so:
 
-        ```lang
+        ```ˋˋˋlang
+
         source code
+
+        ˋˋˋ
         ```
 
         Where `lang` is an optional markdown-supported language or
