@@ -1,7 +1,7 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
 """
-Reverse-polish-notation parser, cause I was bored.
+Reverse-polish-notation parser.
 """
 operations = {
     '+': lambda a, b: a + b,            
@@ -13,8 +13,8 @@ operations = {
     '//': lambda a, b: a // b,    
     '%': lambda a, b: a % b,
     '**': lambda a, b: a ** b,
-    '|': lambda a, b: a | b,            
-    '&': lambda a, b: int(a) & unb,
+    '|': lambda a, b: int(a) | int(b),            
+    '&': lambda a, b: int(a) & int(b),
     '^': lambda a, b: int(a) ^ int(b),           
     '<<': lambda a, b: int(a) << int(b),
     '>>': lambda a, b: int(a) >> int(b),  
@@ -105,3 +105,4 @@ else:
 
     def setup(bot):
         bot.add_cog(ReversePolishCog())
+        
