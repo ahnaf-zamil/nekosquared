@@ -23,7 +23,9 @@ operations = {
     '<=': lambda a, b: 1 if a <= b else 0,
     '>=': lambda a, b: 1 if a >= b else 0,           
     '==': lambda a, b: 1 if a == b else 0,
-    '!=': lambda a, b: 1 if a != b else 0
+    '!=': lambda a, b: 1 if a != b else 0,
+    '&&': lambda a, b: 1 if a and b else 0,
+    '||': lambda a, b: 1 if a or b else 0
 }
 
 
