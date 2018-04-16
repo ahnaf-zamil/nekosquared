@@ -8,6 +8,7 @@ criteria using fuzzy string matching algorithms.
 """
 import json
 import os
+import random
 import threading
 import time
 
@@ -111,19 +112,40 @@ class XkcdCacher(threading.Thread,
 class XkcdCog(traits.CogTraits):
     @commands.command(
         brief='Gets a page from xkcd.',
-        examples=['', '629', 'exploits of a mom'])
+        examples=['', 'mr', 'new', 'newest', '629', 'exploits of a mom'])
     async def xkcd(self, ctx, *, query=None):
         """
-        Returns a page from XKCD.
+        Returns a page from xkcd.
 
-        If you provide no arguments, the most recent result is output. If you
-        input a number,
+        If you provide no arguments, a random xkcd comic is output. If you
+        input a number, then the comic with that number is returned.
+
+        If you provide either `mr`, `new` or `newest` as the query, then the
+        most recent comic entry is output.
+
+        If you provide a string, then that is used as search criteria across
+        all xkcd titles. This may take a few seconds to complete, so be patient.
         """
         try:
             if not query:
-                url = most_recent_xkcd()
+                # Get the most recent comic first and inspect the entry number
+                # (our cache can be up to 12 hours out of date).
+                conn = await self.acquire_http(ctx.bot)
+
+                resp = await conn.get(most_recent_xkcd())
+                data = await resp.json()
+                num = data['num']
+
+                # Certain pages don't output anything.
+                page = random.randint(1, num)
+                if page in (404,):
+                    url = most_recent_xkcd()
+                else:
+                    url = get_xkcd(page)
             elif query.isdigit():
                 url = get_xkcd(int(query))
+            elif query.lower() in ('mr', 'new', 'newest'):
+                url = most_recent_xkcd()
             else:
                 # Fuzzy string match
                 if os.path.exists(CACHE_FILE):
@@ -148,6 +170,8 @@ class XkcdCog(traits.CogTraits):
                     best_result = fuzzy.extract_best(
                         query,
                         titles,
+                        # TODO: test out best_partial and ratio algorithms...
+                        # ... they will be twice as fast as this.
                         scoring_algorithm=fuzzy.deep_ratio,
                         min_score=50)
 
@@ -156,7 +180,8 @@ class XkcdCog(traits.CogTraits):
                         if best_result
                         else None)
 
-                url = await self.run_in_io_executor(ctx.bot, executor)
+                with ctx.typing():
+                    url = await self.run_in_io_executor(ctx.bot, executor)
 
             if not url:
                 return await ctx.send('Nothing to see here.')

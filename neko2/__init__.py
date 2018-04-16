@@ -19,3 +19,22 @@ __license__ = 'Mozilla Public License Version 2.0'
 __url__ = 'https://github.com/neko404notfound/nekosquared'
 __version__ = '1.1.0-alpha'
 __repository__ = __url__
+
+
+# Get commit number, if possible, and append to the version.
+import subprocess
+try:
+    output = subprocess.check_output('git log --oneline',
+                                     universal_newlines=True,
+                                     shell=True).split('\n')
+    __version__ += f' build {len(output)}'
+    del output
+except:
+    pass
+finally:
+    del subprocess
+
+# Print out version to console.
+import sys
+print('Neko^2', __version__, __author__, __url__, file=sys.stderr)
+del sys
