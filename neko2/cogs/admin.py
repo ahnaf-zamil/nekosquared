@@ -9,7 +9,9 @@ import contextlib
 import inspect
 import io
 import random
+import subprocess
 import traceback
+
 import async_timeout
 from discomaton.factories import bookbinding
 import discord
@@ -91,7 +93,29 @@ class AdminCog(scribe.Scribe):
         except:
             binder.add(traceback.format_exc())
         finally:
-                await binder.start()
+            await binder.start()
+
+    @commands.command(hidden=True)
+    async def shell(self, ctx, *, command):
+        self.logger.warning(
+            f'{ctx.author} executed shell {command!r} in {ctx.channel}')
+
+        binder = bookbinding.StringBookBinder(ctx, max_lines=30,
+                                              prefix='```',
+                                              suffix='```')
+
+        try:
+            with async_timeout.timeout(60):
+                result = subprocess.check_output(
+                    command,
+                    universal_newlines=True,
+                    shell=True,
+                    stderr=subprocess.PIPE)
+                binder.add(result)
+        except:
+            binder.add(traceback.format_exc())
+        finally:
+            await binder.start()
 
 
 def setup(bot):
