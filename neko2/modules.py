@@ -13,7 +13,6 @@ modules = frozenset({
     _('cat'),
     _('cpp'),
     _('discord'),
-    _('f'),
     _('botupdate'),
     _('latex'),
     _('man'),
