@@ -7,11 +7,11 @@ def _(module: str):
 
 
 modules = frozenset({
-    _('coliru'),
+    _('compiler'),
     _('mew'),
     _('admin'),
     _('cat'),
-    _('cpp'),
+    _('cppref'),
     _('discord'),
     _('botupdate'),
     _('latex'),
@@ -19,7 +19,7 @@ modules = frozenset({
     _('py'),
     _('tldr'),
     _('ud'),
-    _('urlshorten'),
+    _('googl'),
     _('wordnik'),
     _('beats'),
     _('unicode'),

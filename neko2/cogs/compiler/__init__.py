@@ -1,7 +1,7 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
-from . import cog
+from . import coliru
 
 
 def setup(bot):
-    bot.add_cog(cog.ColiruCog())
+    bot.add_cog(coliru.ColiruCog())

@@ -22,7 +22,7 @@ code_block_re = re.compile(r'```([a-zA-Z0-9]+)\s([\s\S(^\\`{3})]*?)\s*```')
 coliru_cfg = configfiles.get_from_here('coliru_configs').sync_get()
 coliru_cfg = {k.lower(): v for k, v in coliru_cfg.items()}
 
-coliru_endpoint = 'http://coliru.stacked-crooked.com/compile'
+coliru_endpoint = 'http://compiler.stacked-crooked.com/compile'
 four_space_re = re.compile(r'^ {4}')
 
 
@@ -61,13 +61,13 @@ class ColiruCog(traits.CogTraits):
         ```
 
         Where `lang` is an optional markdown-supported language or
-        configuration. See the subcommand `coliru configs` to see the supported
+        configuration. See the subcommand `compiler configs` to see the supported
         configurations.
 
         If you use makefiles, indent by four spaces. I will automatically
         translate the leading quadruple spaces to horizontal tabs.
 
-        http://coliru.stacked-crooked.com/
+        http://compiler.stacked-crooked.com/
         """
 
         # noinspection PyTypeChecker
