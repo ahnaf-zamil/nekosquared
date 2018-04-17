@@ -6,7 +6,9 @@ Implementation of an ordered set data type.
 import collections
 import typing
 
-__all__ = ('OrderedSet', 'MutableOrderedSet', 'Stack')
+from cached_property import cached_property
+
+__all__ = ('OrderedSet', 'MutableOrderedSet', 'Stack', 'TwoWayDict')
 
 
 SetType = typing.TypeVar('SetType')
@@ -65,8 +67,10 @@ class MutableOrderedSet(OrderedSet, collections.MutableSet):
 StackType = typing.TypeVar('StackType')
 
 
-class Stack(collections.Sequence, typing.Generic[StackType]):
-    """Implementation of a stack."""
+class _Stack(collections.Sequence, typing.Generic[StackType]):
+    """
+    Implementation of a stack. This is exposed as a Queue or Stack subtype.
+    """
     def __init__(self,
                  items: typing.Optional[typing.Sequence[StackType]] = None) \
             -> None:
@@ -105,15 +109,6 @@ class Stack(collections.Sequence, typing.Generic[StackType]):
         """
         self._stack[index] = value
 
-    def push(self, x: StackType) -> StackType:
-        """Pushes the item onto the stack and returns it."""
-        self._stack.append(x)
-        return x
-
-    def pop(self) -> StackType:
-        """Pops from the stack."""
-        return self._stack.pop()
-
     def flip(self) -> None:
         """Flips the stack into reverse order in place."""
         self._stack = list(reversed(self._stack))
@@ -129,3 +124,58 @@ class Stack(collections.Sequence, typing.Generic[StackType]):
     def __bool__(self) -> bool:
         """Returns true if the stack is non-empty."""
         return bool(self._stack)
+
+
+class Stack(_Stack):
+    def push(self, x: StackType) -> StackType:
+        """Pushes the item onto the stack and returns it."""
+        self._stack.append(x)
+        return x
+
+    def pop(self) -> StackType:
+        """Pops from the stack."""
+        return self._stack.pop()
+
+
+class Queue(_Stack):
+    def enqueue(self, x: StackType) -> StackType:
+        """Pushes the item onto the Queue and returns it."""
+        self._stack.append(x)
+        return x
+
+    def deque(self) -> StackType:
+        """Pops from the front of the queue."""
+        return self._stack.pop(0)
+
+    dequeue = deque
+    shift = deque
+
+
+class TwoWayDict(dict):
+    """
+    A map that supports being reversed, and caches it's value to speed up
+    reversal whilst maintaining some level of integrity.
+
+    Note that value types that are iterable will be reversed in a way that
+    enforces each value in the list is a separate key.
+    """
+    @cached_property
+    def _reversed_representation(self) -> dict:
+        rev = {}
+
+        for k, v in self.items():
+            if hasattr(v, '__iter__') and not isinstance(v, str):
+                for sv in v:
+                    rev[sv] = k
+            else:
+                rev[v] = k
+        return rev
+
+    def __reversed__(self) -> dict:
+        return self._reversed_representation
+
+    def __setitem__(self, key, value):
+        if '_reversed_representation' in self.__dict__:
+            del self.__dict__['_reversed_representation']
+        return super().__setitem__(key, value)
+

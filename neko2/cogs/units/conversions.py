@@ -1,0 +1,7 @@
+#!/usr/bin/env python3.6
+# -*- coding: utf-8 -*-
+"""
+Hard coded model definitions.
+"""
+from . import models
+
