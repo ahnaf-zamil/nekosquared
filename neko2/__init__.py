@@ -26,7 +26,7 @@ import subprocess
 try:
     output = subprocess.check_output('git log --oneline',
                                      universal_newlines=True,
-                                     shell=True).strip().split('\n')
+                                     shell=True).strip().split('\n') + 1
     __version__ += f' build {len(output)}'
     del output
 except:
