@@ -225,6 +225,11 @@ async def wait_for_edit(*,
                   _after: discord.Message) -> bool:
         if _after.id != ctx.message.id:
             return False
+        # 17th April 2017: fixed so that pinning original message ctx
+        # does not trigger the edit event and cause the output to re-
+        # evaluate.
+        elif _before.content == _after.content:
+            return False
         elif not _after.content.startswith(ctx.prefix):
             return False
         else:
