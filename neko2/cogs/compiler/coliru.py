@@ -22,7 +22,9 @@ code_block_re = re.compile(r'```([a-zA-Z0-9]+)\s([\s\S(^\\`{3})]*?)\s*```')
 coliru_cfg = configfiles.get_from_here('coliru_configs').sync_get()
 coliru_cfg = {k.lower(): v for k, v in coliru_cfg.items()}
 
-coliru_endpoint = 'http://compiler.stacked-crooked.com/compile'
+# 17th April 2018: Seems that the following endpoint no longer works for me.
+# coliru_endpoint = 'http://compiler.stacked-crooked.com/compile'
+coliru_endpoint = 'http://coliru.stacked-crooked.com/compile'
 four_space_re = re.compile(r'^ {4}')
 
 
