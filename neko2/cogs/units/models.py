@@ -3,9 +3,10 @@
 """
 Implementation of the conversion data types.
 """
-import typing
 from decimal import Decimal
 import enum
+import typing
+
 
 from neko2.shared import alg
 
@@ -16,10 +17,8 @@ class UnitCategory(enum.Enum):
     DISTANCE = enum.auto()
     SPEED = enum.auto()
     ACCELERATION = enum.auto()
-
     AREA = enum.auto()
     VOLUME = enum.auto()
-
     # Also includes weight. For the benefit of the doubt,
     # we include grams in this category, since it is most
     # often used as a measurement of weight, rather than
@@ -154,7 +153,7 @@ class UnitCollection:
         if unit == to:
             return qty
         else:
-            return unit
+            return Decimal('1')
 
     def find_conversions(self, qty: Decimal, unit: Unit):
         """
