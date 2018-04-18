@@ -84,7 +84,7 @@ class AdminCog(traits.CogTraits):
                             with contextlib.redirect_stderr(output_stream):
                                 wrapped_command = (
                                     'async def _aexec(ctx):\n' +
-                                    '\n'.join(f'    {line}'
+                                    '\n'.join(f'{line}'
                                               for line
                                               in command.split('\n')) +
                                     '\n')
@@ -131,12 +131,12 @@ class AdminCog(traits.CogTraits):
                         out_stream.write('# ==/dev/stdout==\n')
                         if not stdout.endswith('\n'):
                             stdout += '\n'
-                        out_stream.write('   ' + stdout.replace('\n', '   \n'))
+                        out_stream.write(stdout)
                     if stderr:
                         out_stream.write('# ==/dev/stderr==\n')
                         if not stderr.endswith('\n'):
                             stderr += '\n'
-                        out_stream.write('   ' + stderr.replace('\n', '   \n'))
+                        out_stream.write(stderr)
                     if stdout or stderr:
                         out_stream.write('# ======EOF======\n')
 
