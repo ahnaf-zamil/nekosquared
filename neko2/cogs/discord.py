@@ -36,7 +36,7 @@ class DiscordUtilCog(traits.CogTraits, scribe.Scribe):
         await ctx.send(
             utils.oauth_url(
                 client_id,
-                permissions=int(perm_bits),
+                permissions=perm_bits,
                 guild=ctx.guild
             ))
 
