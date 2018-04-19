@@ -28,10 +28,10 @@ class DiscordUtilCog(traits.CogTraits, scribe.Scribe):
         perm_bits = 0
 
         for permission in permissions:
-            if permission not in perms.Permissions:
+            if permission.upper() not in perms.Permissions.__members__.keys():
                 return await ctx.send(f'{permission} is not recognised.')
             else:
-                perm_bits |= perms.Permissions[permission]
+                perm_bits |= perms.Permissions[permission.upper()]
 
         await ctx.send(
             utils.oauth_url(
