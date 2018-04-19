@@ -84,7 +84,7 @@ class AdminCog(traits.CogTraits):
                             with contextlib.redirect_stderr(output_stream):
                                 wrapped_command = (
                                     'async def _aexec(ctx):\n' +
-                                    '\n'.join(f'{line}'
+                                    '\n'.join(f'    {line}'
                                               for line
                                               in command.split('\n')) +
                                     '\n')
