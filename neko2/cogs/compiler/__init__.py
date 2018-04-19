@@ -1,7 +1,11 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
-from . import coliru
+"""
+Various code-related compilation tools.
+"""
+from neko2.cogs.compiler.cmds import CompilerCog
 
 
 def setup(bot):
-    bot.add_cog(coliru.ColiruCog())
+    bot.add_cog(CompilerCog())
+

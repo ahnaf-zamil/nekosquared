@@ -50,7 +50,7 @@ padding_pct_width = 1.15  # %/100
 padding_min_width = 100   # pixels
 
 
-class LatexCog(traits.CogTraits):
+class LatexCogHelper(traits.CogTraits):
     @staticmethod
     def generate_url(content,
                      *,
@@ -162,19 +162,20 @@ class LatexCog(traits.CogTraits):
 
         await cls.run_in_io_executor(bot, cpu_work)
 
-    async def get_send_image(self, ctx, content: str) -> discord.Message:
+    @classmethod
+    async def get_send_image(cls, ctx, content: str) -> discord.Message:
         # Append a tex newline to the start to force the content to
         # left-align.
-        url = self.generate_url(f'\\\\{content}', size=10)
+        url = cls.generate_url(f'\\\\{content}', size=10)
 
-        conn = await self.acquire_http(ctx.bot)
+        conn = await cls.acquire_http(ctx.bot)
 
         resp = await conn.get(url)
         data = await resp.read()
 
         with io.BytesIO(data) as in_data, io.BytesIO() as out_data:
             in_data.seek(0)
-            await self.pad_convert_image(
+            await cls.pad_convert_image(
                 ctx.bot,
                 in_data,
                 out_data,
@@ -188,52 +189,3 @@ class LatexCog(traits.CogTraits):
                 file=file)
 
             return msg
-
-    # noinspection PyMethodMayBeStatic
-    def mk_edit_predicate(self, ctx: commands.Context):
-        """
-        Generates a predicate for listening to edit events.
-
-        Note. This will only work if the prefix is the same, otherwise it will
-        return false when called.
-        """
-        def predicate(before: discord.Message, after: discord.Message) -> bool:
-            assert before.id == after.id
-            assert before.channel == after.channel
-
-            # Get the command prefix
-            if not after.content.startswith(ctx.prefix):
-                return False
-            else:
-                content = after.content[len(ctx.prefix):].lstrip()
-
-                assert hasattr(ctx.command, 'qualified_names')
-                return any(content.startswith(a)
-                           for a in ctx.command.qualified_names)
-
-        return predicate
-
-    @commands.command(
-        name='tex', aliases=['latex', 'texd', 'latexd'],
-        brief='Attempts to parse the given LaTeX string and display a '
-              'preview.')
-    async def latex_cmd(self, ctx, *, content: str):
-        """
-        Add the `d` prefix to the command to delete your message before the
-        response is shown.
-        """
-
-        delete = ctx.invoked_with.endswith('d')
-
-        if delete:
-            await commands.try_delete(ctx)
-
-        async with ctx.typing():
-            msg = await self.get_send_image(ctx, content)
-
-        if not delete:
-            await commands.wait_for_edit(ctx=ctx, msg=msg, timeout=1800)
-
-
-def setup(bot):
-    bot.add_cog(LatexCog())
