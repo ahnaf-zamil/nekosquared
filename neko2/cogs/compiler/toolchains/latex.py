@@ -8,7 +8,7 @@ import io                            # BytesIO
 import discord                       # Discord.py
 import PIL.Image                     # PIL Image loading
 import PIL.ImageDraw                 # PIL Image drawing
-from neko2.shared import traits, commands  # IOBound, CpuBound, and HTTP pools.
+from neko2.shared import traits      # IOBound, CpuBound, and HTTP pools.
 
 # URL endpoint to use.
 end_point = 'http://latex.codecogs.com/'
