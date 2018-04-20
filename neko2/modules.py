@@ -14,7 +14,6 @@ modules = frozenset({
     _('cppref'),
     _('discord'),
     _('botupdate'),
-    _('latex'),
     _('man'),
     _('py'),
     _('tldr'),

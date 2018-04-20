@@ -3,13 +3,17 @@
 """
 goo.gl URL shortener.
 
+Also has a command to generate a "let me google that for you" link
+
 Make an API key here:
 https://console.developers.google.com/apis/credentials
 
 See:
 https://developers.google.com/url-shortener/v1/getting_started#APIKey
 """
-import aiohttp
+import re
+import traceback
+import urllib.parse
 
 from neko2.shared import configfiles, commands
 from neko2.shared import errors
@@ -18,51 +22,79 @@ from neko2.shared import traits
 config_file = 'urlshorten'
 
 
+
 class UrlShortenerCog(traits.CogTraits):
     """Shortens URLS"""
     def __init__(self):
         self._key: str = configfiles.get_config_data(config_file)
 
-    @commands.command(brief='Shortens the given URL')
-    async def shorten(self, ctx, url: str, *, optional_description: str=None):
-        """
-        You can pass a description to put with the link if you like.
-        """
-        conn = await self.acquire_http(ctx.bot)
+    async def _shorten(self, url, bot):
+        conn = await self.acquire_http(bot)
 
         res = await conn.post('https://www.googleapis.com/urlshortener/v1/url',
                               params={'key': self._key},
                               json={'longUrl': url},
                               headers={'content_type': 'application/json'})
 
-        if not optional_description:
-            optional_description = 'shortened a URL'
-
         if res.status != 200:
             raise errors.HttpError(res)
-        try:
-            data = await res.json()
-        except aiohttp.ClientResponseError:
-            return await ctx.send('Bad request.', delete_after=10)
-        try:
 
-            if 'error' in data:
-                first_error = data['error']['errors'][0]
-                message = first_error['message']
-                location_type = message['locationType']
-                location = message['location'].replace('.', ' ')
+        return (await res.json())['id']
 
-                err_msg = f'{message} {location_type} for {location}.'
-                await ctx.send(err_msg, delete_after=10)
+    @commands.command(brief='Shortens the given URL')
+    async def shorten(self, ctx, url: str, *, optional_description: str=None):
+        """
+        You can pass a description to put with the link if you like.
+        """
+        try:
+            url = await self._shorten(url, ctx.bot)
+        except BaseException:
+            traceback.print_exc()
+            await ctx.send('There was an error handling this request.')
+        else:
+            if not optional_description:
+                optional_description = 'shortened a URL'
+
+            # Try to delete the initial message
+            await commands.try_delete(ctx)
+            return await ctx.send(
+                f'{ctx.author.mention} {optional_description}: '
+                f'{url}')
+
+    @commands.command(
+        brief="Directs stupid questions to their rightful place.",
+        usage="query [| @mention]",
+        examples=['how to buy lime', 'what is a discord.py? | @mention#1234'],
+        aliases=['lmgtfyd'])
+    async def lmgtfy(self, ctx, *, query):
+        """
+        Garbage question = garbage answer.
+        Call `lmgtfyd` to destroy your initial message.
+
+        You can "pipe" the output to a given member. This will mention them
+        in the response.
+        """
+        if '|' in query:
+            query, _, mention = query.rpartition('|')
+
+            mention = mention.strip()
+
+            if not re.match(r'^<!?@\d+>$', mention):
+                mention = ''
             else:
-                # Try to delete the initial message
-                await commands.try_delete(ctx)
-                return await ctx.send(
-                    f'{ctx.author.mention} {optional_description}: '
-                    f'{data["id"]}')
+                query, mention = query.rstrip(), mention + ': '
+        else:
+            mention = ''
 
-        except Exception as ex:
-            raise RuntimeError(str(ex) + ': ' + res.reason)
+        frag = urllib.parse.urlencode({'q': query})
+
+        if ctx.invoked_with == 'lmgtfyd':
+            await ctx.message.delete()
+
+        url = f'http://lmgtfy.com?{frag}'
+        url = await self._shorten(url, ctx.bot)
+
+        await ctx.send(''.join((mention, f'<{url}>')))
 
 
 def setup(bot):

@@ -8,17 +8,19 @@ import asyncio
 import contextlib
 import inspect
 import io
+import os
 import random
 import subprocess
+import time
 import traceback
 
 import async_timeout
 from discomaton.factories import bookbinding
 import discord
-from neko2.shared import scribe, commands  # scribe
+from neko2.shared import scribe, traits, commands  # scribe
 
 
-class AdminCog(scribe.Scribe):
+class AdminCog(traits.CogTraits):
     """Holds administrative utilities"""
     def __init__(self, bot):
         self.bot = bot
@@ -64,7 +66,7 @@ class AdminCog(scribe.Scribe):
                                               suffix='```')
 
         try:
-            binder.add_line('Output:')
+            binder.add_line('# Output:')
             if command.count('\n') == 0:
                 with async_timeout.timeout(10):
                     if command.startswith('await '):
@@ -72,7 +74,7 @@ class AdminCog(scribe.Scribe):
                     result = eval(command)
                     if inspect.isawaitable(result):
                         binder.add_line(
-                            f'> automatically awaiting result {result}')
+                            f'# automatically awaiting result {result}')
                         result = await result
                     binder.add(str(result))
             else:
@@ -89,33 +91,79 @@ class AdminCog(scribe.Scribe):
                                 exec(wrapped_command)
                                 result = await (locals()['_aexec'](ctx))
                         binder.add(output_stream.getvalue())
-                        binder.add('Returned ' + str(result))
+                        binder.add('# Returned ' + str(result))
         except:
             binder.add(traceback.format_exc())
         finally:
             await binder.start()
 
-    @commands.command(hidden=True)
+    @commands.command(hidden=True, rest_is_raw=True)
     async def shell(self, ctx, *, command):
         self.logger.warning(
             f'{ctx.author} executed shell {command!r} in {ctx.channel}')
 
         binder = bookbinding.StringBookBinder(ctx, max_lines=30,
-                                              prefix='```',
+                                              prefix='```bash',
                                               suffix='```')
 
         try:
-            with async_timeout.timeout(60):
-                result = subprocess.check_output(
-                    command,
-                    universal_newlines=True,
-                    shell=True,
-                    stderr=subprocess.PIPE)
-                binder.add(result)
+            with async_timeout.timeout(600):
+                fp = None
+                # Random string name.
+                temp_script = f'/tmp/{time.monotonic()}{time.time()}.sh'
+                binder.add(f'# This will time out after 600 seconds...')
+                binder.add(f'# Creating script {temp_script} (chmod 744)\n')
+                with open(temp_script, 'w') as fp:
+                    for line in command.split('\n'):
+                        fp.write(f'{line}\n')
+                os.chmod(temp_script, 0o744)
+
+                # Execute script in shell.
+                with io.StringIO() as out_stream:
+                    process = await asyncio.create_subprocess_shell(
+                        temp_script,
+                        stdout=asyncio.subprocess.PIPE,
+                        stderr=asyncio.subprocess.PIPE)
+                    stdout = (await process.stdout.read()).decode()
+                    stderr = (await process.stderr.read()).decode()
+
+                    if stdout:
+                        out_stream.write('# ==/dev/stdout==\n')
+                        if not stdout.endswith('\n'):
+                            stdout += '\n'
+                        out_stream.write(stdout)
+                    if stderr:
+                        out_stream.write('# ==/dev/stderr==\n')
+                        if not stderr.endswith('\n'):
+                            stderr += '\n'
+                        out_stream.write(stderr)
+                    if stdout or stderr:
+                        out_stream.write('# ======EOF======\n')
+
+                    out_stream.write(
+                        '# Returned '
+                        f'{process.returncode if process.returncode else 0}')
+                    binder.add(out_stream.getvalue())
         except:
             binder.add(traceback.format_exc())
         finally:
             await binder.start()
+
+    @commands.command(brief='Disables repl until restart.', hidden=True)
+    async def lockdown(self, ctx):
+        """In case I notice someone managed to get to the repl somehow."""
+        try:
+            ctx.bot.remove_command('exec')
+        except BaseException as e:
+            await ctx.send(f'Can\'t disable exec.\n{type(e).__name__}: {e}')
+        else:
+            await ctx.send('Disabled exec.')
+        try:
+            ctx.bot.remove_command('shell')
+        except BaseException as e:
+            await ctx.send(f'Can\'t disable shell.\n{type(e).__name__}: {e}')
+        else:
+            await ctx.send('Disabled shell.')
 
 
 def setup(bot):

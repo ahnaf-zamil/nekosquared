@@ -22,7 +22,27 @@ keks = (
     'Please don\'t break anything this time...',
     'Again?!',
     '~~Better get ready to stop working then!~~',
-    '\N{OK HAND SIGN}'
+    '\N{OK HAND SIGN}',
+    'https://media1.tenor.com/images/'
+    '5c0e9a59364291b87ad912d88d37438c/tenor.gif?itemid=5682066',
+    '(╯°□°）╯︵ ┻━┻',
+    '( ͡° ͜ʖ ͡°)',
+    'ಠ_ಠ',
+    'ノ┬─┬ノ ︵ ( \o°o)\\n(In Soviet Russia... table flips **you**.',
+    'ᕕ( ᐛ )ᕗ *off we go to break some more!*',
+    'ლ(ಠ_ಠლ)\nY U NO WRITE GOOD CODE',
+    '(づ￣ ³￣)づ *new commits*',
+    'ᕦ(ò_óˇ)ᕤ 1v1 me irl',
+    '(∩｀-´)⊃━☆ﾟ.*･｡ﾟ *bad code*',
+    'o(╥﹏╥)o I give up trying to fight you',
+    '(ง •̀_•́)ง',
+    '(me) --> (╯°Д°）╯︵/(.□ . \) <-- (you)',
+    '(╥_╥)', 'ᕙ(⇀‸↼‶)ᕗ', '(ง •̀_•́)ง ผ(•̀_•́ผ)',
+    'f(ಠ‿↼)z',
+    '(ノಠ益ಠ)ノ',
+    'OH BOY\nNEW COMMITS!\nヽ(⌐■_■)ノ♪♬  ٩( ᐛ )و   ᕕ( ᐛ )ᕗ',
+    '(◍•﹏•)',
+    'I _will_ be back...\n┬┴┬┴┤ ͜ʖ ͡°) ├┬┴┬┴'
 )
 
 
