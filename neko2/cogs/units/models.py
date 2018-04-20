@@ -6,13 +6,19 @@ Implementation of the conversion data types.
 from decimal import Decimal
 import enum
 import typing
+import weakref
 
+from dataclasses import dataclass
 
 from neko2.shared import alg
 
 
+__all__ = ('UnitCategoryModel', 'UnitModel', 'UnitCollectionModel',
+           'PotentialValueModel', 'ValueModel')
+
+
 @enum.unique
-class UnitCategory(enum.Enum):
+class UnitCategoryModel(enum.Enum):
     """Holds a category of units."""
     DISTANCE = enum.auto()
     SPEED = enum.auto()
@@ -26,7 +32,7 @@ class UnitCategory(enum.Enum):
     FORCE = enum.auto()
 
 
-class Unit:
+class UnitModel:
     """
     Representation of some unit measurement definition, such as meters.
 
@@ -52,6 +58,7 @@ class Unit:
         self._to_si = to_si
         self._from_si = from_si
         self.is_si = is_si
+        self.unit_type: UnitCategoryModel
 
     @property
     def name(self) -> str:
@@ -59,21 +66,15 @@ class Unit:
 
     def to_si(self, this: Decimal) -> Decimal:
         """Converts this measurement to the SI equivalent."""
-        if self.is_si:
-            return this
-
         return self._to_si(this)
 
     def from_si(self, si: Decimal) -> Decimal:
         """Converts this measurement from the SI equivalent to this."""
-        if self.is_si:
-            return si
-
         return self._from_si(si)
 
-    def __eq__(self, other: typing.Union[str, 'Unit']):
+    def __eq__(self, other: typing.Union[str, 'UnitModel']):
         """Equality is defines as a string match for any name"""
-        if isinstance(other, Unit):
+        if isinstance(other, UnitModel):
             return super().__eq__(other)
         else:
             return other.lower() in (n.lower() for n in self.names)
@@ -83,7 +84,6 @@ class Unit:
         return hash(self.name.lower())
 
     def __str__(self):
-        """"""
         return self.name
 
     def __repr__(self):
@@ -91,17 +91,23 @@ class Unit:
             f'<Unit name={self.name} '
             f'aliases={f", ".join("{a}" for a in self.names[1:])}')
 
+    def _set_unit_category(self, cat: UnitCategoryModel):
+        self.unit_type = weakref.ref(cat)
+
     @classmethod
-    def new_mult(cls,
-                 si_per_this: Decimal,
-                 name: str,
-                 *other_names: str) -> "Unit":
+    def new_cv(cls,
+               si_per_this: typing.Union[str, Decimal],
+               name: str,
+               *other_names: str) -> "UnitModel":
         """
         Initialises a unit that is purely a multiple of the SI quantity.
 
         This is useful if there is a constant linear relationship, as is for
         most measurements, except for Temperature.
         """
+        if isinstance(si_per_this, str):
+            si_per_this = Decimal(si_per_this)
+
         def to_si(c: Decimal):
             return c * si_per_this
 
@@ -111,24 +117,28 @@ class Unit:
         return cls(to_si, from_si, name, *other_names)
 
     @classmethod
-    def new_si(cls, name: str, *other_names: str) -> "Unit":
+    def new_si(cls, name: str, *other_names: str) -> "UnitModel":
         """Initialises a new SI measurement."""
         # noinspection PyTypeChecker
         return cls(None, None, name, *other_names, is_si=True)
 
 
-class UnitCollection:
+class UnitCollectionModel:
     def __init__(self,
-                 unit_type: UnitCategory,
-                 si: Unit,
-                 *other_conversions: Unit):
+                 category: UnitCategoryModel,
+                 si: UnitModel,
+                 *other_conversions: UnitModel):
         self.si = si
+        self.unit_type = category
         # Obviously.
         self.si.is_si = True
         self.conversions = (si, *other_conversions)
-        self.type = unit_type
 
-    def find_unit(self, name: str) -> typing.Optional[Unit]:
+        for conversion in self.conversions:
+            # noinspection PyProtectedMember
+            conversion._set_unit_category(self.unit_type)
+
+    def find_unit(self, name: str) -> typing.Optional[UnitModel]:
         """
         Looks for a unit with a matching name, and returns it.
 
@@ -145,7 +155,7 @@ class UnitCollection:
         return bool(self.find_unit(unit))
 
     @staticmethod
-    def convert(qty: Decimal, unit: Unit, to: Unit):
+    def convert(qty: Decimal, unit: UnitModel, to: UnitModel):
         """
         Converts one quantity to another assuming they are the same
         type of unit.
@@ -155,7 +165,7 @@ class UnitCollection:
         else:
             return Decimal('1')
 
-    def find_conversions(self, qty: Decimal, unit: Unit):
+    def find_conversions(self, qty: Decimal, unit: UnitModel):
         """
         Returns a list of all conversion equivalents for this unit.
 
@@ -170,5 +180,32 @@ class UnitCollection:
 
         return tuple(results)
 
-    def __iter__(self) -> typing.Iterator[Unit]:
+    def __iter__(self) -> typing.Iterator[UnitModel]:
         return iter(self.conversions)
+
+
+@dataclass()
+class PotentialValueModel:
+    """
+    A tokenized potential measurement that matches our input regex. It has not
+    yet been verified as an existing measurement in our dictionary however.
+    """
+    value: Decimal
+    unit: str
+
+    def __str__(self):
+        return f'{self.value} {self.unit}'
+
+
+@dataclass()
+class ValueModel:
+    """An instance of a measurement that we have interpreted successfully."""
+    value: Decimal
+    unit: UnitModel
+
+    @property
+    def unit_name(self):
+        return self.unit.name
+
+    def __str__(self):
+        return f'{self.value} {self.unit_name}'

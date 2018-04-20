@@ -64,42 +64,31 @@ class MutableOrderedSet(OrderedSet, collections.MutableSet):
         self._dict.pop(x)
 
 
-StackType = typing.TypeVar('StackType')
+FifoFiloType = typing.TypeVar('FifoFiloType')
 
 
-class _Stack(collections.Sequence, typing.Generic[StackType]):
+class _FifoFiloBase(collections.Sequence, typing.Generic[FifoFiloType]):
     """
-    Implementation of a stack. This is exposed as a Queue or Stack subtype.
+    Underlying implementation of either a FIFO/LILO or FILO/LIFO datatype.
+    This is exposed as a Queue or Stack subtype.
     """
     def __init__(self,
-                 items: typing.Optional[typing.Sequence[StackType]] = None) \
+                 items: typing.Optional[typing.Sequence[FifoFiloType]] = None) \
             -> None:
         """
         Initialise the stack.
         :param items: the items to add to the stack initially.
         """
-        self._stack = []
+        self._deque = []
         if items:
-            self._stack.extend(items)
+            self._deque.extend(items)
 
-    def __len__(self) -> int:
-        """Get the stack length."""
-        return len(self._stack)
-
-    def __iter__(self) -> typing.Iterator[StackType]:
-        """Get an iterator across the stack."""
-        return iter(self._stack)
-
-    def __contains__(self, x: object) -> bool:
-        """Determine if the given object is in the stack."""
-        return x in self._stack
-
-    def __getitem__(self, index: int) -> StackType:
+    def __getitem__(self, index: int) -> FifoFiloType:
         """
         Get the item at the given index in the stack. Zero implies
         the bottom of the stack (first in).
         """
-        return self._stack[index]
+        return self._deque[index]
 
     def __setitem__(self, index: int, value: object) -> None:
         """
@@ -107,61 +96,91 @@ class _Stack(collections.Sequence, typing.Generic[StackType]):
         :param index: the index to edit at.
         :param value: the value to edit at.
         """
-        self._stack[index] = value
+        self._deque[index] = value
 
-    def flip(self) -> None:
-        """Flips the stack into reverse order in place."""
-        self._stack = list(reversed(self._stack))
+    def __len__(self) -> int:
+        """Get the stack length."""
+        return len(self._deque)
+
+    def __iter__(self) -> typing.Iterator[FifoFiloType]:
+        """Get an iterator across the stack."""
+        return iter(self._deque)
+
+    def __contains__(self, x: object) -> bool:
+        """Determine if the given object is in the stack."""
+        return x in self._deque
+
+    def __reversed__(self) -> None:
+        """Gets the reversed representation of the stack."""
+        self._deque = list(reversed(self._deque))
 
     def __str__(self) -> str:
         """Gets the string representation of the stack."""
-        return str(self._stack)
+        return str(self._deque)
 
     def __repr__(self) -> str:
         """Gets the string representation of the stack."""
-        return repr(self._stack)
+        return repr(self._deque)
 
     def __bool__(self) -> bool:
         """Returns true if the stack is non-empty."""
-        return bool(self._stack)
+        return bool(self._deque)
+
+    def __hash__(self):
+        return hash(id(self))
 
 
-class Stack(_Stack):
-    def push(self, x: StackType) -> StackType:
+class Stack(_FifoFiloBase):
+    """First-in-Last-out."""
+    def push(self, x: FifoFiloType) -> FifoFiloType:
         """Pushes the item onto the stack and returns it."""
-        self._stack.append(x)
+        self._deque.append(x)
         return x
 
-    def pop(self) -> StackType:
+    def pop(self) -> FifoFiloType:
         """Pops from the stack."""
-        return self._stack.pop()
+        return self._deque.pop()
 
 
-class Queue(_Stack):
-    def enqueue(self, x: StackType) -> StackType:
+class Queue(_FifoFiloBase):
+    """First-in-first out"""
+    def enqueue(self, x: FifoFiloType) -> FifoFiloType:
         """Pushes the item onto the Queue and returns it."""
-        self._stack.append(x)
+        self._deque.append(x)
         return x
 
-    def deque(self) -> StackType:
+    def dequeue(self) -> FifoFiloType:
         """Pops from the front of the queue."""
-        return self._stack.pop(0)
+        return self._deque.pop(0)
 
-    dequeue = deque
-    shift = deque
+    # I hate inconsistent naming.
 
 
-class TwoWayDict(dict):
+class Deque(Queue, Stack):
+    """Implementation of both a Stack and a Queue in one."""
+    def shift(self):
+        """Shifts from the front."""
+        return self._deque.pop(0)
+
+    def unshift(self, x: FifoFiloType):
+        """Un-shifts the given element to the start of the deque."""
+        self._deque.insert(0, x)
+        return x
+
+
+class TwoWayDict(collections.OrderedDict):
     """
     A map that supports being reversed, and caches it's value to speed up
     reversal whilst maintaining some level of integrity.
 
     Note that value types that are iterable will be reversed in a way that
     enforces each value in the list is a separate key.
+
+    To comply with Python3.7, this is Ordered by default.
     """
     @cached_property
     def _reversed_representation(self) -> dict:
-        rev = {}
+        rev = collections.OrderedDict()
 
         for k, v in self.items():
             if hasattr(v, '__iter__') and not isinstance(v, str):
@@ -178,4 +197,3 @@ class TwoWayDict(dict):
         if '_reversed_representation' in self.__dict__:
             del self.__dict__['_reversed_representation']
         return super().__setitem__(key, value)
-
