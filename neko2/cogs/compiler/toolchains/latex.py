@@ -47,7 +47,7 @@ backgrounds = {
 
 padding_pct_height = 1.5  # %/100
 padding_pct_width = 1.15  # %/100
-padding_min_width = 100   # pixels
+padding_min_width = 20   # pixels
 
 
 class LatexCogHelper(traits.CogTraits):
