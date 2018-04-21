@@ -7,6 +7,7 @@ import decimal
 import re
 import typing
 
+from neko2.cogs.units.models import PotentialValueModel
 from .conversions import *
 
 

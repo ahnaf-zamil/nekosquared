@@ -211,5 +211,8 @@ class ValueModel:
     def unit_name(self):
         return self.unit.name
 
+    def __hash__(self):
+        return hash(self.value)
+
     def __str__(self):
         return f'{self.value} {self.unit_name}'

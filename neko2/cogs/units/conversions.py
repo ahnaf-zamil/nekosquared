@@ -10,6 +10,9 @@ from neko2.shared import alg
 from .models import *
 
 
+__all__ = ('get_category', 'get_compatible_models', 'find_unit_by_str')
+
+
 _models = {
     UnitCollectionModel(
         UnitCategoryModel.DISTANCE,

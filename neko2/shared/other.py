@@ -3,7 +3,9 @@
 """
 Other bits and pieces that do not belong elsewhere.
 """
-import typing
+
+
+__all__ = ('rand_colour',)
 
 
 def rand_colour() -> int:
