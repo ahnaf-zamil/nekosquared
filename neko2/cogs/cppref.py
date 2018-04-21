@@ -162,7 +162,12 @@ class CppCog(traits.CogTraits):
         aliases=['cref', 'cpp'],
         examples=['std::string', 'stringstream'])
     async def cppref(self, ctx, *terms):
-        results = await self.results(ctx.bot, *terms)
+
+        try:
+            results = await self.results(ctx.bot, *terms)
+        except:
+            return await ctx.send('Cppreference read my message, but'
+                                  ' ignored it! How rude!!')
 
         if not results:
             return await ctx.send('No results were found.', delete_after=10)
@@ -179,9 +184,12 @@ class CppCog(traits.CogTraits):
             result = results[0]
 
         # Fetch the result page.
-        url, h1, tasters, header, desc = await self.get_information(
-            ctx.bot,
-            result.href)
+        try:
+            url, h1, tasters, header, desc = await self.get_information(
+                ctx.bot,
+                result.href)
+        except:
+            return await ctx.send('Rude! Cppreference just hung up on me..!')
 
         binder = bookbinding.StringBookBinder(ctx, max_lines=50)
 
@@ -194,7 +202,7 @@ class CppCog(traits.CogTraits):
                 binder.add_line(f'```cpp\n{taster}\n```', dont_alter=True)
 
         if desc:
-            binder.add_line(desc)
+            binder.add_line(desc.replace('*', '∗'))
 
         binder.start()
 

@@ -23,5 +23,6 @@ modules = frozenset({
     _('beats'),
     _('unicode'),
     _('rpn'),
-    _('xkcd')
+    _('xkcd'),
+    _('units')
 })

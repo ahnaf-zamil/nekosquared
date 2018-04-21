@@ -20,13 +20,13 @@ __all__ = ('tokenize',)
 # measurement that starts with a non-space and non-digit value.
 raw_unit_pattern = (
     r'(?:\s|^)([-+]?(?:(?:\d+)\.\d+|\d+)(?:[eE][-+]?\d+)?)\s?'
-    r'([^\s0-9].*)(?:\b)')
+    r'([^\s0-9].*?)(?:\b)')
 
 pattern = re.compile(raw_unit_pattern, re.I)
 
 
 def tokenize(input_string: str) -> typing.Iterator[PotentialValueModel]:
-    matches = pattern.finditer(input_string)
+    matches = list(pattern.finditer(input_string))
 
     for result in matches:
         value = decimal.Decimal(result.group(1))

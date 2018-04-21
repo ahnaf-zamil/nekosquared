@@ -6,7 +6,6 @@ Implementation of the conversion data types.
 from decimal import Decimal
 import enum
 import typing
-import weakref
 
 from dataclasses import dataclass
 
@@ -38,6 +37,9 @@ class UnitModel:
 
     This will not store an arbitrary quantity. It exists as a way of simplifying
     the definition of what a unit is.
+
+    The last name should be the abbreviated form to use for output. I could
+    make that into a kwarg but YOLO.
 
     :param to_si: formulae to take a decimal and convert it to SI from this.
     :param from_si: formulae to take a decimal and convert it from SI to this.
@@ -89,10 +91,10 @@ class UnitModel:
     def __repr__(self):
         return (
             f'<Unit name={self.name} '
-            f'aliases={f", ".join("{a}" for a in self.names[1:])}')
+            f'aliases={f", ".join(a for a in self.names[1:])}')
 
     def _set_unit_category(self, cat: UnitCategoryModel):
-        self.unit_type = weakref.ref(cat)
+        self.unit_type = cat
 
     @classmethod
     def new_cv(cls,
@@ -120,7 +122,10 @@ class UnitModel:
     def new_si(cls, name: str, *other_names: str) -> "UnitModel":
         """Initialises a new SI measurement."""
         # noinspection PyTypeChecker
-        return cls(None, None, name, *other_names, is_si=True)
+        def pass_through(x):
+            return x
+
+        return cls(pass_through, pass_through, name, *other_names, is_si=True)
 
 
 class UnitCollectionModel:
@@ -215,4 +220,4 @@ class ValueModel:
         return hash(self.value)
 
     def __str__(self):
-        return f'{self.value} {self.unit_name}'
+        return f'{round(float(self.value), 4):g} {self.unit.names[-1]}'
