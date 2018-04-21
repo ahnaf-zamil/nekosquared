@@ -197,11 +197,15 @@ class PotentialValueModel:
         return f'{self.value} {self.unit}'
 
 
-@dataclass()
+@dataclass(init=False)
 class ValueModel:
     """An instance of a measurement that we have interpreted successfully."""
     value: Decimal
     unit: UnitModel
+
+    def __init__(self, value: typing.Union[str, Decimal], unit: UnitModel):
+        self.value = Decimal(value)
+        self.unit = unit
 
     @property
     def unit_name(self):

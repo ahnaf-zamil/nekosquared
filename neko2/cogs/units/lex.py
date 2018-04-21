@@ -1,13 +1,13 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
 """
-Tokenizer and parser logic.
+Tokenizer logic.
 """
 import decimal
 import re
 import typing
 
-from .models import *
+from .conversions import *
 
 
 __all__ = ('tokenize',)
@@ -31,5 +31,3 @@ def tokenize(input_string: str) -> typing.Iterator[PotentialValueModel]:
         value = decimal.Decimal(result.group(1))
         unit_string = result.group(2)
         yield PotentialValueModel(value, unit_string)
-
-

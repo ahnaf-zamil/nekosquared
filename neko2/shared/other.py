@@ -3,6 +3,7 @@
 """
 Other bits and pieces that do not belong elsewhere.
 """
+import typing
 
 
 def rand_colour() -> int:
