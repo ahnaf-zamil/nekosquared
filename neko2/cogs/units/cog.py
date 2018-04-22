@@ -80,13 +80,52 @@ class UnitCog(traits.CogTraits):
 
             equivalents[quantity] = this_equivalents
 
+        embed = discord.Embed(colour=other.rand_colour())
+
+        mass_msg_added = False
+
+        for original, equivalents in list(equivalents.items())[:20]:
+            equiv_str = []
+            for equivalent in equivalents:
+                equivalent = models.pretty_print(
+                    equivalent.value,
+                    equivalent.name,
+                    use_long_suffix=True,
+                    use_std_form=True,
+                    none_if_rounds_to_zero=True)
+                equiv_str.append(equivalent)
+
+            equiv_str = list(filter(bool, equiv_str))
+
+            if not equiv_str:
+                continue
+
+            embed.add_field(
+                name=models.pretty_print(
+                    original.value,
+                    original.name,
+                    use_long_suffix=True,
+                    use_std_form=True,
+                    none_if_rounds_to_zero=False),
+                value='\n'.join(equiv_str))
+
+            if original.unit.unit_type == models.UnitCategoryModel.FORCE:
+                if not mass_msg_added:
+                    mass_msg_added = True
+                    embed.set_footer(
+                        text='This example assumes that mass measurements are '
+                             'accelerating at 9.81Ns.')
+
+        if not len(embed.fields):
+            return
+
         # Create a task to show and wait on the original message for a reaction
         # to be interacted with to display the measurement in chat. This way
         # we won't spam chat like the old version did. This passes control
         # back to the asyncio thread.
-        loop.create_task(self.await_result_request(message, equivalents))
+        loop.create_task(self.await_result_request(message, embed))
 
-    async def await_result_request(self, original_message, conversions: dict):
+    async def await_result_request(self, original_message, embed):
         try:
             # Run asynchronously to be more responsive.
             asyncio.ensure_future(
@@ -111,14 +150,8 @@ class UnitCog(traits.CogTraits):
                         if r_user == self.bot.user or r_user == user:
                             await m.remove_reaction(reaction.emoji, r_user)
 
-            embed = discord.Embed(colour=other.rand_colour())
-
-            for original, equivalents in list(conversions.items())[:20]:
-                embed.add_field(name=str(original),
-                                value='\n'.join(str(e) for e in equivalents))
-
             await original_message.channel.send(embed=embed)
         except asyncio.TimeoutError:
             pass
-        except BaseException as ex:
-            self.logger.warning(traceback.format_exception_only(type(ex), ex))
+        except BaseException:
+            traceback.print_exc()
