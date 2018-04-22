@@ -126,11 +126,11 @@ _models = {
         UnitModel(
             lambda c: c + Decimal('273.15'),
             lambda k: k - Decimal('273.15'),
-            '°C', '°C', 'celsius', 'centigrade', 'C'),
+            '°C', '°C', 'celsius', 'centigrade', 'oC', 'C'),
         UnitModel(
             lambda f: Decimal('5') * (f + Decimal('459.67')) / Decimal('9'),
             lambda k: (k * (Decimal('9') / Decimal('5'))) - Decimal('459.67'),
-            '°F', '°F', 'fahrenheit', 'F'),
+            '°F', '°F', 'fahrenheit', 'oF', 'F'),
     ),
 }
 
