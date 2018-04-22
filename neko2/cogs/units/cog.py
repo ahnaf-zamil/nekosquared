@@ -45,10 +45,13 @@ class UnitCog(traits.CogTraits):
         if not all(c(message) for c in self.checks):
             return
         else:
-            await self.run_in_io_executor(self.bot,
-                                          self.worker,
-                                          self.bot.loop,
-                                          message)
+            e = await self.run_in_io_executor(self.bot,
+                                              self.worker,
+                                              self.bot.loop,
+                                              message)
+
+            if e:
+                await self.await_result_request(message, e)
 
     def worker(self, loop: asyncio.BaseEventLoop, message):
         """Calculates all conversions on a separate thread."""
@@ -91,7 +94,7 @@ class UnitCog(traits.CogTraits):
                     equivalent.value,
                     equivalent.name,
                     use_long_suffix=True,
-                    use_std_form=True,
+                    use_std_form=not original.unit.never_use_std_form,
                     none_if_rounds_to_zero=True)
                 equiv_str.append(equivalent)
 
@@ -105,25 +108,23 @@ class UnitCog(traits.CogTraits):
                     original.value,
                     original.name,
                     use_long_suffix=True,
-                    use_std_form=True,
+                    use_std_form=not original.unit.never_use_std_form,
                     none_if_rounds_to_zero=False),
                 value='\n'.join(equiv_str))
 
-            if original.unit.unit_type == models.UnitCategoryModel.FORCE:
+            if original.unit.unit_type == models.UnitCategoryModel.FORCE_MASS:
                 if not mass_msg_added:
                     mass_msg_added = True
                     embed.set_footer(
                         text='This example assumes that mass measurements are '
-                             'accelerating at 9.81Ns.')
+                             'accelerating at 1G. Likewise, acceleration '
+                             'assumes that it applies to 1kg mass.')
 
         if not len(embed.fields):
+            del embed
             return
 
-        # Create a task to show and wait on the original message for a reaction
-        # to be interacted with to display the measurement in chat. This way
-        # we won't spam chat like the old version did. This passes control
-        # back to the asyncio thread.
-        loop.create_task(self.await_result_request(message, embed))
+        return embed
 
     async def await_result_request(self, original_message, embed):
         try:

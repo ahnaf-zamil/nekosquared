@@ -28,4 +28,3 @@ def parse(input_model: PotentialValueModel,
         parsed = _parse(pm)
         if parsed is not None:
             yield parsed
-

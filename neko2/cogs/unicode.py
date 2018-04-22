@@ -230,6 +230,7 @@ class UnicodeCog(traits.CogTraits):
 
     @commands.group(name='char', brief='Character inspection for Unicode.',
                     invoke_without_command=True,
+                    aliases=['unicode', 'utf', 'utf-8', 'utf8'],
                     examples=['¯\_(ツ)_/¯  0x1Q44c :musical_note: '])
     async def char_group(self, ctx, *, characters):
         """

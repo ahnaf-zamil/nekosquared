@@ -74,6 +74,7 @@ def parse(tokens):
         else:
             return stack.pop()
 
+
 # Test CLI.
 if __name__ == '__main__':
     import sys
@@ -107,4 +108,3 @@ else:
 
     def setup(bot):
         bot.add_cog(ReversePolishCog())
-        

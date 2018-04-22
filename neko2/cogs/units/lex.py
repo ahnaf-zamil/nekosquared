@@ -26,7 +26,7 @@ __all__ = ('tokenize',)
 #     - #3 - the unit string.
 raw_unit_pattern = (
     r'(?:\s|^)([-+]?(?:(?:\d+)\.\d+|\d+)(?:[eE][-+]?\d+)?)(\s?)'
-    r'([^\s0-9].*?)(?:\b)')
+    r'([^\s0-9].*?)(?:\s|$)')
 
 pattern = re.compile(raw_unit_pattern, re.I)
 
