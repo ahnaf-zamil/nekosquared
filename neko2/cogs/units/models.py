@@ -289,6 +289,16 @@ def pretty_print(d: Decimal,
         down to zero, then we return None to allow the caller to exclude it
         from results.
     """
+    def trunc(rounded_str):
+        # Remove trailing zeros if we have any.
+        if '.' in rounded_str and 'e' not in rounded_str.lower():
+            while rounded_str[-1] in ('0', '.'):
+                premature_break = rounded_str[-1] == '.'
+                rounded_str = rounded_str[:-1]
+                if premature_break:
+                    break
+        return rounded_str
+
     if d != 0:
         real_pot = int(d.log10())
     else:
@@ -310,7 +320,13 @@ def pretty_print(d: Decimal,
     # Divide by the chosen power of ten to get the
     # value in the base we want.
     if use_std_form:
-        return f'{d:,.3g} {suffix_name}'
+        if Decimal('0.000001') <= abs(d) < Decimal('1000000000'):
+            rounded_str = f'{d:,.6f}'
+            return f'{trunc(rounded_str)} {suffix_name}'
+            # return f'{d:,.4f} {suffix_name}'
+        else:
+            return f'{d:,.4e} {suffix_name}'
+            # return f'{d:,.4g} {suffix_name}'
     else:
         d /= Decimal(10 ** chosen_pot)
 
@@ -320,10 +336,7 @@ def pretty_print(d: Decimal,
             return None
         else:
             rounded_str = f'{rounded:,f}'
-            # Remove trailing zeros if we have any.
-            if '.' in rounded_str and 'e' not in rounded_str.lower():
-                while rounded_str[-1] in ('0', '.'):
-                    rounded_str = rounded_str[:-1]
+            rounded_str = trunc(rounded_str)
             return (
                 f'{rounded_str} '
                 f'{suffix[1 if use_long_suffix else 0]}{suffix_name}')

@@ -31,28 +31,27 @@ _models = {
                          'centimetres', 'cm', exclude_from_conversions=True),
         UnitModel.new_cv('0.001', 'millimeter', 'millimetre', 'millimeters',
                          'millimetres', 'mm', exclude_from_conversions=True),
-        UnitModel.new_cv('1.496e+11', 'astronomical unit', 'astronomical units',
-                         'AU'),
+        UnitModel.new_cv('1.496e+11', 'AU', 'AU', 'astronomical unit',
+                         'astronomical units', 'AU'),
         UnitModel.new_cv('9.461e+15', 'light-year', 'light-years',
                          'light year', 'light years', 'ly'),
         UnitModel.new_cv('3.086e+16', 'parsec', 'parsecs', 'pc')
     ),
 
-    UnitCollectionModel(
-        UnitCategoryModel.TIME,
-        UnitModel.new_si('second', 'seconds', 's'),
-        UnitModel.new_cv('60', 'minute', 'minutes'),
-        UnitModel.new_cv('3600', 'hour', 'hours', 'h'),
-        UnitModel.new_cv('86400', 'day', 'days', 'dy', 'dys'),
-        UnitModel.new_cv('604800', 'week', 'weeks', 'wk', 'wks'),
-        UnitModel.new_cv('2592000', 'month', 'months', 'mon', 'mons'),
-        UnitModel.new_cv('31536000', 'year', 'years', 'yr', 'yrs'),
-        UnitModel.new_cv('3.336e-11', 'jiffy', 'jiffies',
-                         exclude_from_conversions=True),
-        UnitModel.new_cv('5.391e-44', 'plank time', 'tP',
-                         exclude_from_conversions=True)
-
-    ),
+    # UnitCollectionModel(
+    #     UnitCategoryModel.TIME,
+    #     UnitModel.new_si('second', 'seconds', 's'),
+    #     UnitModel.new_cv('60', 'minute', 'minutes'),
+    #     UnitModel.new_cv('3600', 'hour', 'hours', 'h'),
+    #     UnitModel.new_cv('86400', 'day', 'days', 'dy', 'dys'),
+    #     UnitModel.new_cv('604800', 'week', 'weeks', 'wk', 'wks'),
+    #     UnitModel.new_cv('2592000', 'month', 'months', 'mon', 'mons'),
+    #     UnitModel.new_cv('31536000', 'year', 'years', 'yr', 'yrs'),
+    #     UnitModel.new_cv('3.336e-11', 'jiffy', 'jiffies',
+    #                      exclude_from_conversions=True),
+    #    UnitModel.new_cv('5.391e-44', 'plank time', 'tP',
+    #                      exclude_from_conversions=True)
+    # ),
 
     UnitCollectionModel(
         UnitCategoryModel.SPEED,
