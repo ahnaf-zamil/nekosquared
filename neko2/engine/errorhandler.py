@@ -120,7 +120,12 @@ class ErrorHandler(scribe.Scribe):
         # Don't reply to errors with cool downs. Just add a reaction and stop.
         if on_cool_down:
             assert ctx
-            return await ctx.message.add_reaction('\N{STOPWATCH}')
+            try:
+                await ctx.message.add_reaction('\N{STOPWATCH}')
+                await asyncio.sleep(5)
+                await ctx.message.delete()
+            finally:
+                return
 
         # If something was not found, just re-raise.
         if isinstance(error, dpy_errors.NotFound):
