@@ -24,5 +24,6 @@ modules = frozenset({
     _('unicode'),
     _('rpn'),
     _('xkcd'),
-    _('units')
+    _('units'),
+    _('f')
 })
