@@ -1,1 +1,29 @@
+# Python cache.
+__pycache__
+**/__pycache__
 
+# IntelliJ stuff.
+*.iml
+.idea
+
+# Virtual environments
+venv
+
+# Log files.
+*.log
+**/*.log
+
+# Nano temp files.
+*.sav
+
+# Stuff pip puts in that I don't want
+*.egg-info
+
+# Stuff that the install script might generate
+neko2.service
+neko2.sh
+enable.sh
+update.sh
+
+# Discomaton debugging symlink.
+discomaton
