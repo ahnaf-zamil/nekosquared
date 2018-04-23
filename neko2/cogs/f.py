@@ -29,64 +29,61 @@ class RespectsCog:
             typing.Tuple[discord.Guild, discord.TextChannel], F
         ] = {}
 
-        self.bucket_lock = asyncio.Lock()
-
     # noinspection PyUnusedLocal
     @commands.cooldown(1, 600, commands.BucketType.user)
     @commands.command(brief='Pay your respects.')
     async def f(self, ctx):
         prefix = ctx.prefix + ctx.invoked_with
 
-        with await self.bucket_lock:
-            try:
-                guild_channel = (ctx.guild, ctx.channel)
-                if guild_channel not in self.buckets:
+        try:
+            guild_channel = (ctx.guild, ctx.channel)
+            await ctx.message.delete()
 
-                    colour = other.rand_colour()
+            if guild_channel not in self.buckets:
 
-                    message = await ctx.send(
-                        embed=discord.Embed(
-                            description=f'{ctx.author} paid their respects.',
-                            colour=colour))
+                colour = other.rand_colour()
 
-                    f_bucket = F(collections.MutableOrderedSet({ctx.author}),
-                                 message,
-                                 colour)
+                message = await ctx.send(
+                    embed=discord.Embed(
+                        description=f'{ctx.author} paid their respects.',
+                        colour=colour))
 
-                    self.buckets[guild_channel] = f_bucket
+                f_bucket = F(collections.MutableOrderedSet({ctx.author}),
+                             message,
+                             colour)
 
-                    async def destroy_bucket_later(_guild_channel):
-                        await asyncio.sleep(F_TIMEOUT)
-                        with await self.bucket_lock:
-                            del self.buckets[_guild_channel]
+                self.buckets[guild_channel] = f_bucket
 
-                    self.bot.loop.create_task(
-                        destroy_bucket_later(guild_channel))
+                async def destroy_bucket_later(_guild_channel):
+                    await asyncio.sleep(F_TIMEOUT)
+                    del self.buckets[_guild_channel]
 
-                else:
-                    await ctx.message.delete()
-                    bucket = self.buckets[guild_channel]
-                    bucket.members.add(ctx.author)
+                self.bot.loop.create_task(
+                    destroy_bucket_later(guild_channel))
 
-                    members = bucket.members[:15]
+            else:
+                bucket = self.buckets[guild_channel]
+                bucket.members.add(ctx.author)
 
-                    first = members[:-1]
-                    last = members[-1]
+                members = bucket.members[:15]
 
-                    first = list(map(str, first))
-                    last = str(last) if last else ''
+                first = members[:-1]
+                last = members[-1]
 
-                    message = (
-                        ', '.join(first) + f' and {last} ' +
-                        'paid their respects')
+                first = list(map(str, first))
+                last = str(last) if last else ''
 
-                    embed = discord.Embed(
-                        description=message,
-                        colour=bucket.colour)
+                message = (
+                    ', '.join(first) + f' and {last} ' +
+                    'paid their respects')
 
-                    await bucket.message.edit(embed=embed)
-            except BaseException:
-                pass
+                embed = discord.Embed(
+                    description=message,
+                    colour=bucket.colour)
+
+                await bucket.message.edit(embed=embed)
+        except BaseException:
+            pass
 
 
 def setup(bot):
