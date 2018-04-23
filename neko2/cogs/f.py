@@ -28,6 +28,14 @@ class RespectsCog:
         self.buckets: typing.Dict[
             typing.Tuple[discord.Guild, discord.TextChannel], F
         ] = {}
+            
+    async def on_message(self, message):
+        if message.content.lower() == 'f' and message.guild:
+            ctx = await self.bot.get_context(message)
+            try:
+                await self.f.invoke(ctx)
+            except BaseException as ex:
+                print(type(ex).__name__, str(ex))
 
     # noinspection PyUnusedLocal
     # @commands.cooldown(1, 600, commands.BucketType.user)
