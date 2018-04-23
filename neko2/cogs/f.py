@@ -31,11 +31,12 @@ class RespectsCog:
             
     async def on_message(self, message):
         if message.content.lower() == 'f' and message.guild:
+            message.content = 'n.f'
             ctx = await self.bot.get_context(message)
             try:
                 await self.f.invoke(ctx)
-            except BaseException as ex:
-                print(type(ex).__name__, str(ex))
+            finally:
+                return
 
     # noinspection PyUnusedLocal
     # @commands.cooldown(1, 600, commands.BucketType.user)
