@@ -30,7 +30,7 @@ class RespectsCog:
         ] = {}
 
     # noinspection PyUnusedLocal
-    @commands.cooldown(1, 600, commands.BucketType.user)
+    # @commands.cooldown(1, 600, commands.BucketType.user)
     @commands.command(brief='Pay your respects.')
     async def f(self, ctx):
         prefix = ctx.prefix + ctx.invoked_with
