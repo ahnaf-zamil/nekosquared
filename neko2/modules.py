@@ -26,5 +26,5 @@ modules = frozenset({
     _('xkcd'),
     _('units'),
     _('f'),
-    _('say'),
+    _('chatty'),
 })
