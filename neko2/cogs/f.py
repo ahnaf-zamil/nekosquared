@@ -73,9 +73,13 @@ class RespectsCog:
                 first = list(map(str, first))
                 last = str(last) if last else ''
 
-                message = (
-                    ', '.join(first) + f' and {last} ' +
-                    'paid their respects')
+                if len(members) > 1:
+                    message = (
+                        ', '.join(first) + f' and {last} ' +
+                        'paid their respects')
+                else:
+                    message = (
+                        f'{last} paid their respects.')
 
                 embed = discord.Embed(
                     description=message,
