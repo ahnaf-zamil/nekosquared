@@ -404,8 +404,8 @@ future_fstrings_src = requests.get(ffstring_url).text
 tokenize_rt_src = requests.get(trt_url).text
 
 
-@register('python3.6', language='Python 3.6')
-async def python3_6(source):
+@register('pythonf', language='Python 3.5 with f-strings')
+async def pythonf(source):
     """
     Attempts to permit some Python3.6 features using backports. Underneath
     this is just a Python3.5 interpreter session, however. This is all
