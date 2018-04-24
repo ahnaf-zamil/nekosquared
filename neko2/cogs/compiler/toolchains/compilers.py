@@ -420,10 +420,10 @@ async def pythonf(source):
     See <https://github.com/asottile/future-fstrings> and
     <https://github.com/asottile/tokenize-rt> for more details.
     """
-    script = 'python3.5 future_fstrings.py main.py | python3.5'
+    script = 'ls && python3.5 future_fstrings.py main.py | python3.5'
     cc = coliru.Coliru(script, 
         coliru.SourceFile('main.py', source),
-        coliru.SourceFile('future_fstrings.py', future_fstrings_src),
-        coliru.SourceFile('tokenize_rt.py', tokenize_rt_src))
+        coliru.SourceFile('tokenize_rt.py', tokenize_rt_src),
+        coliru.SourceFile('future_fstrings.py', future_fstrings_src))
 
     return await cc.execute()
