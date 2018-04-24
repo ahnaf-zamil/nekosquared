@@ -5,6 +5,8 @@ Callable asynchronous compilers.
 """
 import inspect
 
+import requests
+
 from neko2.cogs.compiler import tools
 from neko2.cogs.compiler.toolchains import coliru, r as r_compiler
 
