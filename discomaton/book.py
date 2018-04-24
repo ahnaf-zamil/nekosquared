@@ -149,7 +149,11 @@ def default_buttons() -> typing.List[Button]:
                  f'{"only the author" if machine.only_author else "anyone"} '
                  'is allowed control the book above by using reactions.')
 
-        await machine.root_resp.edit(embed=help_embed)
+        if machine.root_resp.embeds:
+            await ctx.send(embed=help_embed)
+        else:
+            await machine.root_resp.edit(embed=help_embed)
+                      
         setattr(machine, '_help_shown', True)
 
     @_as_button(name='Next page', reaction='▶')
