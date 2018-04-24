@@ -38,7 +38,9 @@ class Builtins(extrabits.InternalCogType):
                 [
                     '/bin/bash',
                     '-c',
-                    'wc -l $(find neko2 -name "*.py" -o -name "*.sql" -o -name '
+                    'wc -l $(find neko2 neko2-tests discomaton '
+                    'discomaton-examples config -name "*.py" '
+                    '-o -name "*.sql" -o -name '
                     '"*.json" -o -name "*.yaml") '
                 ],
                 universal_newlines=True)
