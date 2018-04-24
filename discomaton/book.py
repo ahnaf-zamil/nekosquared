@@ -150,7 +150,7 @@ def default_buttons() -> typing.List[Button]:
                  'is allowed control the book above by using reactions.')
 
         if machine.root_resp.embeds:
-            await ctx.send(embed=help_embed)
+            await machine.root_resp.channel.send(embed=help_embed)
         else:
             await machine.root_resp.edit(embed=help_embed)
                       
