@@ -17,6 +17,7 @@ import discomaton                          # Finite state machines.
 from discomaton.factories import bookbinding
 
 import neko2
+from neko2 import modules
 from neko2.shared import fuzzy, commands   # Fuzzy string matching.
 from neko2.shared import string            # String voodoo.
 from . import extrabits
@@ -522,7 +523,6 @@ class Builtins(extrabits.InternalCogType):
         """
         if namespace is None:
             log = []
-            unloaded_extensions = []
             error_count = 0
             unloaded_count = 0
             loaded_count = 0
@@ -543,11 +543,10 @@ class Builtins(extrabits.InternalCogType):
                     else:
                         log.append(f'Unloaded `{extension}` in approximately '
                                    f'{secs:,.2f}s')
-                        unloaded_extensions.append(extension)
                         unloaded_count += 1
     
                 # Reload.            
-                for extension in unloaded_extensions:
+                for extension in modules.modules:
                     try:
                         secs = await self._load_extension(extension)
                     except Exception as ex:
