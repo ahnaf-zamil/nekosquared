@@ -88,9 +88,13 @@ except AssertionError:
 
 if not just_deps:
     # Try to get virtualenv package, install it if it does not exist.
-    print('I will create a venv in this directory, and then clone the repo.')
+    print('I shall first ensure that the venv module is installed. I will ')
+    print('then proceed to clone the Nekosquared repository, in *this*')
+    print('directory, and then finally create a virtual environment in there')
+    print('along with a systemd service file and a shell bootstrap that can')
+    print('be used to launch the bot if so desired.')
 
-    i = 5
+    i = 10
     while i >= 0:
         print(f'You have {i}s to cancel the operation...', end='')
         time.sleep(1)
