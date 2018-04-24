@@ -16,12 +16,10 @@ from neko2.shared import scribe, commands  # Scribe
 
 
 keks = (
-    '*Slides into DMs*',
     '*sigh*',
     'k.',
     'Please don\'t break anything this time...',
     'Again?!',
-    '~~Better get ready to stop working then!~~',
     '\N{OK HAND SIGN}',
     'https://media1.tenor.com/images/'
     '5c0e9a59364291b87ad912d88d37438c/tenor.gif?itemid=5682066',
@@ -51,9 +49,8 @@ class GitCog(scribe.Scribe):
     @commands.command(
         brief='Clears the stash, and ensures we are up to date with master, '
               'even if it means destroying the current code base. Use this to '
-              'invoke a bot update remotely.',
-        aliases=['fix'])
-    async def update(self, ctx):
+              'invoke a bot update remotely.')
+    async def update(self, ctx, *args):
         """
         This will DM you the results.
 
@@ -62,7 +59,14 @@ class GitCog(scribe.Scribe):
             directory, and modify the contents of this directory.
           - That git is installed.
           - That the current working directory contains the `.git` directory.
+
+        As of v1.3, the bot will not automatically restart. To force the bot
+        to restart, provide the `--restart` or `-r` flag with the command
+        invocation.
         """
+
+        should_restart = '--restart' in args or '-r' in args
+
         # Ensure git is installed first
         git_path = shutil.which('git')
 
@@ -112,7 +116,8 @@ class GitCog(scribe.Scribe):
                     print('The following changes will be lost:')
                     await call(f'{git_path} diff --stat HEAD origin/master')
                     print('And replaced with')
-                    await call(f'{git_path} show --stat | sed "s/<.*@.*[.].*>/<email>/g"')
+                    await call(f'{git_path} show --stat | '
+                               'sed "s/<.*@.*[.].*>/<email>/g"')
                     print()
                     print('Status:')
                     await call(f'{git_path} status --porcelain')
@@ -161,13 +166,16 @@ class GitCog(scribe.Scribe):
                                   'manually.')
             self.logger.fatal('Fix failure.')
         else:
-            await ctx.author.send(
-                'The fix process succeeded. I will now '
-                'shut down!')
-            self.logger.warning(
-                'Successful fix! Going offline in 2 seconds')
-            await asyncio.sleep(2)
-            await ctx.bot.logout()
+            if should_restart:
+                await ctx.send(
+                    'The fix process succeeded. I will now '
+                    'shut down!')
+                self.logger.warning(
+                    'Successful fix! Going offline in 2 seconds')
+                await asyncio.sleep(2)
+                await ctx.bot.logout()
+            else:
+                await ctx.send('Completed. I sent the results to you via DMs.')
 
 
 def setup(bot):
