@@ -542,7 +542,7 @@ class Builtins(extrabits.InternalCogType):
                         error_count += 1
                     else:
                         log.append(f'Unloaded `{extension}` in approximately '
-                                   f'{secs:,.2f}s')
+                                   f'{secs*1000:,.2f}ms')
                         unloaded_count += 1
     
                 # Reload.            
@@ -555,7 +555,7 @@ class Builtins(extrabits.InternalCogType):
                         error_count += 1
                     else:
                         log.append(f'Loaded `{extension}` in approximately '
-                                   f'{secs:,.2f}s')
+                                   f'{secs*1000:,.2f}ms')
                         loaded_count += 1
 
             time_taken = time.monotonic() - start_time
@@ -567,7 +567,7 @@ class Builtins(extrabits.InternalCogType):
 
             book.add_line('')
             book.add_line('**Completed operation in approximately '
-                          f'{time_taken:,.2f}s**')
+                          f'{time_taken*1000:,.2f}ms**')
             book.add_line(f'**Unloaded {unloaded_count}, loaded {loaded_count}'
                           '**')
             book.add_line(f'**Encountered {error_count} '
