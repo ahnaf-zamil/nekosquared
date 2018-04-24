@@ -90,7 +90,7 @@ class Coliru:
         for file, path in files.items():
             # Don't bother if the name is not going to change.
             if path != file.name:
-                script_lines.append(f'ln -s {path} {file.name}')
+                script_lines.append(f'cp {path} {file.name}')
 
         # Append the build script
         script_lines.append(self.shell_script)

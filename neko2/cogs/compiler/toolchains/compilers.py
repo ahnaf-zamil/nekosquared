@@ -3,9 +3,10 @@
 """
 Callable asynchronous compilers.
 """
+import asyncio
 import inspect
 
-import requests
+import aiohttp
 
 from neko2.cogs.compiler import tools
 from neko2.cogs.compiler.toolchains import coliru, r as r_compiler
@@ -13,8 +14,9 @@ from neko2.cogs.compiler.toolchains import coliru, r as r_compiler
 
 # Maps human readable languages to their syntax highlighting strings.
 languages = {}
-# Maps a language or syntax highlighting option
+# Maps a language or syntax highlighting option to the docstring.
 docs = {}
+# Maps a language or syntax highlighting option
 targets = {}
 
 
@@ -91,21 +93,71 @@ async def python2(source):
     script = 'python main.py'
     cc = coliru.Coliru(script, coliru.SourceFile('main.py', source))
     return await cc.execute()
+    
+    
+# Thank asottile for this!
+asottile_base = 'https://raw.githubusercontent.com/asottile'
+ffstring_url = asottile_base + '/future-fstrings/master/future_fstrings.py'
+trt_url = asottile_base + '/tokenize-rt/master/tokenize_rt.py'
+
+
+async def _pythonf(source):
+    # Pull future_fstrings source from Github.
+    async with aiohttp.ClientSession() as sesh:
+        ffstring_req = sesh.request('get', ffstring_url)
+        trt_req = sesh.request('get', trt_url)
+
+        ffstring_req, trt_req = await asyncio.gather(ffstring_req, trt_req)
+
+        ffstring, trt = await asyncio.gather(
+            ffstring_req.text(),
+            trt_req.text())
+
+    warning = 'echo "WARNING. This support is highly experimental!" && '
+    script = f'{warning} python3.5 future_fstrings.py main.py | python3.5'
+    cc = coliru.Coliru(script,
+        coliru.SourceFile('main.py', source),
+        coliru.SourceFile('tokenize_rt.py', trt),
+        coliru.SourceFile('future_fstrings.py', ffstring))
+
+    return await cc.execute()
+
 
 
 @register('python3', 'python3.5', 'py', 'py3', 'py3.5', language='Python')
 async def python(source):
     """
     Python3.5 Interpreter
+    
+    Note that you can trigger experimental f-string support
+    by specifying the encoding to use 'future_fstrings'.
 
     Example:
     ```python
     print('Hello, World')
     ```
+    
+    Example with `future-fstrings`:
+    ```python
+    # -*- coding: future_fstrings -*-
+    import platform
+    print(f'I am running {platform.python_version()} but I have '
+          'fstring support!')
+    ```
+    See <https://github.com/asottile/future-fstrings> and
+    <https://github.com/asottile/tokenize-rt> for more details on
+    how this works.
     """
-    script = 'python3.5 main.py'
-    cc = coliru.Coliru(script, coliru.SourceFile('main.py', source))
-    return await cc.execute()
+
+    if source.startswith('# -*- coding: future_fstrings -*-\n'):
+        # Concat extra \n at start to enable line numbers in errors
+        # still add up.
+        source = '\n' + '\n'.join(source.split('\n')[1:])
+        return await _pythonf(source)
+    else:
+        script = 'python3.5 main.py'
+        cc = coliru.Coliru(script, coliru.SourceFile('main.py', source))
+        return await cc.execute()
 
 
 @register('pl', language='PERL 5')
@@ -396,34 +448,3 @@ async def r(ctx, source):
     return result
 
 
-# Thank asottile for this!
-asottile_base = 'https://raw.githubusercontent.com/asottile'
-ffstring_url = asottile_base + '/future-fstrings/master/future_fstrings.py'
-trt_url = asottile_base + '/tokenize-rt/master/tokenize_rt.py'
-future_fstrings_src = requests.get(ffstring_url).text
-tokenize_rt_src = requests.get(trt_url).text
-
-
-@register('pythonf', language='Python 3.5 with f-strings')
-async def pythonf(source):
-    """
-    Attempts to permit some Python3.6 features using backports. Underneath
-    this is just a Python3.5 interpreter session, however. This is all
-    highly experimental.
-
-    The support for this is thanks to Asottile and their `future-fstrings`
-    backport.
-
-    This is also expected to be slower, as it essentially pulls the scripts
-    from GitHub each time we execute this.
-
-    See <https://github.com/asottile/future-fstrings> and
-    <https://github.com/asottile/tokenize-rt> for more details.
-    """
-    script = 'ls && python3.5 future_fstrings.py main.py | python3.5'
-    cc = coliru.Coliru(script, 
-        coliru.SourceFile('main.py', source),
-        coliru.SourceFile('tokenize_rt.py', tokenize_rt_src),
-        coliru.SourceFile('future_fstrings.py', future_fstrings_src))
-
-    return await cc.execute()
