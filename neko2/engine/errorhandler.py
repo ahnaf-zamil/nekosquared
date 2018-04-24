@@ -8,7 +8,7 @@ import discord  # Embeds
 import discord.errors as dpy_errors  # Errors for dpy base.
 import discord.ext.commands.errors as dpyext_errors  # Errors for ext.
 from neko2.shared import excuses, errors
-from neko2.shared import scribe
+from . import extrabits
 
 
 async def _dm_me_error(*, bot, cog, ctx, error, event_method):
@@ -49,10 +49,10 @@ async def _dm_me_error(*, bot, cog, ctx, error, event_method):
     await owner.send(embed=embed)
 
 
-class ErrorHandler(scribe.Scribe):
+class ErrorHandler(extrabits.InternalCogType):
     def __init__(self, should_dm_on_error, bot):
+        super().__init__(bot)
         self.should_dm_on_error = should_dm_on_error
-        self.bot = bot
 
     async def handle_error(self, *, bot, cog=None, ctx=None, error,
                            event_method=None):

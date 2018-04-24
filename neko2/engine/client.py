@@ -15,7 +15,7 @@ import discord                          # Basic discord.py bits and pieces.
 from discord.ext import commands        # Discord.py extensions.
 from discord.utils import oauth_url     # OAuth URL generator
 
-from neko2.engine import errorhandler   # Error handling.
+from neko2.engine import errorhandler, extrabits  # Error handling.
 from neko2.shared import scribe, perms  # Logging
 
 __all__ = ('BotInterrupt', 'Bot')
@@ -231,6 +231,11 @@ class Bot(commands.Bot, scribe.Scribe):
 
     def remove_cog(self, name):
         """Logs and removes a cog."""
+        if isinstance(self.cogs[name],
+                      extrabits.InternalCogType):
+            raise PermissionError(f'{name} is a builtin cog and will not be '
+                                  'unloaded.')
+
         self.logger.info(f'Removing cog {name!r}')
         # Find the cog.
         cog = self.get_cog(name)

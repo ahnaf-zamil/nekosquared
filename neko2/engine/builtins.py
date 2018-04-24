@@ -4,24 +4,33 @@
 Builtin extension that is loaded to implement a custom help method.
 """
 import asyncio                             # Async subprocess.
+import copy                                # Shallow copies.
 import inspect                             # Inspection
 import subprocess                          # Sync subprocess.
 import time                                # Timing stuff.
+import traceback
 import typing                              # Type checking bits and pieces.
 
+import discord
 from discord import embeds                 # Embeds.
 import discomaton                          # Finite state machines.
+from discomaton.factories import bookbinding
 
 import neko2
-from neko2.shared import fuzzy, commands  # Fuzzy string matching.
+from neko2.shared import fuzzy, commands   # Fuzzy string matching.
 from neko2.shared import string            # String voodoo.
+from . import extrabits
 
 
-class Builtins:
+class Builtins(extrabits.InternalCogType):
     def __init__(self, bot):
         """Init the cog."""
-        bot.remove_command('help')
-        self.bot = bot
+        super().__init__(bot)
+
+        try:
+            bot.remove_command('help')
+        except:
+            pass
 
         try:
             lines_of_code: str = subprocess.check_output(
@@ -406,6 +415,169 @@ class Builtins:
             content=f'Pong! (Latency: ~{ctx.bot.latency * 1000:,.2f}ms | '
                     f'`ACK` time: ~{rtt:,.2f}ms | '
                     f'System local time: `{time.asctime()}`)')
+
+    async def _load_extension(self, namespace) -> float:
+        """
+        Loads a given extension into the bot, returning the time taken to
+        load it. If the extension is already present, an ImportWarning is
+        raised.
+        """
+        if namespace in self.bot.extensions:
+            raise ImportWarning(f'{namespace} extension is already loaded.')
+
+        start_time = time.monotonic()
+        self.bot.load_extension(namespace)
+        return time.monotonic() - start_time
+
+    async def _unload_extension(self, namespace) -> float:
+        """
+        Unloads a given extension from the bot, returning execution time.
+        If no extension matching the namespace is found, a ModuleNotFoundError
+        is raised.
+        """
+        if namespace.startswith('neko2.engine'):
+            raise PermissionError('Seems that this is an internal extension. '
+                                  'These cannot be dynamically unloaded from '
+                                  'the bot engine. Please restart instead.')
+
+        elif namespace not in self.bot.extensions:
+            raise ModuleNotFoundError(
+                f'{namespace} was not loaded into this bot instance, and so '
+                'was not able to be unloaded.')
+        
+        else:
+            start_time = time.monotonic()
+            self.bot.unload_extension(namespace)
+            return time.monotonic() - start_time
+
+    @commands.is_owner()
+    @commands.command(hidden=True, brief='Loads a given extension.')
+    async def load(self, ctx, *, namespace):
+        """Loads a given extension into the bot."""
+        try:
+            secs = await self._load_extension(namespace)
+        except ImportWarning as ex:
+            await ctx.send(embed=discord.Embed(
+                title=type(ex).__qualname__,
+                description=str(ex),
+                colour=0xffff00))
+        except ModuleNotFoundError as ex:
+            await ctx.send(embed=discord.Embed(
+                title=type(ex).__qualname__,
+                description=str(ex),
+                colour=0xffff00))
+        except Exception as ex:
+            await ctx.send(embed=discord.Embed(
+                title=type(ex).__qualname__,
+                description=str(ex),
+                colour=0xff0000))
+            tb = ''.join(traceback.format_exc())
+            pag = discomaton.Paginator(prefix='```', suffix='```')
+            pag.add(tb)
+            for page in pag.pages:
+                await ctx.send(page)
+        else:
+            await ctx.send(embed=discord.Embed(
+                title=f'Loaded `{namespace}`',
+                description=f'Successfully loaded extension `{namespace}` in '
+                            f'approximately {secs:,.2f}s.',
+                colour=0x00ff00
+            ))
+
+    @commands.is_owner()
+    @commands.command(hidden=True, brief='Unloads a given extension.')
+    async def unload(self, ctx, *, namespace):
+        """Unloads the given extension from the bot."""
+        try:
+            secs = await self._unload_extension(namespace)
+        except ModuleNotFoundError as ex:
+            await ctx.send(embed=discord.Embed(
+                title=type(ex).__qualname__,
+                description=str(ex),
+                colour=0xffff00))
+        except Exception as ex:
+            await ctx.send(embed=discord.Embed(
+                title=type(ex).__qualname__,
+                description=str(ex),
+                colour=0xff0000))
+            tb = ''.join(traceback.format_exc())
+            pag = discomaton.Paginator(prefix='```', suffix='```')
+            pag.add(tb)
+            for page in pag.pages:
+                await ctx.send(page)
+        else:
+            await ctx.send(embed=discord.Embed(
+                title=f'Unloaded `{namespace}`',
+                description=f'Successfully unloaded extension `{namespace}` in '
+                            f'approximately {secs:,.2f}s.',
+                colour=0x00ff00
+            ))
+
+    @commands.is_owner()
+    @commands.command(hidden='True', brief='Reloads an extension.')
+    async def reload(self, ctx, *, namespace=None):
+        """
+        Reloads a given extension. If the extension is not specified, then all
+        loaded extensions (excluding builtins) are reloaded.
+        """
+        if namespace is None:
+            log = []
+            unloaded_extensions = []
+            error_count = 0
+            unloaded_count = 0
+            loaded_count = 0
+
+            start_time = time.monotonic()
+            with ctx.typing():
+                for extension in copy.copy(self.bot.extensions):
+                    if extension.startswith('neko2.engine'):
+                        # Ignore internals
+                        continue
+                    
+                    try:
+                        secs = await self._unload_extension(extension)
+                    except Exception as ex:
+                        log.append(f'Unloading `{extension}` failed. '
+                                   f'{type(ex).__qualname__}: {ex}')
+                        error_count += 1
+                    else:
+                        log.append(f'Unloaded `{extension}` in approximately '
+                                   f'{secs:,.2f}s')
+                        unloaded_extensions.append(extension)
+                        unloaded_count += 1
+    
+                # Reload.            
+                for extension in unloaded_extensions:
+                    try:
+                        secs = await self._load_extension(extension)
+                    except Exception as ex:
+                        log.append(f'Loading `{extension}` failed. '
+                                   f'{type(ex).__qualname__}: {ex}')
+                        error_count += 1
+                    else:
+                        log.append(f'Loaded `{extension}` in approximately '
+                                   f'{secs:,.2f}s')
+                        loaded_count += 1
+
+            time_taken = time.monotonic() - start_time
+            
+            book = bookbinding.StringBookBinder(ctx, max_lines=None)
+
+            for line in log:
+                book.add_line(line)
+
+            book.add_line('')
+            book.add_line('**Completed operation in approximately '
+                          f'{time_taken:,.2f}s**')
+            book.add_line(f'**Unloaded {unloaded_count}, loaded {loaded_count}'
+                          '**')
+            book.add_line(f'**Encountered {error_count} '
+                          f'error{"s" if error_count - 1 else ""}**')
+
+            await book.start()
+        else:
+            await self.unload.callback(self, ctx, namespace=namespace)
+            await self.load.callback(self, ctx, namespace=namespace)
 
 
 def setup(bot):

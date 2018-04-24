@@ -1,13 +1,20 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
 """
-A bot designed to do some fun and random bits and pieces to liven up a server.
+I am a slightly weird bot that does a variety of cool things.
 
-(...eventually, once I finish implementing it!)
+For one, I try to be a bot developer's best friend. I provide commands to
+execute arbitrary code in a multitude of different programming languages, and
+can display information from various library docs. Additionally, several
+extra development utilities exist. These include: shortening of URLs;
+generation of bot invites from snowflake client IDs; the ability to view
+manpages and tldr pages; and unicode character inspection.
 
-Additionally, this several helpful development utilities such as manpage
-viewing, unicode character lookup, Python and en.cppreference.com searching,
-and a REPL for over a dozen different programming languages.
+I will also attempt to provide useful conversions for units of measurement
+automatically. Someone using fahrenheit? No problem!
+
+A bunch of other commands exist, and will hopefully be steadily increased as
+time progresses. Just run `n.help` to see what is available!
 """
 import neko2.shared
 import neko2.cogs
@@ -17,7 +24,7 @@ import neko2.engine
 __author__ = 'Neko404NotFound'
 __license__ = 'Mozilla Public License Version 2.0'
 __url__ = 'https://github.com/neko404notfound/nekosquared'
-__version__ = '1.2-BLEEDING'
+__version__ = '1.3-BLEEDING'
 __repository__ = __url__
 
 
