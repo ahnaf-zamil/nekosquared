@@ -49,8 +49,6 @@ dependencies = {
     # the rewrite properly.
     'discord.py': 'git+https://github.com/rapptz/discord.py@rewrite#egg'
                   '=discord.py[voice]',
-    # My pagination utilities I have outsourced to a separate repository.
-    'discomaton': 'git+https://github.com/neko404notfound/discomaton',
 }
 
 python_command = 'python3'

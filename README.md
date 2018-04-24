@@ -2,6 +2,11 @@
 
 Built from the mistakes and learnings of Neko.
 
+As of 24th April 2018, a copy of Discomaton is packaged with this repository. This is to remove
+the need for a second repository purely for the purpose of hosting this mini-library. I may
+well add support again in the future if there is any demand for it, but I doubt that will be
+necesarry.
+
 ## Installation
 
 ```python
