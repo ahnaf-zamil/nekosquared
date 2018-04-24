@@ -29,7 +29,7 @@ operations = {
 }
 
 
-def tokenise(*chunks):
+def tokenize(*chunks):
     """
     Returns an iterable of tokens to parse left-to-right from an
     iterable of string chunks. Each chunk is a token.
@@ -39,6 +39,7 @@ def tokenise(*chunks):
             yield float(token)
         except ValueError:
             yield token
+
 
 def parse(tokens):
     """
@@ -78,7 +79,7 @@ def parse(tokens):
 # Test CLI.
 if __name__ == '__main__':
     import sys
-    tokens = list(tokenise(*sys.argv[1:]))
+    tokens = list(tokenize(*sys.argv[1:]))
     result = parse(tokens)
     print(result)
 else:
@@ -102,9 +103,9 @@ else:
                     '<http://en.wikipedia.org/wiki/' +
                     'Reverse_Polish_notation>')
             else:
-                tokens = list(tokenise(*expression))
-                result = parse(tokens)
-                await ctx.send(result)
+                _tokens = list(tokenize(*expression))
+                _result = parse(_tokens)
+                await ctx.send(_result)
 
     def setup(bot):
         bot.add_cog(ReversePolishCog())
