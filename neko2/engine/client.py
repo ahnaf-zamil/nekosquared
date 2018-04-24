@@ -231,11 +231,6 @@ class Bot(commands.Bot, scribe.Scribe):
 
     def remove_cog(self, name):
         """Logs and removes a cog."""
-        if isinstance(self.cogs[name],
-                      extrabits.InternalCogType):
-            raise PermissionError(f'{name} is a builtin cog and will not be '
-                                  'unloaded.')
-
         self.logger.info(f'Removing cog {name!r}')
         # Find the cog.
         cog = self.get_cog(name)
