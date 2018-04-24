@@ -392,3 +392,36 @@ async def r(ctx, source):
     with ctx.typing():
         result = await r_compiler.eval_r(source)
     return result
+
+
+# Thank asottile for this!
+asottile_base = 'https://raw.githubusercontent.com/asottile'
+ffstring_url = asottile_base + '/future-fstrings/master/future_fstrings.py'
+trt_url = asottile_base + '/tokenize-rt/master/tokenize_rt.py'
+future_fstrings_src = requests.get(ffstring_url).text
+tokenize_rt_src = requests.get(trt_url).text
+
+
+@register('python3.6', language='Python 3.6')
+async def python3_6(source):
+    """
+    Attempts to permit some Python3.6 features using backports. Underneath
+    this is just a Python3.5 interpreter session, however. This is all
+    highly experimental.
+
+    The support for this is thanks to Asottile and their `future-fstrings`
+    backport.
+
+    This is also expected to be slower, as it essentially pulls the scripts
+    from GitHub each time we execute this.
+
+    See <https://github.com/asottile/future-fstrings> and
+    <https://github.com/asottile/tokenize-rt> for more details.
+    """
+    script = 'python3.5 future_fstrings.py main.py | python3.5'
+    cc = coliru.Coliru(script, 
+        coliru.SourceFile('main.py', source),
+        coliru.SourceFile('future_fstrings.py', future_fstrings_src),
+        coliru.SourceFile('tokenize_rt.py', tokenize_rt_src))
+
+    return await cc.execute()
