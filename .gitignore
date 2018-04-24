@@ -24,6 +24,3 @@ neko2.service
 neko2.sh
 enable.sh
 update.sh
-
-# Discomaton debugging symlink.
-discomaton
