@@ -531,7 +531,8 @@ class Builtins(extrabits.InternalCogType):
 
             start_time = time.monotonic()
             with ctx.typing():
-                for extension in copy.copy(self.bot.extensions):
+                unloaded_extensions = []
+                for extension in copy.copy(ctx.bot.extensions):
                     if extension.startswith('neko2.engine'):
                         # Ignore internals
                         continue
@@ -546,9 +547,11 @@ class Builtins(extrabits.InternalCogType):
                         log.append(f'Unloaded `{extension}` in approximately '
                                    f'{secs*1000:,.2f}ms')
                         unloaded_count += 1
+                        unloaded_extensions.append(extension)
     
-                # Reload.            
-                for extension in modules.modules:
+                # Reload.
+                for extension in frozenset((*modules.modules,
+                                            *unloaded_extensions)):
                     try:
                         secs = await self._load_extension(extension)
                     except Exception as ex:
