@@ -29,7 +29,9 @@ class SearchResult:
         return f'`{self.text}`'
 
 
-base_cppr = 'https://en.cppreference.com'
+# 25th Apr 2018: Certificate issues on HTTPS, so using
+# HTTP instead.
+base_cppr = 'http://en.cppreference.com'
 search_cppr = base_cppr + '/mwiki/index.php'
 
 
@@ -164,7 +166,8 @@ class CppCog(traits.CogTraits):
     async def cppref(self, ctx, *terms):
 
         try:
-            results = await self.results(ctx.bot, *terms)
+            async with ctx.typing():
+                results = await self.results(ctx.bot, *terms)
         except:
             return await ctx.send('Cppreference read my message, but'
                                   ' ignored it! How rude!!')
