@@ -50,10 +50,20 @@ async def c(source):
 
     int main(void) { printf("Hello, World!\n"); }
     ```
+    Set the first line to `//clang` to use Clang. Otherwise, GCC is used.
     """
     script = (
-        'gcc -Wall -Wextra -pedantic -O0 -lm -lpthread -std=c11 -o a.out '
+        '-Wall -Wextra -pedantic -O0 -lm -lpthread -std=c11 -o a.out '
         'main.c && ./a.out')
+    
+    if source.startswith('//clang'):
+        # Concat extra \n at start to enable line numbers in errors
+        # still add up.
+        source = '\n' + '\n'.join(source.split('\n')[1:])
+        script = 'clang ' + script
+    else:
+        script = 'gcc ' + script
+    
     cc = coliru.Coliru(script, coliru.SourceFile('main.c', source))
     return await cc.execute()
 
@@ -72,10 +82,20 @@ async def cpp(source):
 
     int main() { std::cout << "Hello, World!" << std::endl; }
     ```
+    Set the first line to `//clang++` to use Clang. Otherwise, GCC is used.
     """
     script = (
-        'g++ -Wall -Wextra -std=c++17 -pedantic -O0 -lm -lstdc++fs -lpthread '
+        '-Wall -Wextra -std=c++17 -pedantic -O0 -lm -lstdc++fs -lpthread '
         '-o a.out main.cpp && ./a.out')
+    
+    if source.startswith('//clang++'):
+        # Concat extra \n at start to enable line numbers in errors
+        # still add up.
+        source = '\n' + '\n'.join(source.split('\n')[1:])
+        script = 'clang++ ' + script
+    else:
+        script = 'g++ ' + script
+    
     cc = coliru.Coliru(script, coliru.SourceFile('main.cpp', source))
     return await cc.execute()
 
