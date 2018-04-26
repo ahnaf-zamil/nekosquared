@@ -176,7 +176,7 @@ async def perl(source):
     """
     script = 'perl main.pl'
     cc = coliru.Coliru(script, coliru.SourceFile('main.pl', source))
-    return await cc.execute()
+    return await cc.execute(sesh)
 
 
 @register('irb', language='Ruby')
@@ -227,7 +227,7 @@ async def sh(source):
     """
     script = 'sh main.sh'
     cc = coliru.Coliru(script, coliru.SourceFile('main.sh', source))
-    return await cc.execute()
+    return await cc.execute(sesh)
 
 
 @register(language='Bash')
@@ -242,7 +242,7 @@ async def bash(source):
     """
     script = 'bash main.sh'
     cc = coliru.Coliru(script, coliru.SourceFile('main.sh', source))
-    return await cc.execute()
+    return await cc.execute(sesh)
 
 
 @register('gfortran', 'f08', language='Fortran 2008')
@@ -275,7 +275,7 @@ async def fortran(source):
     """
     script = 'gfortran main.f08'
     cc = coliru.Coliru(script, coliru.SourceFile('main.f08', source))
-    return await cc.execute()
+    return await cc.execute(sesh)
 
 
 @register('gfortran90', 'f90', language='Fortran 1990')
@@ -332,7 +332,7 @@ async def fortran95(source):
     """
     script = 'gfortran main.f95'
     cc = coliru.Coliru(script, coliru.SourceFile('main.f95', source))
-    return await cc.execute()
+    return await cc.execute(sesh)
 
 
 @register('gawk', language='GNU Awk')
@@ -380,7 +380,7 @@ async def lua(source):
     """
     script = 'lua main.lua'
     cc = coliru.Coliru(script, coliru.SourceFile('main.lua', source))
-    return await cc.execute()
+    return await cc.execute(sesh)
 
 
 @register('makefile', language='GNU Make')
