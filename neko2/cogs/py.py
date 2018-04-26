@@ -20,7 +20,7 @@ class PyCog:
             data = buff.getvalue().splitlines()
 
         bb = bookbinding.StringBookBinder(ctx,
-                                          max_lines=None,
+                                          max_lines=20,
                                           prefix='```markdown',
                                           suffix='```')
 
