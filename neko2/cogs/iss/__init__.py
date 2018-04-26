@@ -5,7 +5,9 @@ Ported from Neko v1. Plots the ISS's location on a map.
 """
 import datetime
 import enum
+import io
 
+import discord
 import PIL.Image as image
 import PIL.ImageDraw as draw
 
@@ -126,7 +128,7 @@ class SpaceCog(traits.CogTraits):
         bytesio.seek(0)
 
     @commands.command(brief='Shows you where the ISS is.')
-    @commands.cooldown(1, 5 * 60, commands.CooldownType.guild)
+    @commands.cooldown(1, 30, commands.BucketType.guild)
     async def iss(self, ctx):
         """
         Calculates where above the Earth's surface the ISS is currently,

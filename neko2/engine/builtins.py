@@ -94,6 +94,11 @@ class Builtins(extrabits.InternalCogType):
         examples = getattr(command, 'examples', [])
         signature = command.usage if command.usage else command.signature
         parent = command.full_parent_name
+        cooldown = getattr(command, '_buckets')
+
+        if cooldown:
+            cooldown = getattr(cooldown, '_cooldown')
+
 
         description = [f'```bash\n{ctx.bot.command_prefix}{signature}\n```']
 
@@ -139,6 +144,20 @@ class Builtins(extrabits.InternalCogType):
         if parent:
             embed.add_field(name='Parent', value=f'`{parent}`')
 
+        if cooldown:
+            timeout = cooldown.per
+            if timeout.is_integer():
+                timeout = int(timeout)
+
+            embed.add_field(
+                name='Cooldown policy',
+                value=(
+                    f'{cooldown.type.name.title()}-scoped '
+                    f'per {cooldown.rate} '
+                    f'request{"s" if cooldown.rate - 1 else ""} '
+                    f'with a timeout of {timeout} '
+                    f'second{"s" if timeout - 1 else ""}'))
+
         embed.set_thumbnail(url=ctx.bot.user.avatar_url)
 
         await ctx.send(embed=embed)
@@ -166,7 +185,7 @@ class Builtins(extrabits.InternalCogType):
 
         current_page = ''
         for i, command in enumerate(await get_runnable_commands(ctx.bot)):
-            if i % 30 == 0:
+            if i % 50 == 0:
                 if current_page:
                     pages.append(current_page)
                     current_page = ''

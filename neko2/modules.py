@@ -27,5 +27,6 @@ modules = frozenset({
     _('units'),
     _('f'),
     _('chatty'),
-    _('steam')
+    _('steam'),
+    _('iss')
 })
