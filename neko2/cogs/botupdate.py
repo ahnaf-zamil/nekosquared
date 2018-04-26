@@ -26,7 +26,7 @@ keks = (
     '(╯°□°）╯︵ ┻━┻',
     '( ͡° ͜ʖ ͡°)',
     'ಠ_ಠ',
-    'ノ┬─┬ノ ︵ ( \o°o)\n(In Soviet Russia... table flips **you**.',
+    'ノ┬─┬ノ ︵ ( \o°o)\n(In Soviet Russia... table flips **you**).',
     'ᕕ( ᐛ )ᕗ *off we go to break some more!*',
     'ლ(ಠ_ಠლ)\nY U NO WRITE GOOD CODE',
     '(づ￣ ³￣)づ *new commits*',
