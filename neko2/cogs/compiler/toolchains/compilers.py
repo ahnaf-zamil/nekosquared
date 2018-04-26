@@ -124,23 +124,13 @@ trt_url = asottile_base + '/tokenize-rt/master/tokenize_rt.py'
 @register('python3', 'python3.5', 'py', 'py3', 'py3.5', language='Python')
 async def python(source):
     """
-    Python3.5 Interpreter
-    
-    Note that you can trigger experimental f-string support
-    by specifying the encoding to use 'future_fstrings'.
+    Python3.5 Interpreter (complete with f-string backport support!)
 
     Example:
     ```python
     print('Hello, World')
     ```
-    
-    Example with `future-fstrings`:
-    ```python
-    # -*- coding: future_fstrings -*-
-    import platform
-    print(f'I am running {platform.python_version()} but I have '
-          'fstring support!')
-    ```
+
     See <https://github.com/asottile/future-fstrings> and
     <https://github.com/asottile/tokenize-rt> for more details on
     how this works.
