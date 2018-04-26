@@ -121,29 +121,6 @@ ffstring_url = asottile_base + '/future-fstrings/master/future_fstrings.py'
 trt_url = asottile_base + '/tokenize-rt/master/tokenize_rt.py'
 
 
-async def _pythonf(source):
-    # Pull future_fstrings source from Github.
-    async with aiohttp.ClientSession() as sesh:
-        ffstring_req = sesh.request('get', ffstring_url)
-        trt_req = sesh.request('get', trt_url)
-
-        ffstring_req, trt_req = await asyncio.gather(ffstring_req, trt_req)
-
-        ffstring, trt = await asyncio.gather(
-            ffstring_req.text(),
-            trt_req.text())
-
-    warning = 'echo "WARNING. This support is highly experimental!" && '
-    script = f'{warning} python3.5 future_fstrings.py main.py | python3.5'
-    cc = coliru.Coliru(script,
-        coliru.SourceFile('main.py', source),
-        coliru.SourceFile('tokenize_rt.py', trt),
-        coliru.SourceFile('future_fstrings.py', ffstring))
-
-    return await cc.execute()
-
-
-
 @register('python3', 'python3.5', 'py', 'py3', 'py3.5', language='Python')
 async def python(source):
     """
@@ -168,16 +145,23 @@ async def python(source):
     <https://github.com/asottile/tokenize-rt> for more details on
     how this works.
     """
+    # Pull future_fstrings source from Github.
+    async with aiohttp.ClientSession() as sesh:
+        ffstring_req = sesh.request('get', ffstring_url)
+        trt_req = sesh.request('get', trt_url)
 
-    if source.startswith('# -*- coding: future_fstrings -*-\n'):
-        # Concat extra \n at start to enable line numbers in errors
-        # still add up.
-        source = '\n' + '\n'.join(source.split('\n')[1:])
-        return await _pythonf(source)
-    else:
-        script = 'python3.5 main.py'
-        cc = coliru.Coliru(script, coliru.SourceFile('main.py', source))
-        return await cc.execute()
+        ffstring_req, trt_req = await asyncio.gather(ffstring_req, trt_req)
+
+        ffstring, trt = await asyncio.gather(
+            ffstring_req.text(),
+            trt_req.text())
+    script = 'python3.5 future_fstrings.py main.py | python3.5'
+    cc = coliru.Coliru(script,
+        coliru.SourceFile('main.py', source),
+        coliru.SourceFile('tokenize_rt.py', trt),
+        coliru.SourceFile('future_fstrings.py', ffstring))
+
+    return await cc.execute()
 
 
 @register('pl', language='PERL 5')
