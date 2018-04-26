@@ -41,7 +41,7 @@ class CppCog(traits.CogTraits):
         """Gathers the results for the given search terms from Cppreference."""
         params = {'search': '|'.join(terms)}
 
-        conn = await cls.acquire_http(bot)
+        conn = await cls.acquire_http()
 
         resp = await conn.get(search_cppr, params=params)
         if resp.status != 200:
@@ -105,7 +105,7 @@ class CppCog(traits.CogTraits):
         Gets information for the given search result.
         """
         url = base_cppr + href
-        conn = await cls.acquire_http(bot)
+        conn = await cls.acquire_http()
         response = await conn.get(url)
         # Make soup.
         bs = bs4.BeautifulSoup(await response.text())

@@ -2,12 +2,15 @@
 """
 Various thread and process pool templates.
 """
+import asyncio
 import concurrent.futures             # Executors.
 import functools
 import os                             # File system access.
+import typing
 
 import aiofiles
 import aiohttp
+import async_timeout
 
 from neko2.shared import scribe       # Scribe
 from neko2.shared.classtools import ClassProperty
@@ -41,65 +44,69 @@ def _magic_number(*, cpu_bound=False):
 class CogTraits(scribe.Scribe):
     """Contains any shared resource traits we may want to acquire."""
     __io_pool: concurrent.futures.Executor = None
-    __cpu_pool: concurrent.futures.Executor = None
     __http_pool: aiohttp.ClientSession = None
+    __loop: asyncio.AbstractEventLoop = None
 
     @classmethod
-    async def acquire_http(cls, bot):
-        if not cls.__http_pool:
-            cls.logger.info('Opening HTTP pool.')
-            cls.__http_pool = aiohttp.ClientSession()
+    async def _alloc(cls, loop):
+        cls.__loop = loop
+        cls.logger.info('Initialising IO pool.')
+        cls.__io_pool = concurrent.futures.ThreadPoolExecutor(
+            _magic_number(cpu_bound=False))
+        cls.logger.info('Initialising HTTP session.')
+        cls.__http_pool = aiohttp.ClientSession(loop=loop)
 
-            @bot.on_exit
-            async def on_exit():
-                cls.logger.info('Closing HTTP pool.')
-                await cls.__http_pool.close()
-                cls.__http_pool = None
+    @classmethod
+    async def _dealloc(cls):
+        if cls.__http_pool:
+            await cls.__http_pool.close()
+            cls.__http_pool = None
+        if cls.__io_pool:
+            with async_timeout.timeout(30):
+                cls.__io_pool.shutdown(wait=True)
 
+    @classmethod
+    async def acquire_http(cls):
+        """
+        Acquires the shared global session.
+        Should not be closed after use.
+        """
         return cls.__http_pool
+
+    @classmethod
+    async def acquire_http_session(cls, loop=None):
+        """
+        Acquires a new HTTP client session. This must be closed after use to
+        avoid leaving connections open.
+        """
+        loop = cls.__loop if not loop else loop
+        return aiohttp.ClientSession(loop=loop)
 
     @classmethod
     def file(cls, file_name, *args, **kwargs):
         kwargs.setdefault('executor', cls.__io_pool)
-        return functools.partial(aiofiles.open, file_name, *args, **kwargs)()
+        kwargs.setdefault('loop', cls.__loop)
+
+        return functools.partial(
+            aiofiles.open,
+            file_name,
+            *args,
+            **kwargs)()
 
     @classmethod
-    async def run_in_io_executor(cls, bot, call, *args, **kwargs):
-        if not cls.__io_pool:
-            cls.logger.info('Creating thread pool executor.')
-            cls.__io_pool = concurrent.futures.ThreadPoolExecutor(
-                thread_name_prefix=__name__,
-                max_workers=_magic_number(cpu_bound=False)
-            )
+    async def run_in_io_executor(cls,
+                                 call: typing.Callable,
+                                 args: typing.List=None,
+                                 kwargs: typing.Dict=None,
+                                 loop=None):
+        if not loop:
+            loop = cls.__loop
 
-            @bot.on_exit
-            def on_exit():
-                cls.logger.info('Shutting down thread pool executor.')
-                cls.__io_pool.shutdown(False)
-                cls.__io_pool = None
+        if not args:
+            args = []
+        if not kwargs:
+            kwargs = {}
 
-        loop = bot.loop
-
-        partial = functools.partial(call, *args, **kwargs)
-
-        return await loop.run_in_executor(cls.__io_pool, partial)
-
-    @classmethod
-    async def run_in_cpu_executor(cls, bot, call, *args, **kwargs):
-        if not cls.__cpu_pool:
-            cls.logger.info('Creating process pool executor.')
-            cls.__cpu_pool = concurrent.futures.ProcessPoolExecutor(
-                max_workers=_magic_number(cpu_bound=True)
-            )
-
-            @bot.on_exit
-            def on_exit():
-                cls.logger.info('Shutting down process pool executor.')
-                cls.__cpu_pool.shutdown(False)
-                cls.__cpu_pool = None
-
-        loop = bot.loop
-
-        partial = functools.partial(call, *args, **kwargs)
-
-        return await loop.run_in_executor(cls.__cpu_pool, partial)
+        return await loop.run_in_executor(
+            cls.__io_pool,
+            functools.partial(call, *args, **kwargs))

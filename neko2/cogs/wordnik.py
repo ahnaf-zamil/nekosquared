@@ -103,7 +103,7 @@ class WordnikCog(traits.CogTraits):
         self.api_client = swagger.ApiClient(self._token, wordnik_endpoint)
         self.api = WordApi.WordApi(self.api_client)
 
-    async def _lookup(self, bot, phrase: str) -> typing.List[dict]:
+    async def _lookup(self, phrase: str) -> typing.List[dict]:
         """Executes the lookup in a thread pool to prevent blocking."""
 
         partial = functools.partial(
@@ -115,7 +115,7 @@ class WordnikCog(traits.CogTraits):
             includeTags=True)
 
         try:
-            results = await self.run_in_io_executor(bot, partial)
+            results = await self.run_in_io_executor(partial)
             if not isinstance(results, list):
                 raise errors.NotFound('No result was found.')
             else:
@@ -138,7 +138,7 @@ class WordnikCog(traits.CogTraits):
 
         try:
             with ctx.typing():
-                results: typing.List[dict] = await self._lookup(ctx.bot, phrase)
+                results: typing.List[dict] = await self._lookup(phrase)
         except errors.NotFound as ex:
             return await ctx.send(str(ex), delete_after=10)
 

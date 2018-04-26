@@ -316,7 +316,7 @@ class SteamStatusCog(traits.CogTraits):
 
     async def get_status(self, bot):
         """Gets a dict of the status information."""
-        conn = await self.acquire_http(bot)
+        conn = await self.acquire_http()
         response = await conn.request('GET', api_endpoint)
         obj = await response.json()
         assert isinstance(obj, dict)

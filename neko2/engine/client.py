@@ -77,6 +77,7 @@ class Bot(commands.Bot, scribe.Scribe):
     - on_load_extension(extension)
     - on_unload_extension(name)
 
+    :param loop: the event loop to run on.
     :param bot_config:
         This accepts a dict with two sub-dictionaries:
         - ``auth`` - this must contain a ``token`` and a ``client_id`` member.
@@ -85,20 +86,17 @@ class Bot(commands.Bot, scribe.Scribe):
     """
 
     def __init__(self,
+                 loop,
                  bot_config: dict):
         """
         Initialise the bot using the given configuration.
         """
         commands.Bot.__init__(self, **bot_config.pop('bot', {}))
 
-        try:
-            auth = bot_config['auth']
-            self.__token = auth['token']
-            self.client_id = auth.get('client_id', None)
-            self.debug = bot_config.pop('debug', False)
-        except KeyError:
-            raise SyntaxError('Ensure config has `auth\' section containing '
-                              'a `token\' and `client_id\' field.')
+        auth = bot_config['auth']
+        self.token = auth['token']
+        self.client_id = auth.get('client_id', None)
+        self.debug = bot_config.pop('debug', False)
 
         # Used to prevent recursively calling logout.
         self._logged_in = False
@@ -272,32 +270,7 @@ class Bot(commands.Bot, scribe.Scribe):
 
     # noinspection PyBroadException
     def run(self):
-        """
-        Alters the event loop code ever-so-slightly to ensure all modules
-        are safely unloaded.
-        """
-        try:
-            self.loop.run_until_complete(self.start(self.__token))
-        except BotInterrupt as ex:
-            self.logger.warning(f'Received interrupt {ex}')
-        except BaseException:
-            traceback.print_exc()
-        else:
-            self.logger.info('The event loop was shut down gracefully')
-        try:
-            if self._logged_in:
-                self.loop.run_until_complete(self.logout())
-        except BotInterrupt:
-            self.logger.fatal('Giving up all hope of a safe exit')
-        except BaseException:
-            traceback.print_exc()
-            self.logger.fatal('Giving up all hope of a safe exit')
-        else:
-            self.logger.info('Process is terminating NOW.')
-        finally:
-            # For some reason, keyboard interrupt still propagates out of
-            # this try catch unless I do this.
-            return
+        raise NotImplementedError
 
     async def _on_connect(self):
         await self.change_presence(status=discord.Status.dnd)

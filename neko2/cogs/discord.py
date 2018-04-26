@@ -113,7 +113,7 @@ class DiscordUtilCog(traits.CogTraits, scribe.Scribe):
         """
         while self.bot.is_ready():
             try:
-                conn = await self.acquire_http(self.bot)
+                conn = await self.acquire_http()
                 # We use unresolved as status does not seem to provide
                 # information about outages. Source: tried it when discord
                 # went down and it said "all systems operational" despite the

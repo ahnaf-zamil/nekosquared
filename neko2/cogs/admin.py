@@ -10,14 +10,13 @@ import inspect
 import io
 import os
 import random
-import subprocess
 import time
 import traceback
 
 import async_timeout
 from discomaton.factories import bookbinding
 import discord
-from neko2.shared import scribe, traits, commands  # scribe
+from neko2.shared import traits, commands
 
 
 class AdminCog(traits.CogTraits):
@@ -167,7 +166,7 @@ class AdminCog(traits.CogTraits):
             
     @commands.command(brief='Changes the avatar to the given URL.')
     async def avatar(self, ctx, *, url):
-        conn = await self.acquire_http(ctx.bot)
+        conn = await self.acquire_http()
         async with conn.request('get', url) as r, ctx.typing():
             await ctx.bot.user.edit(avatar=await r.read())
         commands.acknowledge(ctx)

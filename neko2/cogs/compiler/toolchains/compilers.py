@@ -6,7 +6,7 @@ Callable asynchronous compilers.
 import asyncio
 import inspect
 
-import aiohttp
+from neko2.shared import traits
 
 from neko2.cogs.compiler import tools
 from neko2.cogs.compiler.toolchains import coliru, r as r_compiler
@@ -65,7 +65,8 @@ async def c(source):
         script = 'gcc ' + script
     
     cc = coliru.Coliru(script, coliru.SourceFile('main.c', source))
-    return await cc.execute()
+    sesh = await traits.CogTraits.acquire_http()
+    return await cc.execute(sesh)
 
 
 @register('c++', 'cc', language='C++')
@@ -112,7 +113,8 @@ async def python2(source):
     """
     script = 'python main.py'
     cc = coliru.Coliru(script, coliru.SourceFile('main.py', source))
-    return await cc.execute()
+    sesh = await traits.CogTraits.acquire_http()
+    return await cc.execute(sesh)
     
     
 # Thank asottile for this!
@@ -136,22 +138,22 @@ async def python(source):
     how this works.
     """
     # Pull future_fstrings source from Github.
-    async with aiohttp.ClientSession() as sesh:
-        ffstring_req = sesh.request('get', ffstring_url)
-        trt_req = sesh.request('get', trt_url)
+    sesh = await traits.CogTraits.acquire_http()
+    ffstring_req = sesh.request('get', ffstring_url)
+    trt_req = sesh.request('get', trt_url)
 
-        ffstring_req, trt_req = await asyncio.gather(ffstring_req, trt_req)
+    ffstring_req, trt_req = await asyncio.gather(ffstring_req, trt_req)
 
-        ffstring, trt = await asyncio.gather(
-            ffstring_req.text(),
-            trt_req.text())
+    ffstring, trt = await asyncio.gather(
+        ffstring_req.text(),
+        trt_req.text())
     script = 'python3.5 future_fstrings.py main.py | python3.5'
     cc = coliru.Coliru(script,
         coliru.SourceFile('main.py', source),
         coliru.SourceFile('tokenize_rt.py', trt),
         coliru.SourceFile('future_fstrings.py', ffstring))
 
-    return await cc.execute()
+    return await cc.execute(sesh)
 
 
 @register('pl', language='PERL 5')
@@ -207,7 +209,8 @@ async def ruby(source):
     """
     script = 'ruby main.rb'
     cc = coliru.Coliru(script, coliru.SourceFile('main.rb', source))
-    return await cc.execute()
+    sesh = await traits.CogTraits.acquire_http()
+    return await cc.execute(sesh)
 
 
 @register('shell', language='Shell')
@@ -300,7 +303,8 @@ async def fortran90(source):
     """
     script = 'gfortran main.f90'
     cc = coliru.Coliru(script, coliru.SourceFile('main.f90', source))
-    return await cc.execute()
+    sesh = await traits.CogTraits.acquire_http()
+    return await cc.execute(sesh)
 
 
 @register('gfortran95', 'f95', language='Fortran 1995')
@@ -350,7 +354,8 @@ async def awk(source):
     """
     script = 'awk -f main.awk'
     cc = coliru.Coliru(script, coliru.SourceFile('main.awk', source))
-    return await cc.execute()
+    sesh = await traits.CogTraits.acquire_http()
+    return await cc.execute(sesh)
 
 
 @register(language='Lua')
@@ -414,7 +419,8 @@ async def make(source):
     # Converts four-space indentation to tab indentation.
     source = tools.fix_makefile(source)
     cc = coliru.Coliru(script, coliru.SourceFile('Makefile', source))
-    return await cc.execute()
+    sesh = await traits.CogTraits.acquire_http()
+    return await cc.execute(sesh)
 
 
 @register('cranr', language='CRAN R')
@@ -438,7 +444,9 @@ async def r(ctx, source):
     ```
     """
     with ctx.typing():
-        result = await r_compiler.eval_r(source)
+        result = await r_compiler.eval_r(
+            await traits.CogTraits.acquire_http(),
+            source)
     return result
 
 

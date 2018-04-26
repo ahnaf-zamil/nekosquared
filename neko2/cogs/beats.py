@@ -135,10 +135,11 @@ class Session(traits.CogTraits):
 
                 await self.text_channel.send(embed=embed)
 
-                await self.run_in_io_executor(self.bot,
-                                              self.voice_client.play,
-                                              self.current_item.player,
-                                              after=self.next)
+                await self.run_in_io_executor(self.voice_client.play,
+                                              [
+                                                  self.current_item.player
+                                              ],
+                                              {'after': self.next})
 
                 await self.play_next_event.wait()
             except asyncio.TimeoutError:
@@ -266,8 +267,7 @@ class YouTubePlayerCog(traits.CogTraits):
             return
 
         try:
-            player = await self.run_in_io_executor(
-                ctx.bot, self.make_player, url)
+            player = await self.run_in_io_executor(self.make_player, [url])
         except TypeError:
             return await ctx.send('That doesn\'t seem to be a valid link.')
 
@@ -309,6 +309,7 @@ class YouTubePlayerCog(traits.CogTraits):
                 return await ctx.send('Reached the end of the queue.')
             sesh.next()
             acknowledge(ctx)
+
 
 def setup(bot):
     bot.add_cog(YouTubePlayerCog())

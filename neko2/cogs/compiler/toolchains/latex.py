@@ -160,7 +160,7 @@ class LatexCogHelper(traits.CogTraits):
 
             new_img.save(out_img, 'PNG')
 
-        await cls.run_in_io_executor(bot, cpu_work)
+        await cls.run_in_io_executor(cpu_work)
 
     @classmethod
     async def get_send_image(cls, ctx, content: str) -> discord.Message:
@@ -168,7 +168,7 @@ class LatexCogHelper(traits.CogTraits):
         # left-align.
         url = cls.generate_url(f'\\\\{content}', size=10)
 
-        conn = await cls.acquire_http(ctx.bot)
+        conn = await cls.acquire_http()
 
         resp = await conn.get(url)
         data = await resp.read()

@@ -22,14 +22,13 @@ from neko2.shared import traits
 config_file = 'urlshorten'
 
 
-
 class UrlShortenerCog(traits.CogTraits):
     """Shortens URLS"""
     def __init__(self):
         self._key: str = configfiles.get_config_data(config_file)
 
     async def _shorten(self, url, bot):
-        conn = await self.acquire_http(bot)
+        conn = await self.acquire_http()
 
         res = await conn.post('https://www.googleapis.com/urlshortener/v1/url',
                               params={'key': self._key},

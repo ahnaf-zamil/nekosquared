@@ -43,7 +43,7 @@ class TldrCog(traits.CogTraits):
         url = 'https://raw.githubusercontent.com/tldr-pages/tldr/master/pages/'
         url += f'{platform}/{page}.md'
 
-        conn = await self.acquire_http(ctx.bot)
+        conn = await self.acquire_http()
         resp = await conn.get(url)
         if resp.status != 200:
             return await ctx.send(f'Error: {resp.reason}.', delete_after=10)

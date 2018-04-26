@@ -69,7 +69,7 @@ class UrbanDictionaryCog(traits.CogTraits):
     async def urban(self, ctx: commands.Context, *, phrase: str=None):
         """If no phrase is given, we pick some random ones to show."""
 
-        conn = await self.acquire_http(ctx.bot)
+        conn = await self.acquire_http()
 
         with ctx.typing():
             # Get the response

@@ -99,33 +99,34 @@ class Coliru:
 
         return '\n'.join(script_lines)
 
-    async def execute(self, loop=asyncio.get_event_loop()) -> str:
+    async def execute(self,
+                      session,
+                      loop=asyncio.get_event_loop()) -> str:
         """
         Collects the data we need and sends it to coliru for processing.
         This will then return a string containing the full output.
         """
-        async with aiohttp.ClientSession(loop=loop) as session:
-            # Generate futures then await them together.
-            futures = []
-            for file in self.other_files:
-                futures.append(
-                    asyncio.ensure_future(self._share(session, file)))
+        # Generate futures then await them together.
+        futures = []
+        for file in self.other_files:
+            futures.append(
+                asyncio.ensure_future(self._share(session, file)))
 
-            results = await asyncio.gather(*futures, loop=loop)
+        results = await asyncio.gather(*futures, loop=loop)
 
-            files = {file: path for file, path in results}
-            files[self.main_file] = INITL_FILE_NAME
+        files = {file: path for file, path in results}
+        files[self.main_file] = INITL_FILE_NAME
 
-            script = self._generate_script(files)
+        script = self._generate_script(files)
 
-            payload = json.dumps({
-                'cmd': script,
-                'src': self.main_file.code
-            })
+        payload = json.dumps({
+            'cmd': script,
+            'src': self.main_file.code
+        })
 
-            resp = await session.post(f'{HOST}{COMPILE_EP}', data=payload)
-            resp.raise_for_status()
-            return await resp.text()
+        resp = await session.post(f'{HOST}{COMPILE_EP}', data=payload)
+        resp.raise_for_status()
+        return await resp.text()
 
 
 # Quick unit test

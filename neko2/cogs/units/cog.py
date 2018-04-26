@@ -45,15 +45,13 @@ class UnitCog(traits.CogTraits):
         if not all(c(message) for c in self.checks):
             return
         else:
-            e = await self.run_in_io_executor(self.bot,
-                                              self.worker,
-                                              self.bot.loop,
-                                              message)
+            e = await self.run_in_io_executor(self.worker,  [message])
 
             if e:
                 await self.await_result_request(message, e)
 
-    def worker(self, loop: asyncio.BaseEventLoop, message):
+    @staticmethod
+    def worker(message):
         """Calculates all conversions on a separate thread."""
         # Parse potential matches by pattern matching.
         tokens = list(lex.tokenize(message.content))

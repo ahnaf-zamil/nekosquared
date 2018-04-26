@@ -100,7 +100,7 @@ class UnicodeCog(traits.CogTraits):
         Looks up the code point online to get the Unicode object.
         If nothing is returned, then we assume it is not found.
         """
-        conn = await self.acquire_http(bot)
+        conn = await self.acquire_http()
         url = _make_fileformat_url(code_point)
         resp = await conn.get(url)
         if resp.status == 404:

@@ -31,7 +31,7 @@ class RespectsCog:
             
     async def on_message(self, message):
         if message.content.lower() == 'f' and message.guild:
-            message.content = 'n.f'
+            message.content = self.bot.command_prefix + 'f'
             ctx = await self.bot.get_context(message)
             try:
                 await self.f.invoke(ctx)

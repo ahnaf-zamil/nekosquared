@@ -130,7 +130,7 @@ class XkcdCog(traits.CogTraits):
             if not query:
                 # Get the most recent comic first and inspect the entry number
                 # (our cache can be up to 12 hours out of date).
-                conn = await self.acquire_http(ctx.bot)
+                conn = await self.acquire_http()
 
                 resp = await conn.get(most_recent_xkcd())
                 data = await resp.json()
@@ -181,7 +181,7 @@ class XkcdCog(traits.CogTraits):
                         else None)
 
                 with ctx.typing():
-                    url = await self.run_in_io_executor(ctx.bot, executor)
+                    url = await self.run_in_io_executor(executor)
 
             if not url:
                 return await ctx.send('Nothing to see here.')
@@ -189,7 +189,7 @@ class XkcdCog(traits.CogTraits):
             return await ctx.send('But...where is it?', delete_after=10)
         else:
             # Get the entry
-            conn = await self.acquire_http(ctx.bot)
+            conn = await self.acquire_http()
             resp = await conn.get(url)
 
             if resp.status != 200:
