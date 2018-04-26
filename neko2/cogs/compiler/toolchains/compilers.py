@@ -98,7 +98,8 @@ async def cpp(source):
         script = 'g++ ' + script
     
     cc = coliru.Coliru(script, coliru.SourceFile('main.cpp', source))
-    return await cc.execute()
+    sesh = await traits.CogTraits.acquire_http()
+    return await cc.execute(sesh)
 
 
 @register('python2.7', 'py2', 'py2.7', language='Python2')
@@ -227,6 +228,7 @@ async def sh(source):
     """
     script = 'sh main.sh'
     cc = coliru.Coliru(script, coliru.SourceFile('main.sh', source))
+    sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
 
@@ -242,6 +244,7 @@ async def bash(source):
     """
     script = 'bash main.sh'
     cc = coliru.Coliru(script, coliru.SourceFile('main.sh', source))
+    sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
 
@@ -275,6 +278,7 @@ async def fortran(source):
     """
     script = 'gfortran main.f08'
     cc = coliru.Coliru(script, coliru.SourceFile('main.f08', source))
+    sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
 
@@ -332,6 +336,7 @@ async def fortran95(source):
     """
     script = 'gfortran main.f95'
     cc = coliru.Coliru(script, coliru.SourceFile('main.f95', source))
+    sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
 
@@ -380,6 +385,7 @@ async def lua(source):
     """
     script = 'lua main.lua'
     cc = coliru.Coliru(script, coliru.SourceFile('main.lua', source))
+    sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
 
@@ -448,5 +454,3 @@ async def r(ctx, source):
             await traits.CogTraits.acquire_http(),
             source)
     return result
-
-
