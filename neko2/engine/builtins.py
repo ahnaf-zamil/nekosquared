@@ -602,6 +602,21 @@ class Builtins(extrabits.InternalCogType):
             await self.unload.callback(self, ctx, namespace=namespace)
             await self.load.callback(self, ctx, namespace=namespace)
 
+    @commands.command(brief='Determines if you can run the command here.')
+    async def canirun(self, ctx, command):
+        command = ctx.bot.get_command(command)
+        if command is None:
+            return await ctx.send('That command does not exist...',
+                                  delete_after=5)
+
+        try:
+            can_run = await command.can_run(ctx)
+        except:
+            can_run = False
+        finally:
+            await ctx.send(f'You {can_run and "can" or "cannot"} run this '
+                           'command here.')
+
 
 def setup(bot):
     bot.add_cog(Builtins(bot))

@@ -171,6 +171,19 @@ class AdminCog(traits.CogTraits):
             await ctx.bot.user.edit(avatar=await r.read())
         commands.acknowledge(ctx)
 
+    @commands.command(brief='Shows host health, resource utilisation, etc.')
+    async def health(self, ctx):
+        command = ('set -x',
+                   'ps -eo euser,comm,rss,thcount,%cpu,%mem | '
+                   'grep -P "^($(whoami)|EUSER)"',
+                   'uptime',
+                   'free -hl',
+                   'who -Ha',
+                   'set +x')
+        command = '(' + ' && '.join(command) + ') 2>&1'
+
+        await self.shell.callback(self, ctx, command=command)
+
 
 def setup(bot):
     bot.add_cog(AdminCog(bot))
