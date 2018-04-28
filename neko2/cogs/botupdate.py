@@ -6,42 +6,12 @@ Allows the bot owner to update the bot using Git, if it is installed.
 import asyncio                      # Asyncio subprocess
 import io                           # StringIO
 import os                           # File path utils
-import random
 import shutil                       # which (find in $PATH env-var)
 import traceback                    # Traceback utils
 
 from discomaton.util import pag
 
 from neko2.shared import scribe, commands  # Scribe
-
-
-keks = (
-    '*sigh*',
-    'k.',
-    'Please don\'t break anything this time...',
-    'Again?!',
-    '\N{OK HAND SIGN}',
-    'https://media1.tenor.com/images/'
-    '5c0e9a59364291b87ad912d88d37438c/tenor.gif?itemid=5682066',
-    '(╯°□°）╯︵ ┻━┻',
-    '( ͡° ͜ʖ ͡°)',
-    'ಠ_ಠ',
-    'ノ┬─┬ノ ︵ ( \o°o)\n(In Soviet Russia... table flips **you**).',
-    'ᕕ( ᐛ )ᕗ *off we go to break some more!*',
-    'ლ(ಠ_ಠლ)\nY U NO WRITE GOOD CODE',
-    '(づ￣ ³￣)づ *new commits*',
-    'ᕦ(ò_óˇ)ᕤ 1v1 me irl',
-    '(∩｀-´)⊃━☆ﾟ.*･｡ﾟ *bad code*',
-    'o(╥﹏╥)o I give up trying to fight you',
-    '(ง •̀_•́)ง',
-    '(me) --> (╯°Д°）╯︵/(.□ . \) <-- (you)',
-    '(╥_╥)', 'ᕙ(⇀‸↼‶)ᕗ', '(ง •̀_•́)ง ผ(•̀_•́ผ)',
-    'f(ಠ‿↼)z',
-    '(ノಠ益ಠ)ノ',
-    'OH BOY\nNEW COMMITS!\nヽ(⌐■_■)ノ♪♬  ٩( ᐛ )و   ᕕ( ᐛ )ᕗ',
-    '(◍•﹏•)',
-    'I _will_ be back...\n┬┴┬┴┤ ͜ʖ ͡°) ├┬┴┬┴'
-)
 
 
 class GitCog(scribe.Scribe):
@@ -70,11 +40,11 @@ class GitCog(scribe.Scribe):
         # Ensure git is installed first
         git_path = shutil.which('git')
 
-        msg = await ctx.send(random.choice(keks))
+        commands.acknowledge(ctx)
 
         did_fail = False
 
-        async with msg.channel.typing():
+        async with ctx.channel.typing():
             if not git_path:
                 return await ctx.author.send('I can\'t seem to find git!')
 
