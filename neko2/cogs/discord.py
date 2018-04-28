@@ -4,11 +4,14 @@
 Embed preview cog utility.
 """
 import asyncio                             # Async bits and bobs
+import collections                         # OrderedDict
+from datetime import datetime              # Timestamp stuff
 
 import discord
 from discord import utils                  # OAuth2 URL generation
-from neko2.shared import perms, commands  # Permission help
+from neko2.shared import perms, commands   # Permission help
 from neko2.shared import mentionconverter  # Mentioning
+from neko2.shared import other             # Random colours
 from neko2.shared import string            # String helpers
 from neko2.shared import scribe            # Logging
 from neko2.shared import traits            # HTTPS
@@ -57,6 +60,38 @@ class DiscordUtilCog(traits.CogTraits, scribe.Scribe):
             await self.inspect_role.callback(self, ctx, role=what)
         else:
             raise NotImplementedError
+    
+    @inspect_group.command(name='snowflake', brief='Deciphers a snowflake.',
+                           examples=['439802699144232960'], aliases=['sf'])
+    async def inspect_snowflake(self, ctx, *snowflakes: int):
+        """
+        You can pass upto 20 snowflakes at once.
+        """
+        if not len(snowflakes):
+            return
+        
+        embed = discord.Embed(colour=other.rand_colour())
+
+        # Discord epoch from the Unix epoch in ms
+        epoch = 1420070400000
+        for snowflake in snowflakes[:20]:
+            
+            timestamp = ((snowflake >> 22) + epoch) / 1000
+            creation_time = datetime.utcfromtimestamp(timestamp)
+            
+            worker_id = (snowflake & 0x3E0000) >> 17
+            process_id = (snowflake & 0x1F000) >> 12
+            increment = snowflake & 0xFFF
+            
+            string = '\n'.join(
+                f'`{creation_time}`',
+                f'Worker ID: `{worker_id}`',
+                f'Process ID: `{process_id}`',
+                f'Increment: `{increment}`')
+            
+            embed.add_field(name=str(snowflake), value=string)
+        
+        await ctx.send(embed=embed)
 
     @inspect_group.command(name='role', brief='Inspects a given role.',
                            examples=['@Role Name'])
