@@ -56,6 +56,7 @@ class DiscordUtilCog(traits.CogTraits, scribe.Scribe):
         for all inspection sub-commands if you require parsing a specific
         entity type to be recognised, or cannot mention the entity.
         """
+        await ctx.send(f'{what} {type(what)}')
         if isinstance(what, int):
             await self.inspect_snowflake.callback(self, ctx, what)
         
