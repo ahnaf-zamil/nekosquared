@@ -202,7 +202,7 @@ if not just_deps:
 
     run_script = inspect.cleandoc(f'''#!/bin/bash
     source venv/bin/activate
-    find -name "__pycache__" -type d -exec rm {} -rf \;
+    find -name "__pycache__" -type d -exec rm {{}} -rf \;
     {python_command} -m neko2
     ''')
 

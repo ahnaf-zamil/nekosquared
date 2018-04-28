@@ -18,6 +18,8 @@ import unicodedata
 import bs4
 from dataclasses import dataclass
 
+from discomaton.factories import bookbinding
+
 from neko2.shared import alg, commands
 from neko2.shared import collections
 from neko2.shared import errors
@@ -201,11 +203,30 @@ class UnicodeCog(traits.CogTraits):
     @staticmethod
     async def _send_table(ctx, *unicodes):
         """Creates a markdown formatted table of results for characters."""
-        results = [
-            f'**Character info (Unicode v{unicodedata.unidata_version})**',
-            '__**`##  Ct UTF-CODE DECIMAL DESCRIPTION`**__']
 
+        book = bookbinding.StringBookBinder(ctx, max_lines=None)
+
+        preamble = (
+            f'**Character info (Unicode v{unicodedata.unidata_version})**',
+            '__**`##  Ct UTF-CODE DECIMAL DESCRIPTION`**__')
+
+        # Categories for current page
         categories = set()
+        current_page = []
+
+        def dump_page():
+            nonlocal current_page
+            # Define the categories used.
+            category_amble = ''
+            for category in sorted(categories):
+                desc = _char2category.get(category, 'Unknown')
+                category_amble += f'\n`{category}` - {desc}'
+
+            page = '\n'.join((*preamble, *current_page, category_amble))
+            book.add_break()
+            book.add_raw(page)
+            categories.clear()
+            current_page = []
 
         for i, char in enumerate(unicodes):
             decimal = char.raw
@@ -214,19 +235,23 @@ class UnicodeCog(traits.CogTraits):
             name = char.name
             lit = chr(char.raw)
 
-            line = (
+            current_page.append(
                 f'`{i+1:02}  {category} {hexd:>8} {decimal:>7} '
                 f'{name}  {lit}`  {lit}')
-            results.append(line)
+
             categories.add(category)
 
-        # Define the categories used.
-        results.append('')
-        for category in sorted(categories):
-            desc = _char2category.get(category, 'Unknown')
-            results.append(f'`{category}` - {desc}')
+            if i % 16 == 15:
+                dump_page()
 
-        await ctx.send('\n'.join(results))
+        if current_page:
+            dump_page()
+
+        booklet = book.build()
+        if len(booklet) > 1:
+            await book.start()
+        else:
+            await ctx.send(booklet.current_page)
 
     @commands.group(name='char', brief='Character inspection for Unicode.',
                     invoke_without_command=True,
@@ -234,21 +259,19 @@ class UnicodeCog(traits.CogTraits):
                     examples=['¯\_(ツ)_/¯  0x1Q44c :musical_note: '])
     async def char_group(self, ctx, *, characters):
         """
-        Takes up to 20 character literals and outputs unicode information about
-        them.
+        Outputs unicode information about the given characters.
         """
         # Make an ordered set of all characters. Maintains insertion order of
         # each first occurrence.
         charlist = []
         i = 0
-        while i < len(characters) and len(charlist) < 20:
+        while i < len(characters):
             character = await self._lookup_literal(ctx.bot, characters[i])
             if character:
                 charlist.append(character)
             i += 1
 
-        charset = collections.OrderedSet(charlist)
-        await self._send_table(ctx, *charset)
+        await self._send_table(ctx, *charlist)
 
     @char_group.command(brief='Looks up a given character description.',
                         examples=['OK HAND SIGN'])
