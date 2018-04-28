@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 A discord converter that can convert any form of mention into a corresponding
-object (excluding emojis, as they don't count)
+object (excluding emojis, as they don't count).
+
+There is an additional implementation that will also accept raw snowflake integers.
 """
 from discord.ext import commands
 
@@ -28,3 +30,11 @@ class MentionConverter(commands.Converter):
                 ctx, argument)
         else:
             raise commands.BadArgument('Unrecognised mention.')
+
+            
+class MentionOrSnowflakeConverter(MentionConverter):
+    async def convert(self, ctx, argument: str):
+        if argument.isdigit():
+            return int(argument)
+        else:
+            return super().convert(ctx, argument)
