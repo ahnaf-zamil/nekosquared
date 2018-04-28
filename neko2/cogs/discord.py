@@ -49,7 +49,7 @@ class DiscordUtilCog(traits.CogTraits, scribe.Scribe):
     async def inspect_group(self,
                             ctx,
                             *,
-                            what: mentionconverter.MentionConverter):
+                            what: mentionconverter.MentionOrSnowflakeConverter):
         """
         Inspects something by passing a mention. This will not support
         emojis, or anything that is not a valid mention. See the help page
