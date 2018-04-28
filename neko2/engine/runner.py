@@ -5,8 +5,10 @@ Handles running the bot. This should be the thing you call to start the bot, as
 it ensures the trait resources are acquired and released correctly and safely.
 """
 import asyncio
+import logging
 import sys
 import traceback
+
 
 from neko2.engine import client, autoloader, BotInterrupt
 from neko2.shared import configfiles, traits
@@ -14,11 +16,23 @@ from neko2.shared import configfiles, traits
 
 # noinspection PyProtectedMember
 def run():
+    # UVloop is more efficient than asyncio.
+
+    try:
+        import uvloop
+        asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+    except:
+        logging.warning('UVloop could not be loaded. Using default asyncio '
+                        'event policy implementation...')
+    else:
+        logging.info('UVloop was detected. Switched to that asyncio '
+                     'event policy implementation!')
+    finally:
+        loop = asyncio.get_event_loop()
+
     if len(sys.argv) > 1:
         config_path = sys.argv[1]
         configfiles.CONFIG_DIRECTORY = config_path
-
-    loop = asyncio.get_event_loop()
 
     try:
         cfg_file = configfiles.get_from_config_dir('discord')

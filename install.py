@@ -39,6 +39,10 @@ dependencies = {
     'dataclasses': 'dataclasses',
     # PILLOW image manip lib
     'PIL': 'pillow',
+
+    # Faster event loop implementation.
+    'uvloop': 'uvloop',
+
     'wordnik': 'wordnik-py3',
     'yaml': 'pyyaml',
     # Used by the `py` cog.
