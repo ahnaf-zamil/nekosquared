@@ -127,7 +127,7 @@ class GitCog(scribe.Scribe):
                                'rev-parse --symbolic-full-name --abbrev-ref '
                                'HEAD)')
                     await call(f'{git_path} stash list && {git_path} stash '
-                               'drop')
+                               'drop; true')
                 except BaseException as ex:
                     err = traceback.format_exception(
                         type(ex), ex, ex.__traceback__)
