@@ -83,11 +83,11 @@ class DiscordUtilCog(traits.CogTraits, scribe.Scribe):
             process_id = (snowflake & 0x1F000) >> 12
             increment = snowflake & 0xFFF
             
-            string = '\n'.join(
+            string = '\n'.join((
                 f'`{creation_time}`',
                 f'Worker ID: `{worker_id}`',
                 f'Process ID: `{process_id}`',
-                f'Increment: `{increment}`')
+                f'Increment: `{increment}`'))
             
             embed.add_field(name=str(snowflake), value=string)
         
