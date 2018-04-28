@@ -200,12 +200,13 @@ print('Completed.')
 if not just_deps:
     print('Generating run script and sample service script.')
 
-    run_script = f'''#!/bin/bash
+    run_script = inspect.cleandoc(f'''#!/bin/bash
     source venv/bin/activate
+    find -name "__pycache__" -type d -exec rm {} -rf \;
     {python_command} -m neko2
-    '''
+    ''')
 
-    service_script = f'''[Unit]
+    service_script = inspect.cleandoc(f'''[Unit]
     Description=Nekozilla^2 generated systemd Service
     
     [Service]
@@ -218,19 +219,19 @@ if not just_deps:
     
     [Install]
     WantedBy=multi-user.target
-    '''
+    ''')
 
-    enable_script = '''#!/bin/bash
+    enable_script = inspect.cleandoc('''#!/bin/bash
     sudo cp neko2.service /etc/systemd/system -v
     sudo systemctl daemon-reload
     sudo systemctl enable neko2
     
     echo "Run 'sudo systemctl start neko2' to start the service."
-    '''
+    ''')
 
-    update_script = '''#!/bin/bash
+    update_script = inspect.cleandoc('''#!/bin/bash
     git fetch --all && git reset --hard origin/master
-    '''
+    ''')
 
     with open('neko2.sh', 'w') as run_file:
         print(f'Run script: {os.path.join(os.getcwd(), "neko2.sh")}')
