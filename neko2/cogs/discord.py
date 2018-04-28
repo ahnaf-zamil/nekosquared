@@ -56,7 +56,10 @@ class DiscordUtilCog(traits.CogTraits, scribe.Scribe):
         for all inspection sub-commands if you require parsing a specific
         entity type to be recognised, or cannot mention the entity.
         """
-        if isinstance(what, discord.Role):
+        if isinstance(what, int):
+            await self.inspect_snowflake.callback(self, ctx, what)
+        
+        elif isinstance(what, discord.Role):
             await self.inspect_role.callback(self, ctx, role=what)
         else:
             raise NotImplementedError
