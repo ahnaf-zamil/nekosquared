@@ -345,21 +345,18 @@ class Builtins(extrabits.InternalCogType):
             '--pretty=%ar',
             '--relative-date',
             '-n1',
-            encoding='utf-8',
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.DEVNULL,
             stdin=asyncio.subprocess.DEVNULL)
 
         f2 = asyncio.create_subprocess_exec(
             'git', 'log', '--pretty=%s%n%n%b', '-n1',
-            encoding='utf-8',
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.DEVNULL,
             stdin=asyncio.subprocess.DEVNULL)
 
         f3 = asyncio.create_subprocess_shell(
             'git log --oneline | wc -l',
-            encoding='utf-8',
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.DEVNULL,
             stdin=asyncio.subprocess.DEVNULL)
