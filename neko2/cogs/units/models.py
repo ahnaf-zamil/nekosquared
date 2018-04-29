@@ -299,7 +299,7 @@ def pretty_print(d: Decimal,
                     break
         return rounded_str
 
-    if d != 0:
+    if d > 0:
         real_pot = int(d.log10())
     else:
         real_pot = 0
