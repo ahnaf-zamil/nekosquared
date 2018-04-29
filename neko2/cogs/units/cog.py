@@ -73,7 +73,7 @@ class UnitCog(traits.CogTraits):
                     raise ValueError('No valid message found in history.')
             
             e = await self.run_in_io_executor(self.worker, [query])
-            await ctx.send(embed=embed)
+            await ctx.send(embed=e)
 
         except ValueError as ex:
             await ctx.send(str(ex), delete_after=10)
