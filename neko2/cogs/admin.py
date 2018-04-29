@@ -208,7 +208,7 @@ class NonAdminCog:
         future = asyncio.ensure_future(ctx.send('Loading!'))
         future.add_done_callback(callback)
         message = await future
-        event_loop_latency = monotonic() - start_ack()
+        event_loop_latency = monotonic() - start_ack
         ack_time -= start_ack
         event_loop_latency -= ack_time
         
