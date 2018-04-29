@@ -23,6 +23,26 @@ from neko2.shared import string            # String voodoo.
 from . import extrabits
 
 
+try:
+    lines_of_code: str = subprocess.check_output(
+        [
+            '/bin/bash',
+            '-c',
+            'wc -l $(find neko2 neko2-tests discomaton '
+            'discomaton-examples config -name "*.py" '
+            '-o -name "*.sql" -o -name '
+            '"*.json" -o -name "*.yaml") '
+        ],
+        universal_newlines=True)
+    # Gets the number from the total line of the output for wc
+    lines_of_code = (
+        lines_of_code.strip()
+        .split('\n')[-1]
+        .strip()
+        .split(' ')[0])
+except:
+    lines_of_code = None
+
 class Builtins(extrabits.InternalCogType):
     def __init__(self, bot):
         """Init the cog."""
@@ -33,26 +53,9 @@ class Builtins(extrabits.InternalCogType):
         except:
             pass
 
-        try:
-            lines_of_code: str = subprocess.check_output(
-                [
-                    '/bin/bash',
-                    '-c',
-                    'wc -l $(find neko2 neko2-tests discomaton '
-                    'discomaton-examples config -name "*.py" '
-                    '-o -name "*.sql" -o -name '
-                    '"*.json" -o -name "*.yaml") '
-                ],
-                universal_newlines=True)
-            # Gets the number from the total line of the output for wc
-            lines_of_code = (
-                lines_of_code.strip()
-                .split('\n')[-1]
-                .strip()
-                .split(' ')[0])
-
+        if lines_of_code is not None:
             self.lines_of_code = f'{int(lines_of_code):,} lines of code'
-        except:
+        else:
             self.lines_of_code = 'No idea on how many lines of code'
 
     @commands.command(brief='Gets usage information for commands.')
