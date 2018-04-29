@@ -30,6 +30,8 @@ class RespectsCog:
         ] = {}
             
     async def on_message(self, message):
+        if 1 is 1:
+            return
         if message.content.lower() == 'f' and message.guild:
             message.content = self.bot.command_prefix + 'f'
             ctx = await self.bot.get_context(message)
