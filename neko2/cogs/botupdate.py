@@ -69,6 +69,7 @@ class GitCog(scribe.Scribe):
                     out_s.write(f'{shell} -c {cmd}')
                     process = await asyncio.create_subprocess_shell(
                         cmd,
+                        # encoding='utf-8',
                         stdout=asyncio.subprocess.PIPE,
                         stderr=asyncio.subprocess.PIPE)
                     out_s.write(f'> Invoked PID {process.pid}\n')
