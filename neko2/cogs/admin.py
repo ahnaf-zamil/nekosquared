@@ -189,7 +189,7 @@ class AdminCog(traits.CogTraits):
 class NonAdminCog:
     """Cogs for "admin" commands that can be run by anyone."""
     @commands.command(brief='Shows a summary of what this bot can see...')
-    async def summary(self, ctx):
+    async def stats(self, ctx):
         import threading
         from datetime import timedelta
         from time import monotonic
@@ -243,4 +243,4 @@ class NonAdminCog:
 
 def setup(bot):
     bot.add_cog(AdminCog(bot))
-    bot.add_cog(NonAdminCog(bot))
+    bot.add_cog(NonAdminCog())
