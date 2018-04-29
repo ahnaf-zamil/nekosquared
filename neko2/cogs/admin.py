@@ -243,3 +243,4 @@ class NonAdminCog:
 
 def setup(bot):
     bot.add_cog(AdminCog(bot))
+    bot.add_cog(NonAdminCog(bot))
