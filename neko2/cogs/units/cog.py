@@ -17,7 +17,7 @@ import traceback
 import collections
 import discord
 
-from neko2.shared import traits, other
+from neko2.shared import traits, other, commands
 
 from . import parser, lex, conversions, models
 
@@ -40,30 +40,58 @@ class UnitCog(traits.CogTraits):
         lambda m: bool(m.guild)
     )
 
-    async def on_message(self, message):
-        """Delegates the incoming message parsing to a thread-pool worker."""
-        if not all(c(message) for c in self.checks):
-            return
-        else:
-            e = await self.run_in_io_executor(self.worker,  [message])
+    # async def on_message(self, message):
+    #     """Delegates the incoming message parsing to a thread-pool worker."""
+    #     if not all(c(message) for c in self.checks):
+    #         return
+    #     else:
+    #         e = await self.run_in_io_executor(self.worker,  [message])
+    #
+    #         if e:
+    #             await self.await_result_request(message, e)
+    
+    @commands.command(brief='Performs conversions on the given input.', 
+                      aliases=['conv'])
+    async def convert(self, ctx, *, query=None):
+        """
+        If no input is given, the previous message in chat is inspected.
+        """
+        try:
+            if query is None:
+                # Get channel history until we find the message before the
+                # one corresponding to the invoked context.
+                is_next = False
+                async for message in ctx.channel.history(limit=None):
+                    if is_next:
+                        break
+                    elif message.id == ctx.message.id:
+                        is_next = True
+                
+                if is_next:
+                    query = message.content
+                else:
+                    raise ValueError('No valid message found in history.')
+            
+            e = await self.run_in_io_executor(self.worker, [query])
+            await ctx.send(embed=embed)
 
-            if e:
-                await self.await_result_request(message, e)
+        except ValueError as ex:
+            await ctx.send(str(ex), delete_after=10)
 
     @staticmethod
     def worker(message):
         """Calculates all conversions on a separate thread."""
         # Parse potential matches by pattern matching.
-        tokens = list(lex.tokenize(message.content))
+        tokens = list(lex.tokenize(message))
 
         if not tokens:
-            return
+            raise ValueError('No potential unit matches found.')
 
         # Parse real unit measurements that we can convert.
         quantities = list(parser.parse(*tokens))
 
         if not quantities:
-            return
+            raise ValueError('No actual unit matches found.')
 
         # Get any conversions
         equivalents = collections.OrderedDict()
@@ -120,7 +148,7 @@ class UnitCog(traits.CogTraits):
 
         if not len(embed.fields):
             del embed
-            return
+            raise ValueError('No valid or non-zero conversions found.')
 
         return embed
 
