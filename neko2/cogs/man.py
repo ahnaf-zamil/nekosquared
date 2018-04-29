@@ -47,7 +47,7 @@ class ManCog:
         # Gets the full manpage content which will be huge.
         main_proc = await asyncio.create_subprocess_exec(
             'man', *common_args,
-            encoding='utf-8',
+            # encoding='utf-8',
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.DEVNULL,
             stdin=asyncio.subprocess.DEVNULL,
