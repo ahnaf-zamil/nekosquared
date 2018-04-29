@@ -213,21 +213,21 @@ class NonAdminCog:
         event_loop_latency -= ack_time
         
         stats = collections.OrderedDict({
-            'Users': max(len(ctx.bot.users), len(list(ctx.bot.get_all_members()))),
-            'Guilds': len(ctx.bot.guilds),
-            'Channels': len(list(ctx.bot.get_all_channels())),
-            'Private channels': len(ctx.bot.private_channels),
-            'Shards': ctx.bot.shard_count or 1,
-            'Commands': len(frozenset(ctx.bot.walk_commands())),
-            'Commands (inc. aliases)': len(ctx.bot.all_commands),
-            'Loaded cogs': len(ctx.bot.cogs),
-            'Loaded extensions': len(ctx.bot.extensions),
-            'Active tasks': len(asyncio.Task.all_tasks(
-                                    loop=asyncio.get_event_loop())),
-            'Active threads': threading.active_count(),
+            'Users': f'{max(len(ctx.bot.users), len(list(ctx.bot.get_all_members()))):,}',
+            'Guilds': f'{len(ctx.bot.guilds):,}',
+            'Channels': f'{len(list(ctx.bot.get_all_channels())):,}',
+            'Private channels': f'{len(ctx.bot.private_channels):,}',
+            'Shards': f'{ctx.bot.shard_count or 1:,}',
+            'Commands': f'{len(frozenset(ctx.bot.walk_commands())):,}',
+            'Commands (inc. aliases)': f'{len(ctx.bot.all_commands):,}',
+            'Loaded cogs': f'{len(ctx.bot.cogs):,}',
+            'Loaded extensions': f'{len(ctx.bot.extensions):,}',
+            'Active tasks': 
+                    f'{len(asyncio.Task.all_tasks(loop=asyncio.get_event_loop())):,}',
+            'Active threads': f'{threading.active_count():,}',
             'Uptime': str(timedelta(seconds=ctx.bot.uptime)),
             'System uptime': str(timedelta(seconds=monotonic())),
-            'Lines of code at startup': builtins.lines_of_code,
+            'Lines of code at startup': f'{builtins.lines_of_code:,}',
             'Latency': f'{ctx.bot.latency * 1000:,.2f}ms',
             '`ACK` time': f'{ack_time * 1000:,.2f}ms',
             'Event loop latency': f'{event_loop_latency * 1000:,.2f}ms'
