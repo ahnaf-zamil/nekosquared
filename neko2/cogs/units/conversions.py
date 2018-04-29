@@ -22,15 +22,15 @@ _models = {
         UnitModel.new_si('meter', 'meters', 'metre', 'metres', 'm'),
         UnitModel.new_cv('0.3048', 'foot', 'feet', 'ft'),
         UnitModel.new_cv('1000', 'kilometer', 'kilometre', 'kilometers',
-                         'kilometres', 'km', exclude_from_conversions=True),
+                         'kilometres', 'km'),
         UnitModel.new_cv('1609.34', 'mile', 'miles', 'mi'),
         UnitModel.new_cv('0.9144', 'yard', 'yards', 'yd'),
         UnitModel.new_cv('0.0254', 'inch', 'inches', 'inchs', 'in'),
         UnitModel.new_cv('1852', 'nautical mile', 'nautical miles', 'nmi'),
         UnitModel.new_cv('0.01', 'centimeter', 'centimetre', 'centimeters',
-                         'centimetres', 'cm', exclude_from_conversions=True),
+                         'centimetres', 'cm'),
         UnitModel.new_cv('0.001', 'millimeter', 'millimetre', 'millimeters',
-                         'millimetres', 'mm', exclude_from_conversions=True),
+                         'millimetres', 'mm'),
         UnitModel.new_cv('1.496e+11', 'AU', 'AU', 'astronomical unit',
                          'astronomical units', 'AU'),
         UnitModel.new_cv('9.461e+15', 'light-year', 'light-years',
@@ -38,20 +38,18 @@ _models = {
         UnitModel.new_cv('3.086e+16', 'parsec', 'parsecs', 'pc')
     ),
 
-    # UnitCollectionModel(
-    #     UnitCategoryModel.TIME,
-    #     UnitModel.new_si('second', 'seconds', 's'),
-    #     UnitModel.new_cv('60', 'minute', 'minutes'),
-    #     UnitModel.new_cv('3600', 'hour', 'hours', 'h'),
-    #     UnitModel.new_cv('86400', 'day', 'days', 'dy', 'dys'),
-    #     UnitModel.new_cv('604800', 'week', 'weeks', 'wk', 'wks'),
-    #     UnitModel.new_cv('2592000', 'month', 'months', 'mon', 'mons'),
-    #     UnitModel.new_cv('31536000', 'year', 'years', 'yr', 'yrs'),
-    #     UnitModel.new_cv('3.336e-11', 'jiffy', 'jiffies',
-    #                      exclude_from_conversions=True),
-    #    UnitModel.new_cv('5.391e-44', 'plank time', 'tP',
-    #                      exclude_from_conversions=True)
-    # ),
+    UnitCollectionModel(
+        UnitCategoryModel.TIME,
+        UnitModel.new_si('second', 'seconds', 's'),
+        UnitModel.new_cv('60', 'minute', 'minutes'),
+        UnitModel.new_cv('3600', 'hour', 'hours', 'h'),
+        UnitModel.new_cv('86400', 'day', 'days', 'dy', 'dys'),
+        UnitModel.new_cv('604800', 'week', 'weeks', 'wk', 'wks'),
+        UnitModel.new_cv('2592000', 'month', 'months', 'mon', 'mons'),
+        UnitModel.new_cv('31536000', 'year', 'years', 'yr', 'yrs'),
+        UnitModel.new_cv('3.336e-11', 'jiffy', 'jiffies'),
+        UnitModel.new_cv('5.391e-44', 'plank time', 'tP')
+    ),
 
     UnitCollectionModel(
         UnitCategoryModel.SPEED,
@@ -73,9 +71,9 @@ _models = {
         UnitModel.new_si('meter³', 'meters³', 'm^3', 'm³'),
         UnitModel.new_cv('0.001', 'liter', 'litre', 'liters', 'litres', 'l'),
         UnitModel.new_cv('1e-6', 'milliliter', 'milliliters', 'millilitre',
-                         'millilitres', 'ml', exclude_from_conversions=True),
+                         'millilitres', 'ml'),
         UnitModel.new_cv('1e-5', 'centiliter', 'centiliters', 'centilitre',
-                         'centilitres', 'cl', exclude_from_conversions=True),
+                         'centilitres', 'cl'),
         UnitModel.new_cv('1e-6', 'centimeters³', 'cm³', 'cm^3', 'cc'),
         UnitModel.new_cv('0.000568261', 'pints', 'pint', 'UKpnt' 'pnt'),
         UnitModel.new_cv('0.00454609', 'gallons', 'gallon', 'UKgal', 'gal'),
@@ -114,9 +112,7 @@ _models = {
         UnitModel.new_cv('1099511627776', 'tebibyte', 'tebibytes', 'TiB'),
         UnitModel.new_cv('1125899906842624', 'pebibyte', 'pebibytes', 'PiB'),
         UnitModel.new_cv('0.125', 'bit', 'bits'),
-        UnitModel.new_cv('0.5', 'nibble', 'nibbles'),
-        UnitModel.new_cv('7.35e7', 'Gangnam Style playing on Youtube at 1080p',
-                         'Gangnam Styles playing on Youtube at 1080p'),
+        UnitModel.new_cv('0.5', 'nibble', 'nibbles')
     ),
 
     UnitCollectionModel(
