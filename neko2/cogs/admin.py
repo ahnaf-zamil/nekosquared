@@ -5,6 +5,7 @@ Cog holding owner-only administrative commands, such as those for restarting
 the bot, inspecting/loading/unloading commands/cogs/extensions, etc.
 """
 import asyncio
+import collections
 import contextlib
 import inspect
 import io
@@ -16,7 +17,7 @@ import traceback
 import async_timeout
 from discomaton.factories import bookbinding
 import discord
-from neko2.shared import traits, commands
+from neko2.shared import traits, commands, other
 
 
 class AdminCog(traits.CogTraits):
@@ -184,6 +185,61 @@ class AdminCog(traits.CogTraits):
 
         await self.shell.callback(self, ctx, command=command)
 
+
+class NonAdminCog:
+    """Cogs for "admin" commands that can be run by anyone."""
+    @commands.command(brief='Shows a summary of what this bot can see...')
+    async def summary(self, ctx):
+        import threading
+        from datetime import timedelta
+        from time import monotonic
+        from neko2.engine import builtins
+        
+        # Calculates the ping, and will store our message response a little
+        # later
+        event_loop_latency = 0
+        ack_time = 0
+        
+        def callback(*_, **__):
+            nonlocal ack_time
+            ack_time = monotonic()
+        
+        start_ack = monotonic()        
+        future = asyncio.ensure_future(ctx.send('Loading!'))
+        future.add_done_callback(callback)
+        message = await future
+        event_loop_latency = monotonic() - start_ack()
+        ack_time -= start_ack
+        event_loop_latency -= ack_time
+        
+        stats = collections.OrderedDict({
+            'Users': max(len(ctx.bot.users), len(list(ctx.bot.get_all_members()))),
+            'Guilds': len(ctx.bot.guilds),
+            'Channels': len(list(ctx.bot.get_all_channels())),
+            'Private channels': len(ctx.bot.private_channels),
+            'Shards': ctx.bot.shard_count or 1,
+            'Commands': len(frozenset(ctx.bot.walk_commands())),
+            'Commands (inc. aliases)': len(ctx.bot.all_commands),
+            'Loaded cogs': len(ctx.bot.cogs),
+            'Loaded extensions': len(ctx.bot.extensions),
+            'Active tasks': len(asyncio.Task.all_tasks(
+                                    loop=asyncio.get_event_loop())),
+            'Active threads': threading.active_count(),
+            'Uptime': str(timedelta(seconds=ctx.bot.uptime)),
+            'System uptime': str(timedelta(seconds=monotonic())),
+            'Lines of code at startup': builtins.loc,
+            'Latency': f'{ctx.bot.latency * 1000:,.2f}ms',
+            '`ACK` time': f'{ack_time * 1000:,.2f}ms',
+            'Event loop latency': f'{event_loop_latency * 1000:,.2f}ms'
+        })
+        
+        embed = discord.Embed(title='Statistics for nerds', 
+                              colour=other.rand_colour())
+        
+        for name, value in stats.items():
+            embed.add_field(name=name, value=value)
+        
+        await message.edit(content='', embed=embed)
 
 def setup(bot):
     bot.add_cog(AdminCog(bot))
