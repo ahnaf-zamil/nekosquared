@@ -227,7 +227,7 @@ class NonAdminCog:
             'Active threads': f'{threading.active_count():,}',
             'Uptime': str(timedelta(seconds=ctx.bot.uptime)),
             'System uptime': str(timedelta(seconds=monotonic())),
-            'Lines of code at startup': f'{builtins.lines_of_code:,}',
+            'Lines of code at startup': f'{int(builtins.lines_of_code or 0):,}',
             'Latency': f'{ctx.bot.latency * 1000:,.2f}ms',
             '`ACK` time': f'{ack_time * 1000:,.2f}ms',
             'Event loop latency': f'{event_loop_latency * 1000:,.2f}ms'
