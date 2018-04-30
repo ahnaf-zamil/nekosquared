@@ -4,8 +4,8 @@
 Embed preview cog utility.
 """
 import asyncio                             # Async bits and bobs
-import collections                         # OrderedDict
 from datetime import datetime              # Timestamp stuff
+import urllib.parse
 
 import discord
 from discord import utils                  # OAuth2 URL generation
@@ -63,6 +63,23 @@ class DiscordUtilCog(traits.CogTraits, scribe.Scribe):
             await self.inspect_role.callback(self, ctx, role=what)
         else:
             raise NotImplementedError
+
+    # noinspection PyUnresolvedReferences
+    @inspect_group.command(name='avatar', brief='Shows the user\'s avatar.',
+                           examples=['@user'])
+    async def inspect_avatar(self,
+                             ctx,
+                             *,
+                             user: commands.MemberConverter):
+        avatar_url = user.avatar_url
+        url_obj = urllib.parse.urlparse(avatar_url)
+        avatar_url = f'{url_obj[0]}://{url_obj[1]}{url_obj[2]}'
+        embed = discord.Embed(
+            title=f'{user}\'s avatar',
+            colour=getattr(user, 'colour', 0))
+        embed.set_image(url=avatar_url)
+        await ctx.send(embed=embed)
+
     
     @inspect_group.command(name='snowflake', brief='Deciphers a snowflake.',
                            examples=['439802699144232960'], aliases=['sf'])
