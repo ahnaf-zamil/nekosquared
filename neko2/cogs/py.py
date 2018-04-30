@@ -43,11 +43,11 @@ class PyCog(traits.CogTraits):
         await bb.start()
 
     @commands.group(invoke_without_command=True,
+                    aliases=['pip', 'pip3'],
                     brief='Searches PyPI for the given package name.')
     async def pypi(self, ctx, package):
         """
-        Displays the top 50 results. Input must be three or more characters
-        wide.
+        Input must be three or more characters wide.
         """
         if len(package) <= 2:
             return await ctx.send('Please provide at least three characters.',
@@ -67,18 +67,23 @@ class PyCog(traits.CogTraits):
 
         head = f'**__Search results for `{package}`__**\n'
         for i, result in enumerate(results[:50]):
-            if not i % 15:
+            if not i % 5:
                 book.add_break()
                 book.add_line(head)
 
             name = result['name']
+            link = f'<https://pypi.org/project/{parse.quote(name)}>'
             ver = result['version']
             summary = result['summary']
             summary = summary and f'- _{summary}_' or ''
-            book.add_line(f'**{name}** ({ver}) {summary}')
+            book.add_line(f'**{name}** ({ver}) {summary}\n\t{link}')
 
         try:
-            await book.start()
+            booklet = book.build()
+            if len(booklet) > 1:
+                await booklet.start()
+            else:
+                await ctx.send(bookl    et[0])
         except IndexError:
             await ctx.send('No results were found...', delete_after=10)
 

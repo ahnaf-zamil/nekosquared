@@ -15,7 +15,8 @@ import re
 import traceback
 import urllib.parse
 
-from neko2.shared import configfiles, commands
+from neko2.shared import configfiles
+from neko2.shared import commands
 from neko2.shared import errors
 from neko2.shared import traits
 
@@ -25,10 +26,17 @@ config_file = 'urlshorten'
 # noinspection PyBroadException
 class UrlShortenerCog(traits.CogTraits):
     """Shortens URLS"""
-    _key: str = configfiles.get_config_data(config_file)
+    try:
+        _key: str = configfiles.get_config_data(config_file)
+    except:
+        traceback.print_exc()
+        _key = None
 
     @classmethod
     async def googl(cls, url):
+        if cls._key is None:
+            return None
+
         conn = await cls.acquire_http()
 
         res = await conn.post('https://www.googleapis.com/urlshortener/v1/url',
@@ -48,6 +56,8 @@ class UrlShortenerCog(traits.CogTraits):
         """
         try:
             url = await self.googl(url)
+            if url is None:
+                await ctx.send('I can\'t connect to goo.gl at the moment.')
         except BaseException:
             traceback.print_exc()
             await ctx.send('There was an error handling this request.')
@@ -92,42 +102,16 @@ class UrlShortenerCog(traits.CogTraits):
             await ctx.message.delete()
 
         url = f'http://lmgtfy.com?{frag}'
-        url = await self.googl(url)
+        short_url = await self.googl(url)
+
+        url = short_url or url
 
         await ctx.send(''.join((mention, f'<{url}>')))
 
-    @commands.command(
-        brief='Links to a Google Search for the given terms.',
-        usage='query [| @mention]',
-        examples=['how to buy lime', 'what is a discord.py? | @mention#1234'],
-        aliases=['googled'])
-    async def google(self, ctx, *, query):
-        """
-        Adds a shortlink to the results for a given Google Search.
 
-        Call `googled` to delete the initial message.
-
-        You can "pipe" the output to a given member. This will mention them
-        in the response.
-        """
-        if '|' in query:
-            query, _, mention = query.rpartition('|')
-
-            mention = mention.strip()
-
-            if not re.match(r'^<!?@\d+>$', mention):
-                mention = ''
-            else:
-                query, mention = query.rstrip(), mention + ': '
-        else:
-            mention = ''
-
-        frag = urllib.parse.urlencode({'q': query})
-
-        url = f'https://www.google.com/search?{frag}'
-        url = await self.googl(url)
-
-        await ctx.send(''.join((mention, f'<{url}>')))
+if not getattr(UrlShortenerCog, '_key', None):
+    UrlShortenerCog.logger.info('I will attempt to continue without goo.gl '
+                                'support.')
 
 
 def setup(bot):

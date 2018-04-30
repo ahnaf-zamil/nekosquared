@@ -376,6 +376,18 @@ class AbstractBooklet(AbstractIterableMachine,
         """Gets the page index."""
         return self.__page_index
 
+    def __getitem__(self, index: int) -> int:
+        """Index operator. Acts as a 0-indexed list access."""
+        return self.pages[index]
+
+    def __index__(self) -> int:
+        """Gets an index. This is the page index we are currently on."""
+        return self.page_index
+
+    def __int__(self) -> int:
+        """Gets a number. This is the page number we are currently on."""
+        return self.page_number
+
     @property
     def page_index(self) -> int:
         """Gets the page index."""
