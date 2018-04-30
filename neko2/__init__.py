@@ -10,11 +10,14 @@ extra development utilities exist. These include: shortening of URLs;
 generation of bot invites from snowflake client IDs; the ability to view
 manpages and tldr pages; and unicode character inspection.
 
-I will also attempt to provide useful conversions for units of measurement
-automatically. Someone using fahrenheit? No problem!
+I will also attempt to provide useful conversions for units of measurement.
+Someone using fahrenheit? No problem!
 
 A bunch of other commands exist, and will hopefully be steadily increased as
 time progresses. Just run `n.help` to see what is available!
+
+If you want to be nosey, you can also [check out the source code on GitHub.](
+https://github.com/neko404notfound/nekosquared)
 """
 import neko2.shared
 import neko2.cogs
@@ -24,7 +27,7 @@ import neko2.engine
 __author__ = 'Neko404NotFound'
 __license__ = 'Mozilla Public License Version 2.0'
 __url__ = 'https://github.com/neko404notfound/nekosquared'
-__version__ = '1.6-BLEEDING'
+__version__ = '1.7-BLEEDING'
 __repository__ = __url__
 
 

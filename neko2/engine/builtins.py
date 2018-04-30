@@ -7,6 +7,7 @@ import asyncio                             # Async subprocess.
 import copy                                # Shallow copies.
 import inspect                             # Inspection
 import subprocess                          # Sync subprocess.
+import sys
 import time                                # Timing stuff.
 import traceback
 import typing                              # Type checking bits and pieces.
@@ -23,25 +24,36 @@ from neko2.shared import string            # String voodoo.
 from . import extrabits
 
 
-try:
-    lines_of_code: str = subprocess.check_output(
-        [
-            '/bin/bash',
-            '-c',
-            'wc -l $(find neko2 neko2-tests discomaton '
-            'discomaton-examples config -name "*.py" '
-            '-o -name "*.sql" -o -name '
-            '"*.json" -o -name "*.yaml") '
-        ],
-        universal_newlines=True)
-    # Gets the number from the total line of the output for wc
-    lines_of_code = (
-        lines_of_code.strip()
-        .split('\n')[-1]
-        .strip()
-        .split(' ')[0])
-except:
-    lines_of_code = None
+lines_of_code = None
+
+
+def count_loc():
+    global lines_of_code
+    try:
+        extrabits.InternalCogType.logger.info('Counting and caching LOC.')
+        lines_of_code = subprocess.check_output(
+            [
+                '/bin/bash',
+                '-c',
+                'wc -l $(find neko2 neko2tests discomaton '
+                'discomaton-examples config -name "*.py" '
+                '-o -name "*.sql" -o -name '
+                '"*.json" -o -name "*.yaml") '
+            ],
+            universal_newlines=True)
+        # Gets the number from the total line of the output for wc
+        lines_of_code = (
+            lines_of_code.strip()
+            .split('\n')[-1]
+            .strip()
+            .split(' ')[0])
+    finally:
+        return
+
+
+# Count initial LOC.
+count_loc()
+
 
 class Builtins(extrabits.InternalCogType):
     def __init__(self, bot):
@@ -53,10 +65,12 @@ class Builtins(extrabits.InternalCogType):
         except:
             pass
 
+    @property
+    def lines_of_code(self):
         if lines_of_code is not None:
-            self.lines_of_code = f'{int(lines_of_code):,} lines of code'
+            return f'{int(lines_of_code):,} lines of code'
         else:
-            self.lines_of_code = 'No idea on how many lines of code'
+            return 'No idea on how many lines of code'
 
     @commands.command(brief='Gets usage information for commands.')
     async def help(self, ctx, *, query: str=None):
@@ -449,7 +463,10 @@ class Builtins(extrabits.InternalCogType):
 
         start_time = time.monotonic()
         self.bot.load_extension(namespace)
-        return time.monotonic() - start_time
+        ttr = time.monotonic() - start_time
+        # Recache LOC.
+        asyncio.ensure_future(self.run_in_io_executor(count_loc))
+        return ttr
 
     async def _unload_extension(self, namespace) -> float:
         """
@@ -470,7 +487,10 @@ class Builtins(extrabits.InternalCogType):
         else:
             start_time = time.monotonic()
             self.bot.unload_extension(namespace)
-            return time.monotonic() - start_time
+            ttr = time.monotonic() - start_time
+            # Recache LOC.
+            asyncio.ensure_future(self.run_in_io_executor(count_loc))
+            return ttr
 
     @commands.is_owner()
     @commands.command(hidden=True, brief='Loads a given extension.')
@@ -550,6 +570,12 @@ class Builtins(extrabits.InternalCogType):
 
             start_time = time.monotonic()
             with ctx.typing():
+                log.append(f'Unloading `discomaton` cached module data.')
+                del sys.modules['discomaton']
+                log.append(f'Unloading `neko2` cached module data.')
+                del sys.modules['neko2']
+                log.append('\n' + '-' * 50 + '\n')
+
                 unloaded_extensions = []
                 for extension in copy.copy(ctx.bot.extensions):
                     if extension.startswith('neko2.engine'):
@@ -584,18 +610,25 @@ class Builtins(extrabits.InternalCogType):
 
             time_taken = time.monotonic() - start_time
             
-            book = bookbinding.StringBookBinder(ctx, max_lines=None)
+            book = bookbinding.StringBookBinder(ctx, max_lines=None,
+                                                timeout=30)
+
+            book.add_line('Completed operation in approximately '
+                          f'**{time_taken*1000:,.2f}ms**')
+            book.add_line(f'Unloaded **{unloaded_count}**, '
+                          f'loaded **{loaded_count}**')
+            book.add_line(f'Encountered **{error_count} '
+                          f'error{"s" if error_count - 1 else ""}**')
+            book.add_line('')
+            book.add_line('_See following pages for logs._')
+
+            book.add_break()
 
             for line in log:
                 book.add_line(line)
 
-            book.add_line('')
-            book.add_line('**Completed operation in approximately '
-                          f'{time_taken*1000:,.2f}ms**')
-            book.add_line(f'**Unloaded {unloaded_count}, loaded {loaded_count}'
-                          '**')
-            book.add_line(f'**Encountered {error_count} '
-                          f'error{"s" if error_count - 1 else ""}**')
+            # Recache LOC.
+            asyncio.ensure_future(self.run_in_io_executor(count_loc))
 
             await book.start()
         else:

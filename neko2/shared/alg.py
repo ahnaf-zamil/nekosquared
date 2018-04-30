@@ -4,6 +4,7 @@
 Algorithm stuff, and general bits and pieces that don't belong elsewhere, or
 that generally operate on a wide variety of data.
 """
+import asyncio    # Future type
 import time       # Basic timestamps
 import typing     # Type checking
 
@@ -65,9 +66,9 @@ def time_it(call, *args, **kwargs) -> (typing.Any, float):
     :param kwargs: the kwargs to give the callable.
     :returns: a tuple of the return result and the time taken in seconds.
     """
-    start = time.time()
+    start = time.monotonic()
     result = call(*args, **kwargs)
-    end = time.time()
+    end = time.monotonic()
 
     return result, end - start
 
@@ -84,8 +85,14 @@ async def time_it_async(coro, *args, **kwargs) -> (typing.Any, float):
     :param kwargs: the kwargs to give the callable.
     :returns: a tuple of the return result and the time taken in seconds.
     """
-    start = time.time()
-    result = await coro(*args, **kwargs)
-    end = time.time()
+    end = 0
 
+    def callback():
+        nonlocal end
+        end = time.monotonic()
+
+    start = time.monotonic()
+    result_fut = asyncio.ensure_future(coro(*args, **kwargs))
+    result_fut.add_done_callback(callback)
+    result = await result_fut
     return result, end - start

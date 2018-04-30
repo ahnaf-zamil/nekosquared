@@ -211,9 +211,12 @@ class NonAdminCog:
         event_loop_latency = monotonic() - start_ack
         ack_time -= start_ack
         event_loop_latency -= ack_time
+
+        users = max(len(ctx.bot.users), len(list(ctx.bot.get_all_members())))
+        tasks = len(asyncio.Task.all_tasks(loop=asyncio.get_event_loop()))
         
         stats = collections.OrderedDict({
-            'Users': f'{max(len(ctx.bot.users), len(list(ctx.bot.get_all_members()))):,}',
+            'Users': f'{users:,}',
             'Guilds': f'{len(ctx.bot.guilds):,}',
             'Channels': f'{len(list(ctx.bot.get_all_channels())):,}',
             'Private channels': f'{len(ctx.bot.private_channels):,}',
@@ -222,15 +225,14 @@ class NonAdminCog:
             'Commands (inc. aliases)': f'{len(ctx.bot.all_commands):,}',
             'Loaded cogs': f'{len(ctx.bot.cogs):,}',
             'Loaded extensions': f'{len(ctx.bot.extensions):,}',
-            'Active tasks': 
-                    f'{len(asyncio.Task.all_tasks(loop=asyncio.get_event_loop())):,}',
-            'Active threads': f'{threading.active_count():,}',
+            'Active/sleeping tasks': f'{tasks:,}',
+            'Active/sleeping threads': f'{threading.active_count():,}',
             'Uptime': str(timedelta(seconds=ctx.bot.uptime)),
             'System uptime': str(timedelta(seconds=monotonic())),
             'Lines of code at startup': f'{int(builtins.lines_of_code or 0):,}',
             'Latency': f'{ctx.bot.latency * 1000:,.2f}ms',
             '`ACK` time': f'{ack_time * 1000:,.2f}ms',
-            'Event loop latency': f'{event_loop_latency * 1000:,.2f}ms'
+            'Event loop latency': f'{event_loop_latency * 1e6:,.2f}µs'
         })
         
         embed = discord.Embed(title='Statistics for nerds', 
@@ -240,6 +242,7 @@ class NonAdminCog:
             embed.add_field(name=name, value=value)
         
         await message.edit(content='', embed=embed)
+
 
 def setup(bot):
     bot.add_cog(AdminCog(bot))

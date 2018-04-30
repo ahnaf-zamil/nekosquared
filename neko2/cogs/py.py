@@ -83,7 +83,7 @@ class PyCog(traits.CogTraits):
             if len(booklet) > 1:
                 await booklet.start()
             else:
-                await ctx.send(bookl    et[0])
+                await ctx.send(booklet[0])
         except IndexError:
             await ctx.send('No results were found...', delete_after=10)
 
