@@ -11,12 +11,17 @@ from discomaton.util import pag
 
 import discord
 
-from neko2.shared import traits, commands
+from neko2.shared import traits, commands, other
+
+
+# TLDR uses weird {{}} notation to use for placeholders. This will eventually format them
+def scrub_tags(text):
+    return text
 
 
 class TldrCog(traits.CogTraits):
     @commands.command(brief='Shows TLDR pages (like man, but simpler).')
-    async def tldr(self, ctx, page: str, platform: str='common'):
+    async def tldr(self, ctx, page: str, platform=None):
         """
         Similar to man pages, this shows information on how to use a command,
         the difference being that this is designed to be human readable.
@@ -32,19 +37,33 @@ class TldrCog(traits.CogTraits):
         - osx
         - sunos
         - windows
-        and defaults to `common` if unspecified.
+
+        If unspecified, we check all platforms. This will take a little longer
+        to respond.
         """
-        platform = platform.lower()
-        if platform not in ('common', 'linux', 'osx', 'sunos', 'windows'):
+        platform = None if platform is None else platform.lower()
+        supported_platforms = ('common', 'linux', 'osx', 'sunos', 'windows')
+
+        if platform and platform not in supported_platforms:
             return await ctx.send('Invalid platform.', delete_after=10)
         elif any(x in page for x in '#?/'):
             return await ctx.send('Invalid page name.', delete_after=10)
 
         url = 'https://raw.githubusercontent.com/tldr-pages/tldr/master/pages/'
-        url += f'{platform}/{page}.md'
 
         conn = await self.acquire_http()
-        resp = await conn.get(url)
+
+        if platform is None:
+            for platform in supported_platforms:
+                resp = await conn.get(f'{url}{platform}/{page}.md')
+                if 200 <= resp.status < 300:
+                    break
+                else:
+                    ctx.bot.loop.create_task(resp.release())
+        else:
+            url += f'{platform}/{page}.md'
+            resp = await conn.get(url)
+
         if resp.status != 200:
             return await ctx.send(f'Error: {resp.reason}.', delete_after=10)
 
@@ -59,7 +78,7 @@ class TldrCog(traits.CogTraits):
         if content[0].startswith('#'):
             title = content.pop(0)[1:].lstrip() + f' ({platform})'
         else:
-            title = f'{page} ({platform})'
+            title = f'{page} ({platform.title()})'
 
         paginator = pag.Paginator()
         last_line_was_bullet = False
@@ -70,17 +89,18 @@ class TldrCog(traits.CogTraits):
                 if not line.strip():
                     last_line_was_bullet = False
                     continue
-            elif line.lstrip().startswith('- '):
+            elif line.lstrip().startswith(' '):
                 last_line_was_bullet = True
 
             paginator.add_line(line)
 
         pages = []
         for page in paginator.pages:
+            page = scrub_tags(page)
             pages.append(discord.Embed(
                 title=title,
                 description=page,
-                colour=random.randint(0, 0xFFFFFF)
+                colour=other.rand_colour()
             ))
 
         booklet = book.EmbedBooklet(ctx=ctx, pages=pages)

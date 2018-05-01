@@ -20,7 +20,7 @@ modules = frozenset({
     _('ud'),
     _('googl'),
     _('wordnik'),
-    _('beats'),
+
     _('unicode'),
     _('rpn'),
     _('xkcd'),
