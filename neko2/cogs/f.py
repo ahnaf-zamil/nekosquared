@@ -57,8 +57,9 @@ class RespectsCog:
 
             c1 = b is not None and b.message.id == reaction.message.id
             c2 = reaction.message.guild is not None
+            c3 = user not in b.members
 
-            if c1 and c2:
+            if c1 and c2 and c3:
                 await self.append_to_bucket(b, user)
                 message: discord.Message = reaction.message
                 await message.remove_reaction(reaction, user)
