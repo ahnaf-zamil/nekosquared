@@ -14,6 +14,15 @@ from neko2.shared import commands, other, collections
 F_TIMEOUT = 60 ** 2
 
 
+# Set to True to enable `f' being a valid trigger for the command without
+# a prefix.
+ENABLE_NAKED = False
+
+# Set to True to enable responding to reactions to the original trigger
+# response
+ENABLE_REACT = True
+
+
 @dataclasses.dataclass()
 class F:
     members: collections.MutableOrderedSet
@@ -24,79 +33,105 @@ class F:
 class RespectsCog:
     def __init__(self, bot):
         self.bot = bot
+        self.buckets: typing.Dict[discord.TextChannel, F] = {}
 
-        self.buckets: typing.Dict[
-            typing.Tuple[discord.Guild, discord.TextChannel], F
-        ] = {}
-            
-    async def on_message(self, message):
-        if 1 is 1:
-            return
-        if message.content.lower() == 'f' and message.guild:
-            message.content = self.bot.command_prefix + 'f'
-            ctx = await self.bot.get_context(message)
-            try:
-                await self.f.invoke(ctx)
-            finally:
+    if ENABLE_NAKED:
+        async def on_message(self, message):
+            if message.content.lower() == 'f' and message.guild:
+                message.content = self.bot.command_prefix + 'f'
+                ctx = await self.bot.get_context(message)
+                try:
+                    await self.f.invoke(ctx)
+                finally:
+                    return
+
+    if ENABLE_REACT:
+        async def on_reaction_add(self,
+                                  reaction: discord.Reaction,
+                                  user: discord.Member):
+            if user == self.bot.user:
                 return
 
-    # noinspection PyUnusedLocal
-    # @commands.cooldown(1, 600, commands.BucketType.user)
-    @commands.command(brief='Pay your respects.')
-    async def f(self, ctx):
-        prefix = ctx.prefix + ctx.invoked_with
+            channel = reaction.message.channel
+            b = self.buckets.get(channel)
 
+            c1 = b is not None and b.message.id == reaction.message.id
+            c2 = reaction.message.guild is not None
+
+            if c1 and c2:
+                await self.append_to_bucket(b, user)
+                message: discord.Message = reaction.message
+                await message.remove_reaction(reaction, user)
+
+    @staticmethod
+    async def append_to_bucket(bucket, user):
+        bucket.members.add(user)
+
+        members = bucket.members[:15]
+
+        first = members[:-1]
+        last = members[-1]
+
+        first = list(map(str, first))
+        last = str(last) if last else ''
+
+        if len(members) > 1:
+            message = (
+                    ', '.join(first) + f' and {last} ' +
+                    'paid their respects')
+        else:
+            message = (
+                f'{last} paid their respects.')
+
+        embed = discord.Embed(
+            description=message,
+            colour=bucket.colour)
+
+        await bucket.message.edit(embed=embed)
+
+    @other.always_background()
+    async def destroy_bucket_later(self, channel):
+        await asyncio.sleep(F_TIMEOUT)
+        if ENABLE_REACT:
+            await self.buckets[channel].message.clear_reactions()
+
+        del self.buckets[channel]
+
+    @commands.guild_only()
+    @commands.command(brief='Pay your respects.')
+    async def f(self, ctx, *, reason=None):
         try:
-            guild_channel = (ctx.guild, ctx.channel)
             await ctx.message.delete()
 
-            if guild_channel not in self.buckets:
+            if ctx.channel not in self.buckets:
 
                 colour = other.rand_colour()
 
-                message = await ctx.send(
-                    embed=discord.Embed(
-                        description=f'{ctx.author} paid their respects.',
-                        colour=colour))
+                if reason is None:
+                    message = await ctx.send(
+                        embed=discord.Embed(
+                            description=f'{ctx.author} paid their respects.',
+                            colour=colour))
+                else:
+                    message = await ctx.send(
+                        embed=discord.Embed(
+                            description=f'{ctx.author} paid their respects for'
+                                        f' {reason}'))
+
+                if ENABLE_REACT:
+                    await message.add_reaction(
+                        '\N{REGIONAL INDICATOR SYMBOL LETTER F}')
 
                 f_bucket = F(collections.MutableOrderedSet({ctx.author}),
                              message,
                              colour)
 
-                self.buckets[guild_channel] = f_bucket
+                self.buckets[ctx.channel] = f_bucket
 
-                async def destroy_bucket_later(_guild_channel):
-                    await asyncio.sleep(F_TIMEOUT)
-                    del self.buckets[_guild_channel]
-
-                self.bot.loop.create_task(
-                    destroy_bucket_later(guild_channel))
-
+                await self.destroy_bucket_later(ctx.channel)
             else:
-                bucket = self.buckets[guild_channel]
-                bucket.members.add(ctx.author)
-
-                members = bucket.members[:15]
-
-                first = members[:-1]
-                last = members[-1]
-
-                first = list(map(str, first))
-                last = str(last) if last else ''
-
-                if len(members) > 1:
-                    message = (
-                        ', '.join(first) + f' and {last} ' +
-                        'paid their respects')
-                else:
-                    message = (
-                        f'{last} paid their respects.')
-
-                embed = discord.Embed(
-                    description=message,
-                    colour=bucket.colour)
-
-                await bucket.message.edit(embed=embed)
+                bucket = self.buckets[ctx.channel]
+                await self.append_to_bucket(bucket, ctx.author)
         except BaseException:
             pass
 

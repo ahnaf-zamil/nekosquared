@@ -8,24 +8,42 @@ Utilities for monkey-patching classes.
 __all__ = ('patches',)
 
 
-def patches(original_kass):
+def patches(what):
     """
     For implicitly monkey patching a class onto another class with a
     decorator. This is similar to the ``functools.wraps`` but for classes.
+
+    This also will work with functions and coroutine types.
     """
-    def decorator(new_klass: type):
-        for attr in ('__name__',
-                     '__qualname__',
-                     '__module__',
-                     '__class__',
-                     '__doc__'):
-            # noinspection PyBroadException
-            try:
-                setattr(new_klass, attr, getattr(original_kass, attr, None))
-            except BaseException:
-                pass
-        return new_klass
-    return decorator
+    if isinstance(what, type):
+        def decorator(new_klass: type):
+            for attr in ('__name__',
+                         '__qualname__',
+                         '__module__',
+                         '__class__',
+                         '__doc__'):
+                # noinspection PyBroadException
+                try:
+                    setattr(new_klass,
+                            attr,
+                            getattr(what, attr, None))
+                except BaseException:
+                    pass
+            return new_klass
+        return decorator
+    else:
+        def decorator(fn: callable):
+            for attr in ('__name__',
+                         '__doc__'):
+                # noinspection PyBroadException
+                try:
+                    setattr(fn,
+                            attr,
+                            getattr(what, attr, None))
+                except BaseException:
+                    pass
+            return fn
+        return decorator
 
 
 class ClassProperty:
@@ -38,8 +56,6 @@ class ClassProperty:
 
     def __get__(self, _, owner):
         return self.getter(owner)
-
-
 
 
 class SingletonMeta(type):
