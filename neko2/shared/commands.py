@@ -75,9 +75,18 @@ class Command(discord_commands.Command, CommandMixin):
 class Group(discord_commands.Group, CommandMixin):
     """Neko command group: tweaks some stuff Discord.py provides."""
 
-    def __init__(self, *args, **kwargs):
-        discord_commands.Group.__init__(self, *args, **kwargs)
-        CommandMixin.__init__(self, *args, **kwargs)
+    def __init__(self, **kwargs):
+        discord_commands.Group.__init__(self, **kwargs)
+        CommandMixin.__init__(self, **kwargs)
+
+    def command(self, **kwargs):
+        kwargs.setdefault('cls', Command)
+        return super().command(**kwargs)
+
+    def group(self, **kwargs):
+        kwargs.setdefault('cls', Group)
+        return super().group(**kwargs)
+
 
 
 def command(**kwargs):

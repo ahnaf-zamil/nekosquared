@@ -7,9 +7,9 @@ import asyncio
 import json
 from typing import Dict
 
-import aiohttp
 from dataclasses import dataclass
 
+from .. import tools
 
 __all__ = ('HOST', 'SourceFile', 'Coliru')
 
@@ -25,7 +25,25 @@ INITL_FILE_NAME = 'main.cpp'
 @dataclass()
 class SourceFile:
     name: str
-    code: str
+    __code: str
+
+    @property
+    def code(self):
+        """
+        Gets the code. This is essentially immutable, as after the first
+        access, this property gets cached for good measure.
+        """
+        # Implicitly fix makefiles
+        is_probably_makefile = any(self.name.lower().startswith(x) for x in (
+            'gnumakefile', 'makefile'))
+
+        if is_probably_makefile:
+            mf = tools.fix_makefile(self.__code)
+            self.__dict__['code'] = mf
+            return mf
+        else:
+            self.__dict__['code'] = self.__code
+            return self.__code
 
     def __hash__(self):
         return hash(self.name + self.code)
@@ -39,10 +57,12 @@ class Coliru:
     def __init__(self,
                  shell_script: str,
                  main_file: SourceFile,
-                 *other_files: SourceFile):
+                 *other_files: SourceFile,
+                 verbose=False):
         self.shell_script = shell_script
         self.main_file = main_file
         self.other_files = other_files
+        self.verbose = verbose
 
     @property
     def files(self):
@@ -73,7 +93,9 @@ class Coliru:
 
         first_two, rest = identifier[:2], identifier[2:]
 
-        return file, f'{SHARE_ARCHIVE_DIR}/{first_two}/{rest}/{INITL_FILE_NAME}'
+        return (
+            file, f'{SHARE_ARCHIVE_DIR}/{first_two}/{rest}/{INITL_FILE_NAME}'
+        )
 
     def _generate_script(self, files: Dict[SourceFile, str]) -> str:
         """
@@ -93,7 +115,9 @@ class Coliru:
                 script_lines.append(f'cp {path} {file.name}')
 
         # Append the build script
+        script_lines.append('set -x' if self.verbose else '')
         script_lines.append(self.shell_script)
+        script_lines.append('set +x')
 
         script_lines.append('echo "# Returned ${?}"')
 

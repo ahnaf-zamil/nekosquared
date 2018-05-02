@@ -359,7 +359,7 @@ class AbstractBooklet(AbstractIterableMachine,
     @property
     def loading_message(self) -> str:
         """Message to show when loading."""
-        return "... ... ..."
+        return self.current_page
 
     @property
     def author(self) -> discord.User:
@@ -442,7 +442,7 @@ class AbstractBooklet(AbstractIterableMachine,
 
     @_page_number.setter
     def _page_number(self, number: int) -> None:
-        """Sets the page number. You must then synchronise this with Discord."""
+        """Sets the page number. You must then synchronise this with Discord"""
         if 0 < number <= len(self.pages):
             self._page_index = number - 1
         else:
@@ -554,7 +554,10 @@ class AbstractBooklet(AbstractIterableMachine,
 
     async def __update_root(self):
         """Gets a more up to date copy of the root message metadata."""
-        self.root_resp = await self.channel.get_message(self.root_resp.id)
+        async def up():
+            self.root_resp = await self.channel.get_message(self.root_resp.id)
+
+        self.client.loop.create_task(up())
 
     async def __initialise_reacts(self):
         """Initialises the reacts, and awaits them to be present."""
@@ -583,7 +586,8 @@ class AbstractBooklet(AbstractIterableMachine,
         """Only adds the reaction if we are able to. Otherwise, we ignore."""
         try:
             root = self.root_resp
-            # In this case, it is easier to ask for forgiveness than permission.
+            # In this case, it is easier to ask for forgiveness than
+            # permission.
             await root.add_reaction(reaction)
         except BaseException as ex:
             self.logger.debug(f'IGNORING API ERROR {type(ex).__name__}: {ex}')
@@ -936,6 +940,44 @@ class EmbedBooklet(AbstractBooklet):
                          start_page=start_page,
                          only_author=only_author,
                          formatter=formatter)
+
+    @property
+    def loading_message(self):
+        """
+        Embeds have to be sent differently to messages, which breaks
+        stuff. For now, let's just send a silly message.
+        """
+        return random.choice((
+            'Reticulating splines',
+            'Shrinking BIG DATA',
+            'Waiting for Discord to unfreeze',
+            'Waiting for Danny to release rewrite',
+            'Phubbing bot accounts',
+            'Separating reality from Wikiality',
+            'Undatafying intrusive datafication',
+            'Unemptying empty embeds automagically',
+            'Executing fast-fourier transforms in the complex plane',
+            'Updating Windows 10',
+            'Still updating Windows 10',
+            'Is Windows 10 even responding?',
+            'Leaking tokens',
+            'Leaking memory',
+            'Ensuring substitution failure is not an error',
+            'Deallocating allocators',
+            'The neutrinos coming from the sun have mutating!',
+            'Mogrifying SQL queries',
+            'Downloading 12GB of TeXLive packages',
+            'Ensuring futures',
+            'Awaiting coroutines',
+            'Some Java updater shit',
+            'Activating Adobe CS5.5',
+            'Atomically operating atomic operations',
+            'Randomly generating pseudo random number generators',
+            'Playing a game of ~~mersenne~~ twister with the bois',
+            'Compiling Boost',
+            'Looking for ways to use jQuery',
+            'Propagating properties'
+        ))
 
     async def sync(self) -> None:
         """

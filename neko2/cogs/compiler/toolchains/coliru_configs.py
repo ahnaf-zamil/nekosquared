@@ -422,35 +422,9 @@ async def make(source):
     ```
     """
     script = 'make -f Makefile'
-    # Converts four-space indentation to tab indentation.
-    source = tools.fix_makefile(source)
     cc = coliru.Coliru(script, coliru.SourceFile('Makefile', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
 
-@register('cranr', language='CRAN R')
-async def r(ctx, source):
-    """
-    Interpreter for CRAN-R.
 
-    This supports basic data handling operations and analysis functions, as well
-    as producing up to 6 graphical plots per message (limitation is to prevent
-    spam).
-
-    Note that currently you cannot reinvoke your input by editing the initial
-    source code if you pick this language.
-
-    Example:
-
-    ```r
-    x <- 1:100
-    y <- x ** 2
-    plot(x, y)
-    ```
-    """
-    with ctx.typing():
-        result = await r_compiler.eval_r(
-            await traits.CogTraits.acquire_http(),
-            source)
-    return result

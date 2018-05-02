@@ -5,11 +5,11 @@ Builtin extension that is loaded to implement a custom help method.
 """
 import asyncio                             # Async subprocess.
 import copy                                # Shallow copies.
-import inspect                             # Inspection
+import inspect                             # Introspection
 import subprocess                          # Sync subprocess.
-import sys
+import sys                                 # System streams and bits
 import time                                # Timing stuff.
-import traceback
+import traceback                           # Error stuff
 import typing                              # Type checking bits and pieces.
 
 import discord
@@ -17,11 +17,11 @@ from discord import embeds                 # Embeds.
 import discomaton                          # Finite state machines.
 from discomaton.factories import bookbinding
 
-import neko2
-from neko2 import modules
+import neko2                               # n2 versioning
+from neko2 import modules                  # Loadable modules
 from neko2.shared import fuzzy, commands   # Fuzzy string matching.
 from neko2.shared import string            # String voodoo.
-from . import extrabits
+from . import extrabits                    # Internal cog type
 
 
 lines_of_code = None
@@ -76,8 +76,8 @@ class Builtins(extrabits.InternalCogType):
     async def help(self, ctx, *, query: str=None):
         """
         If a command name is given, perform a search for that command and
-        display info on how to use it. Otherwise, if nothing is provided, then a
-        list of available commands is output instead.
+        display info on how to use it. Otherwise, if nothing is provided, then
+        a list of available commands is output instead.
         """
         if not query:
             await self._summary_screen(ctx)
@@ -98,45 +98,66 @@ class Builtins(extrabits.InternalCogType):
         :param ctx: the context to reply to.
         :param query: the original query.
         :param command: the command to document.
-        :param real_match: true if we had a perfect match, false if we fell back
-            to fuzzy.
+        :param real_match: true if we had a perfect match, false if we fell
+            back to fuzzy.
         """
-        embed = embeds.Embed(
-            title=f'Help for {ctx.bot.command_prefix}{command.qualified_name}',
-            colour=0x000663)
+        colour = 0x9EE4D9
+
+        pages = []
+
+        def new_page():
+            next_page = embeds.Embed(
+                title=f'Help for {ctx.bot.command_prefix}'
+                      f'{command.qualified_name}',
+                colour=colour)
+            pages.append(next_page)
+            return next_page
+
+        # Generate the first page.
+        new_page()
 
         brief = command.brief
         full_doc = command.help if command.help else ''
         full_doc = string.remove_single_lines(full_doc)
         examples = getattr(command, 'examples', [])
-        signature = command.usage if command.usage else command.signature
+        signature = command.signature
+
         parent = command.full_parent_name
         cooldown = getattr(command, '_buckets')
 
         if cooldown:
             cooldown = getattr(cooldown, '_cooldown')
 
-
-        description = [f'```bash\n{ctx.bot.command_prefix}{signature}\n```']
+        description = [
+            f'```markdown\n{ctx.bot.command_prefix}{signature}\n```'
+        ]
 
         if not real_match:
             description.insert(0, f'Closest match for `{query}`')
 
         if brief:
             description.append(brief)
-        embed.description = '\n'.join(description)
+        pages[-1].description = '\n'.join(description)
 
-        if full_doc and len(full_doc) >= 1024:
-            full_doc = full_doc[:1020] + '...'
+        # We detect this later to see if we should start paginating if the
+        # description is too long.
+        should_paginate_full_doc = False
 
-        if full_doc:
-            embed.add_field(name='Detailed description', value=full_doc)
+        if full_doc and len(full_doc) >= 500:
+            pages[-1].add_field(
+                name='Detailed description',
+                value=f'{string.trunc(full_doc, 500)}\n\nContinued on the '
+                      'next page...')
+
+            should_paginate_full_doc = True
+        elif full_doc:
+            pages[-1].add_field(name='Detailed description', value=full_doc)
 
         if examples:
             examples = '\n'.join(
                 f'- `{ctx.bot.command_prefix}{command.qualified_name} '
                 f'{ex}`' for ex in examples)
-            embed.add_field(name='Examples', value=examples)
+            pages[-1].add_field(name='Examples', value=examples)
 
         if isinstance(command, commands.BaseGroupMixin):
             _children = sorted(command.commands, key=lambda c: c.name)
@@ -156,17 +177,17 @@ class Builtins(extrabits.InternalCogType):
 
         if children:
             children = ', '.join(f'`{child.name}`' for child in children)
-            embed.add_field(name='Child commands', value=children)
+            pages[-1].add_field(name='Child commands', value=children)
 
         if parent:
-            embed.add_field(name='Parent', value=f'`{parent}`')
+            pages[-1].add_field(name='Parent', value=f'`{parent}`')
 
         if cooldown:
             timeout = cooldown.per
             if timeout.is_integer():
                 timeout = int(timeout)
 
-            embed.add_field(
+            pages[-1].add_field(
                 name='Cooldown policy',
                 value=(
                     f'{cooldown.type.name.title()}-scoped '
@@ -175,9 +196,31 @@ class Builtins(extrabits.InternalCogType):
                     f'with a timeout of {timeout} '
                     f'second{"s" if timeout - 1 else ""}'))
 
-        embed.set_thumbnail(url=ctx.bot.user.avatar_url)
+        pages[-1].set_thumbnail(url=ctx.bot.user.avatar_url)
 
-        await ctx.send(embed=embed)
+        if should_paginate_full_doc:
+            # Generate pages using the Discord.py paginator.
+            pag = discomaton.RapptzPaginator(
+                prefix='', suffix='', max_size=1024)
+
+            for line in full_doc.splitlines():
+                pag.add_line(line)
+
+            for page in pag.pages:
+                next_page = new_page()
+                next_page.description = pages[0].description
+                next_page.add_field(name='Detailed description',
+                                    value=page)
+
+        if len(pages) == 0:
+            raise RuntimeError('Empty help')
+        elif len(pages) == 1:
+            await ctx.send(embed=pages[-1])
+        else:
+            # Paginate using embed paginator
+            await discomaton.EmbedBooklet(
+                pages=pages,
+                ctx=ctx).start()
 
     @staticmethod
     async def _summary_screen(ctx):
@@ -550,8 +593,8 @@ class Builtins(extrabits.InternalCogType):
         else:
             await ctx.send(embed=discord.Embed(
                 title=f'Unloaded `{namespace}`',
-                description=f'Successfully unloaded extension `{namespace}` in '
-                            f'approximately {secs:,.2f}s.',
+                description=f'Successfully unloaded extension `{namespace}` in'
+                            f' approximately {secs:,.2f}s.',
                 colour=0x00ff00
             ))
 
