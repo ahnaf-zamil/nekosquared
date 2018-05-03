@@ -306,24 +306,22 @@ class NonAdminCog:
             if new_ctx.command == self.timeit:
                 return await ctx.send('Don\'t be a smartass.')
 
-            start_time = 0
+            start_time, execution_time = 0, 0
 
             loop = ctx.bot.loop
 
             def on_done(*_):
+                nonlocal execution_time
                 execution_time = time.monotonic() - start_time
-
-                async def say_result():
-                    await ctx.send(f'`{ctx.message.content.replace("`", "ˋ")}`'
-                                   f' took **{execution_time*1000:,.2f}ms** to'
-                                   f' complete.')
-
-                loop.create_task(say_result())
 
             start_time = time.monotonic()
             future = loop.create_task(ctx.bot.invoke(new_ctx))
             future.add_done_callback(on_done)
             await future
+            await ctx.send(f'`{ctx.message.content.replace("`", "ˋ")}`'
+                           f' took **{execution_time*1000:,.2f}ms** to'
+                           f' complete.')
+
         except Exception as ex:
             await ctx.send(f'{type(ex).__qualname__}: {ex}')
 
