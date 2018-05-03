@@ -8,7 +8,8 @@ import typing
 
 import dataclasses
 import discord
-from neko2.shared import commands, other, collections
+
+from neko2.shared import commands, alg, morefunctools, collections
 
 # We remember responses for 1 hour before allowing them to time out.
 F_TIMEOUT = 60 ** 2
@@ -93,7 +94,7 @@ class RespectsCog:
 
         await bucket.message.edit(embed=embed)
 
-    @other.always_background()
+    @morefunctools.always_background()
     async def destroy_bucket_later(self, channel):
         await asyncio.sleep(F_TIMEOUT)
         if ENABLE_REACT:
@@ -109,7 +110,7 @@ class RespectsCog:
 
             if ctx.channel not in self.buckets:
 
-                colour = other.rand_colour()
+                colour = alg.rand_colour()
 
                 if reason is None:
                     message = await ctx.send(

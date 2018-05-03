@@ -27,7 +27,7 @@ import neko2.engine
 __author__ = 'Neko404NotFound'
 __license__ = 'Mozilla Public License Version 2.0'
 __url__ = 'https://github.com/neko404notfound/nekosquared'
-__version__ = '1.7-BLEEDING'
+__version__ = '1.8.0-BLEEDING'
 __repository__ = __url__
 
 

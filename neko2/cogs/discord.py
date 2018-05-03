@@ -9,9 +9,10 @@ import urllib.parse
 
 import discord
 from discord import utils                  # OAuth2 URL generation
+
 from neko2.shared import perms, commands   # Permission help
 from neko2.shared import mentionconverter  # Mentioning
-from neko2.shared import other             # Random colours
+from neko2.shared import alg               # Random colours
 from neko2.shared import string            # String helpers
 from neko2.shared import scribe            # Logging
 from neko2.shared import traits            # HTTPS
@@ -49,18 +50,18 @@ class DiscordUtilCog(traits.CogTraits, scribe.Scribe):
     async def inspect_group(self,
                             ctx,
                             *,
-                            what: mentionconverter.MentionOrSnowflakeConverter):
+                            obj: mentionconverter.MentionOrSnowflakeConverter):
         """
         Inspects something by passing a mention. This will not support
         emojis, or anything that is not a valid mention. See the help page
         for all inspection sub-commands if you require parsing a specific
         entity type to be recognised, or cannot mention the entity.
         """
-        if isinstance(what, int):
-            await self.inspect_snowflake.callback(self, ctx, what)
+        if isinstance(obj, int):
+            await self.inspect_snowflake.callback(self, ctx, obj)
         
-        elif isinstance(what, discord.Role):
-            await self.inspect_role.callback(self, ctx, role=what)
+        elif isinstance(obj, discord.Role):
+            await self.inspect_role.callback(self, ctx, role=obj)
         else:
             raise NotImplementedError
 
@@ -80,7 +81,6 @@ class DiscordUtilCog(traits.CogTraits, scribe.Scribe):
         embed.set_image(url=avatar_url)
         await ctx.send(embed=embed)
 
-    
     @inspect_group.command(name='snowflake', brief='Deciphers a snowflake.',
                            examples=['439802699144232960'], aliases=['sf'])
     async def inspect_snowflake(self, ctx, *snowflakes: int):
@@ -90,7 +90,7 @@ class DiscordUtilCog(traits.CogTraits, scribe.Scribe):
         if not len(snowflakes):
             return
         
-        embed = discord.Embed(colour=other.rand_colour())
+        embed = discord.Embed(colour=alg.rand_colour())
 
         # Discord epoch from the Unix epoch in ms
         epoch = 1420070400000
@@ -137,9 +137,10 @@ class DiscordUtilCog(traits.CogTraits, scribe.Scribe):
                         value=string.plur_simple(len(role.members), 'member'))
 
         if role.position:
-            embed.add_field(name='Height',
-                            value=f'{string.plur_simple(role.position, "role")}'
-                                  ' from the bottom.')
+            embed.add_field(
+                name='Height',
+                value=f'{string.plur_simple(role.position, "role")}'
+                      ' from the bottom.')
         else:
             embed.add_field(name='Height', value='Bottom-most role.')
 

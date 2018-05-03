@@ -5,6 +5,8 @@ xkcd viewer/reference thingy.
 
 Also allows searching for XKCD comic strips by the given
 criteria using fuzzy string matching algorithms.
+
+3rd May 2018: Implemented caching of data using threadsafe cached properties.
 """
 import json
 import os
@@ -12,10 +14,11 @@ import random
 import threading
 import time
 
+from cached_property import threaded_cached_property
 import discord
 import requests
 
-from neko2.shared import classtools
+from neko2.shared import morefunctools
 from neko2.shared import commands
 from neko2.shared import configfiles
 from neko2.shared import fuzzy
@@ -34,6 +37,7 @@ def get_xkcd(num):
 
 
 def get_alphas(string):
+    # noinspection PyPep8Naming
     a, z, A, Z = ord('a'), ord('z'), ord('A'), ord('Z')
     return ''.join(c for c in string if a <= ord(c) <= z or A <= ord(c) <= Z)
 
@@ -46,18 +50,30 @@ CACHE_FILE = os.path.join(configfiles.CONFIG_DIRECTORY, 'xkcd.json')
 # Easier to delegate this to an entirely separate thread and make it run
 # every so often. Then it cannot interfere with the bot. Also means I don't
 # need to use Asyncio.
-class XkcdCacher(threading.Thread,
-                 scribe.Scribe,
-                 metaclass=classtools.SingletonMeta):
-    """Sequentially crawls xkcd periodically to gather metadata."""
+class XkcdCache(threading.Thread,
+                scribe.Scribe,
+                metaclass=morefunctools.SingletonMeta):
+    """
+    Sequentially crawls xkcd periodically to gather metadata.
+
+    Maintains an in-memory cache of XKCD comics and keeps it updated.
+    """
 
     def __init__(self, bot):
         setattr(bot, '__xkcd_cacher_thread', self)
-
         super().__init__(daemon=True)
 
         # Start self.
         self.start()
+
+    @threaded_cached_property
+    def cached_metadata(self):
+        if os.path.exists(CACHE_FILE):
+            with open(CACHE_FILE) as fp:
+                data = json.load(fp)
+        else:
+            data = []
+        return data
 
     def run(self):
         """
@@ -75,11 +91,8 @@ class XkcdCacher(threading.Thread,
         while True:
             self.logger.info('xkcd cacher thread has woken up.')
 
-            if os.path.exists(CACHE_FILE):
-                with open(CACHE_FILE) as fp:
-                    data = json.load(fp)
-            else:
-                data = []
+            # Get old data state. This will block if in an asyncio coro.
+            data = self.cached_metadata
 
             # Use a session, obviously.
             with requests.Session() as sesh:
@@ -104,6 +117,7 @@ class XkcdCacher(threading.Thread,
 
             with open(CACHE_FILE, 'w') as fp:
                 json.dump(data, fp, indent='  ')
+                del self.__dict__['cached_metadata']
 
             self.logger.info('XKCD recache completed. Going to sleep.')
             time.sleep(SLEEP_FOR)
@@ -124,7 +138,7 @@ class XkcdCog(traits.CogTraits):
         most recent comic entry is output.
 
         If you provide a string, then that is used as search criteria across
-        all xkcd titles. This may take a few seconds to complete, so be patient.
+        all xkcd titles. This may take a few seconds to complete, so be patient
         """
         try:
             if not query:
@@ -147,21 +161,11 @@ class XkcdCog(traits.CogTraits):
             elif query.lower() in ('mr', 'new', 'newest'):
                 url = most_recent_xkcd()
             else:
-                # Fuzzy string match
-                if os.path.exists(CACHE_FILE):
-
-                    try:
-                        fp = await self.file(CACHE_FILE)
-                        library = json.loads(await fp.read())
-
-                    finally:
-                        # noinspection PyUnboundLocalVariable
-                        fp.close()
-                else:
-                    return await ctx.send('Still getting ready. Try later.')
 
                 def executor():
-                    # Todo: optimise the shit out of this crap.
+                    # Fuzzy string match
+                    library = XkcdCache(ctx.bot).cached_metadata
+
                     ln = len(library)
                     titles = {library[i]['title']: library[i]['num']
                               for i in range(0, ln)
@@ -170,8 +174,6 @@ class XkcdCog(traits.CogTraits):
                     best_result = fuzzy.extract_best(
                         query,
                         titles,
-                        # TODO: test out best_partial and ratio algorithms...
-                        # ... they will be twice as fast as this.
                         scoring_algorithm=fuzzy.deep_ratio,
                         min_score=50)
 
@@ -214,5 +216,5 @@ class XkcdCog(traits.CogTraits):
 
 def setup(bot):
     if not hasattr(bot, '__xkcd_cacher_thread'):
-        XkcdCacher(bot)
+        XkcdCache(bot)
     bot.add_cog(XkcdCog())

@@ -13,7 +13,7 @@ import aiohttp
 import async_timeout
 
 from neko2.shared import scribe       # Scribe
-from neko2.shared.classtools import ClassProperty
+from neko2.shared.morefunctools import ClassProperty
 
 __all__ = ('CogTraits',)
 

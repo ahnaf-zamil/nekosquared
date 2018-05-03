@@ -7,24 +7,31 @@ the bot, inspecting/loading/unloading commands/cogs/extensions, etc.
 import asyncio
 import collections
 import contextlib
+import copy
 import inspect
 import io
 import os
 import random
 import time
 import traceback
+import websockets
 
+import uvloop
+
+import aiohttp
 import async_timeout
+
 from discomaton.factories import bookbinding
 import discord
-from neko2.shared import traits, commands, other
+from neko2.shared import traits, commands, alg
 
 
 class AdminCog(traits.CogTraits):
     """Holds administrative utilities"""
+
     def __init__(self, bot):
         self.bot = bot
-    
+
     @staticmethod
     async def __local_check(ctx):
         return await ctx.bot.is_owner(ctx.author)
@@ -56,7 +63,7 @@ class AdminCog(traits.CogTraits):
             commands.TooManyArguments, commands.NoPrivateMessage,
             commands.MissingPermissions, commands.NotOwner
         ))()
-                   
+
     @commands.command(hidden=True)
     async def exec(self, ctx, *, command):
         self.logger.warning(
@@ -83,11 +90,11 @@ class AdminCog(traits.CogTraits):
                         with contextlib.redirect_stdout(output_stream):
                             with contextlib.redirect_stderr(output_stream):
                                 wrapped_command = (
-                                    'async def _aexec(ctx):\n' +
-                                    '\n'.join(f'    {line}'
-                                              for line
-                                              in command.split('\n')) +
-                                    '\n')
+                                        'async def _aexec(ctx):\n' +
+                                        '\n'.join(f'    {line}'
+                                                  for line
+                                                  in command.split('\n')) +
+                                        '\n')
                                 exec(wrapped_command)
                                 result = await (locals()['_aexec'](ctx))
                         binder.add(output_stream.getvalue())
@@ -164,7 +171,7 @@ class AdminCog(traits.CogTraits):
             await ctx.send(f'Can\'t disable shell.\n{type(e).__name__}: {e}')
         else:
             await ctx.send('Disabled shell.')
-            
+
     @commands.command(brief='Changes the avatar to the given URL.')
     async def avatar(self, ctx, *, url):
         conn = await self.acquire_http()
@@ -188,33 +195,39 @@ class AdminCog(traits.CogTraits):
 
 class NonAdminCog:
     """Cogs for "admin" commands that can be run by anyone."""
-    @commands.command(brief='Shows a summary of what this bot can see...')
+
+    @commands.cooldown(1, 30, commands.BucketType.guild)
+    @commands.command(brief='Shows a summary of what this bot can see, the '
+                            'bot\'s overall health and status, and software '
+                            'versioning information')
     async def stats(self, ctx):
         import threading
         from datetime import timedelta
         from time import monotonic
         from neko2.engine import builtins
-        
+        import platform
+        import os
+
         # Calculates the ping, and will store our message response a little
         # later
-        event_loop_latency = 0
         ack_time = 0
-        
+
         def callback(*_, **__):
             nonlocal ack_time
             ack_time = monotonic()
-        
-        start_ack = monotonic()        
-        future = asyncio.ensure_future(ctx.send('Loading!'))
+
+        start_ack = monotonic()
+        future = asyncio.ensure_future(ctx.send('Getting ping!'))
         future.add_done_callback(callback)
         message = await future
         event_loop_latency = monotonic() - start_ack
         ack_time -= start_ack
         event_loop_latency -= ack_time
+        priority = os.getpriority(os.PRIO_PROCESS, os.getpid())
 
         users = max(len(ctx.bot.users), len(list(ctx.bot.get_all_members())))
         tasks = len(asyncio.Task.all_tasks(loop=asyncio.get_event_loop()))
-        
+
         stats = collections.OrderedDict({
             'Users': f'{users:,}',
             'Guilds': f'{len(ctx.bot.guilds):,}',
@@ -229,19 +242,90 @@ class NonAdminCog:
             'Active/sleeping threads': f'{threading.active_count():,}',
             'Uptime': str(timedelta(seconds=ctx.bot.uptime)),
             'System uptime': str(timedelta(seconds=monotonic())),
-            'Lines of code at startup': f'{int(builtins.lines_of_code or 0):,}',
-            'Latency': f'{ctx.bot.latency * 1000:,.2f}ms',
-            '`ACK` time': f'{ack_time * 1000:,.2f}ms',
-            'Event loop latency': f'{event_loop_latency * 1e6:,.2f}µs'
+            'L.O.C. at startup': f'{int(builtins.lines_of_code or 0):,}',
+            'Latency': f'{ctx.bot.latency * 1000:,.2f}ms; '
+                       f'`ACK`: {ack_time * 1000:,.2f}ms',
+            'Days since last accident': random.randrange(0, 100),
+            'Event loop latency': f'{event_loop_latency * 1e6:,.2f}µs',
+            'Affinity': f'{", ".join(map(str, os.sched_getaffinity(0)))}',
+            'Scheduling nice': f'{priority}',
+            'Architecture': f'{platform.machine()} '
+                            f'{" ".join(platform.architecture())}',
+            'discord.py': f'v{discord.__version__}',
+            'aiohttp': f'v{aiohttp.__version__}',
+            'websockets': f'v{websockets.__version__}',
+            'Python implementation': f'{platform.python_implementation()} '
+                                     f'{platform.python_version()}',
+            'Python build': f'{" ".join(platform.python_build()).title()}\n'
+                            f'{platform.python_compiler()}'
         })
-        
-        embed = discord.Embed(title='Statistics for nerds', 
-                              colour=other.rand_colour())
-        
+
+        embed = discord.Embed(title='Statistics and specs for nerds',
+                              colour=alg.rand_colour())
+
+        embed.set_thumbnail(url=ctx.bot.user.avatar_url)
+
+        embed.set_footer(text=platform.platform())
+
         for name, value in stats.items():
             embed.add_field(name=name, value=value)
-        
+
         await message.edit(content='', embed=embed)
+
+        em = '\N{REGIONAL INDICATOR SYMBOL LETTER X}'
+
+        try:
+            await ctx.bot.wait_for('reaction_add',
+                                   timeout=300,
+                                   check=lambda r, u:
+                                   r.emoji == em and not u.bot
+                                   and r.message.id == message.id)
+        except asyncio.TimeoutError:
+            try:
+                await message.clear_reactions()
+            finally:
+                return
+        else:
+            try:
+                await message.delete()
+            finally:
+                return
+
+    @commands.command(brief='Times the execution of another command.')
+    async def timeit(self, ctx, *, content):
+        # Make a fake copy of the message to produce a new context with
+        msg = copy.copy(ctx.message)
+        msg.content = f'{ctx.prefix}{content}'
+
+        try:
+            new_ctx = await ctx.bot.get_context(msg)
+
+            if not new_ctx.command:
+                raise commands.CommandNotFound('That command doesn\'t exist.')
+
+            if new_ctx.command == self.timeit:
+                return await ctx.send('Don\'t be a smartass.')
+
+            start_time = 0
+
+            loop = ctx.bot.loop
+
+            def on_done(*_):
+                execution_time = time.monotonic() - start_time
+
+                async def say_result():
+                    await ctx.send(f'`{ctx.message.content.replace("`", "ˋ")}`'
+                                   f' took **{execution_time*1000:,.2f}ms** to'
+                                   f' complete.')
+
+                loop.create_task(say_result())
+
+            start_time = time.monotonic()
+            future = loop.create_task(ctx.bot.invoke(new_ctx))
+            future.add_done_callback(on_done)
+            await future
+        except Exception as ex:
+            await ctx.send(f'{type(ex).__qualname__}: {ex}')
 
 
 def setup(bot):

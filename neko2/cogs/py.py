@@ -11,7 +11,7 @@ import xmlrpc.client as xmlrpcclient
 import discord
 
 from discomaton.factories import bookbinding
-from neko2.shared import commands, string, other
+from neko2.shared import commands, string, alg
 from neko2.shared import traits
 
 
@@ -136,7 +136,7 @@ class PyCog(traits.CogTraits):
                 title=name,
                 description=string.trunc(summary, 2048),
                 url=url,
-                colour=other.rand_colour())
+                colour=alg.rand_colour())
 
             embed.set_author(name=f'{author}')
             embed.set_footer(text=f'{serial}')

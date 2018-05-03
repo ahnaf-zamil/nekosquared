@@ -4,6 +4,7 @@
 Builtin extension that is loaded to implement a custom help method.
 """
 import asyncio                             # Async subprocess.
+import collections
 import copy                                # Shallow copies.
 import inspect                             # Introspection
 import subprocess                          # Sync subprocess.
@@ -78,9 +79,11 @@ class Builtins(extrabits.InternalCogType):
         If a command name is given, perform a search for that command and
         display info on how to use it. Otherwise, if nothing is provided, then
         a list of available commands is output instead.
+
+        Provide the `--all` for the given query to view all aliases.
         """
-        if not query:
-            await self._summary_screen(ctx)
+        if not query or query.lower() == '--all':
+            await self._summary_screen(ctx, bool(query))
         else:
             result = await self.get_best_match(query, ctx)
             if result:
@@ -223,7 +226,7 @@ class Builtins(extrabits.InternalCogType):
                 ctx=ctx).start()
 
     @staticmethod
-    async def _summary_screen(ctx):
+    async def _summary_screen(ctx, show_aliases=False):
         """
         Replies with a list of all commands available.
         :param ctx: the context to reply to.
@@ -233,7 +236,8 @@ class Builtins(extrabits.InternalCogType):
         # Get commands this user can run, only.
         async def get_runnable_commands(mixin):
             cmds = []
-            for command in sorted(mixin.commands, key=lambda c: c.name):
+
+            for command in mixin.commands:
                 # If an error is raised by checking permissions for a command,
                 # then just ignore that command.
                 try:
@@ -244,13 +248,30 @@ class Builtins(extrabits.InternalCogType):
             return cmds
 
         current_page = ''
-        for i, command in enumerate(await get_runnable_commands(ctx.bot)):
-            if i % 50 == 0:
+
+        runnable_commands = await get_runnable_commands(ctx.bot)
+
+        unordered_strings = {}
+        for c in runnable_commands:
+            if show_aliases:
+                for alias in c.aliases:
+                    unordered_strings[alias] = c
+            unordered_strings[c.name] = c
+
+        # Order here now we have the aliases, otherwise the aliases are
+        # ignored from the order and it looks kinda dumb.
+        keys = list(unordered_strings.keys())
+        keys.sort()
+        strings = collections.OrderedDict()
+        for k in keys:
+            strings[k] = unordered_strings[k]
+
+        for i, (name, command) in enumerate(strings.items()):
+            if i % 50 == 0 and i < len(strings):
                 if current_page:
+                    current_page += ' _continued..._'
                     pages.append(current_page)
                     current_page = ''
-
-            name = command.name
 
             if isinstance(command, commands.BaseGroupMixin):
                 # This is a command group. Only show if we have at least one

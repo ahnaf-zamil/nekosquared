@@ -15,7 +15,7 @@ import re
 import traceback
 import urllib.parse
 
-from neko2.shared import configfiles
+from neko2.shared import configfiles, alg
 from neko2.shared import commands
 from neko2.shared import errors
 from neko2.shared import traits
@@ -31,6 +31,9 @@ class UrlShortenerCog(traits.CogTraits):
     except:
         traceback.print_exc()
         _key = None
+
+    def __init__(self, bot):
+        self.bot = bot
 
     @classmethod
     async def googl(cls, url):
@@ -49,7 +52,7 @@ class UrlShortenerCog(traits.CogTraits):
 
         return (await res.json())['id']
 
-    @commands.command(brief='Shortens the given URL')
+    @commands.command(brief='Shortens the given URL', aliases=['goo.gl'])
     async def shorten(self, ctx, url: str, *, optional_description: str=None):
         """
         You can pass a description to put with the link if you like.
@@ -71,6 +74,41 @@ class UrlShortenerCog(traits.CogTraits):
                 f'{ctx.author.mention} {optional_description}: '
                 f'{url}')
 
+    async def smoke_a_pipe(self, content, guild_members=None):
+        """
+        Takes some input string. If the string ends in `| [discord mention]`,
+        we return the left hand side of the pipe, and the user, as a
+        tuple. Otherwise, we return the input and None as the result.
+        """
+        guild_members = guild_members or []
+
+        if '|' in content:
+            query, _, mention = content.rpartition('|')
+
+            query = query.rstrip()
+            mention = mention.strip()
+
+            mention_match = re.match(r'^<@!?(\d+)>$', mention)
+            if mention_match:
+                mention = int(mention_match.group(1))
+
+            if mention.isdigit():
+                user = alg.find(lambda u: u.id == int(mention),
+                                guild_members)
+            elif mention:
+                user = alg.find(
+                    lambda u: u.display_name.lower() == mention.lower(),
+                    guild_members)
+            else:
+                user = None
+        else:
+            query, user = content, None
+
+        return query, user
+
+    @commands.guild_only()
+    @commands.cooldown(1, 30, commands.BucketType.channel)
+    @commands.cooldown(1, 30, commands.BucketType.user)
     @commands.command(
         brief="Directs stupid questions to their rightful place.",
         usage="query [| @mention]",
@@ -84,17 +122,7 @@ class UrlShortenerCog(traits.CogTraits):
         You can "pipe" the output to a given member. This will mention them
         in the response.
         """
-        if '|' in query:
-            query, _, mention = query.rpartition('|')
-
-            mention = mention.strip()
-
-            if not re.match(r'^<!?@\d+>$', mention):
-                mention = ''
-            else:
-                query, mention = query.rstrip(), mention + ': '
-        else:
-            mention = ''
+        query, user = await self.smoke_a_pipe(query, ctx.guild.members)
 
         frag = urllib.parse.urlencode({'q': query})
 
@@ -102,9 +130,50 @@ class UrlShortenerCog(traits.CogTraits):
             await ctx.message.delete()
 
         url = f'http://lmgtfy.com?{frag}'
-        short_url = await self.googl(url)
 
-        url = short_url or url
+        try:
+            short_url = await self.googl(url)
+            url = short_url or url
+        except:
+            pass
+
+        # noinspection PyUnresolvedReferences
+        mention = user.mention + ':' if user else ''
+
+        await ctx.send(''.join((mention, f'<{url}>')))
+
+    @commands.guild_only()
+    @commands.cooldown(1, 30, commands.BucketType.channel)
+    @commands.cooldown(1, 30, commands.BucketType.user)
+    @commands.command(
+        brief='Outputs a link to a Google search.',
+        usage="query [| @mention]",
+        examples=['how to buy lime', 'what is a discord.py? | @mention#1234'],
+        aliases=['googled'])
+    async def google(self, ctx, *, query):
+        """
+        You can pipe the output to a given member.
+
+        If it is a truly deserving case, use lmgtfy instead for some banter.
+
+        (Call googled to delete your message).
+        """
+        query, user = await self.smoke_a_pipe(query, ctx.guild.members)
+
+        frag = urllib.parse.urlencode({'q': query})
+
+        if ctx.invoked_with == 'googled':
+            await ctx.message.delete()
+
+        url = f'https://google.com/search?{frag}'
+        try:
+            short_url = await self.googl(url)
+            url = short_url or url
+        except:
+            pass
+
+        # noinspection PyUnresolvedReferences
+        mention = user.mention + ': ' if user else ''
 
         await ctx.send(''.join((mention, f'<{url}>')))
 
@@ -115,4 +184,4 @@ if not getattr(UrlShortenerCog, '_key', None):
 
 
 def setup(bot):
-    bot.add_cog(UrlShortenerCog())
+    bot.add_cog(UrlShortenerCog(bot))

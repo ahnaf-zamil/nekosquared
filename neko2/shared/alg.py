@@ -96,3 +96,9 @@ async def time_it_async(coro, *args, **kwargs) -> (typing.Any, float):
     result_fut.add_done_callback(callback)
     result = await result_fut
     return result, end - start
+
+
+def rand_colour() -> int:
+    """Gets a random colour."""
+    from random import randint
+    return randint(0, 0xFFFFFF)

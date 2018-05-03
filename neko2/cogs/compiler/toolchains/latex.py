@@ -113,7 +113,6 @@ class LatexCogHelper(traits.CogTraits):
 
     @classmethod
     async def pad_convert_image(cls,
-                                bot,
                                 in_img: io.BytesIO,
                                 out_img: io.BytesIO,
                                 bg_colour: tuple):
@@ -176,7 +175,6 @@ class LatexCogHelper(traits.CogTraits):
         with io.BytesIO(data) as in_data, io.BytesIO() as out_data:
             in_data.seek(0)
             await cls.pad_convert_image(
-                ctx.bot,
                 in_data,
                 out_data,
                 (0x36, 0x39, 0x3E))
@@ -184,8 +182,6 @@ class LatexCogHelper(traits.CogTraits):
             out_data.seek(0)
             file = discord.File(out_data, 'latex.png')
 
-            msg = await ctx.send(
-                content=f'{ctx.author}:',
-                file=file)
+            msg = await ctx.send(content=f'{ctx.author}:', file=file)
 
             return msg

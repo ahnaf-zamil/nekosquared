@@ -11,10 +11,9 @@ from discomaton.util import pag
 
 import discord
 
-from neko2.shared import traits, commands, other
+from neko2.shared import traits, commands, alg
 
 
-# TLDR uses weird {{}} notation to use for placeholders. This will eventually format them
 def scrub_tags(text):
     return text
 
@@ -100,7 +99,7 @@ class TldrCog(traits.CogTraits):
             pages.append(discord.Embed(
                 title=title,
                 description=page,
-                colour=other.rand_colour()
+                colour=alg.rand_colour()
             ))
 
         booklet = book.EmbedBooklet(ctx=ctx, pages=pages)

@@ -17,7 +17,7 @@ from discomaton import book
 
 from neko2.shared import configfiles, commands
 from neko2.shared import errors
-from neko2.shared import other
+from neko2.shared import alg
 from neko2.shared import traits
 
 
@@ -171,12 +171,13 @@ class WordnikCog(traits.CogTraits):
             embed = embeds.Embed(
                 title=title,
                 description=definition,
-                colour=other.rand_colour())
+                colour=alg.rand_colour())
 
             embed.set_footer(text=source)
 
             if extended_text:
-                embed.add_field(name='Extended definition', value=extended_text)
+                embed.add_field(name='Extended definition',
+                                value=extended_text)
 
             if citations:
                 embed.add_field(name='Citations', value=citations)
