@@ -54,8 +54,11 @@ class RespectsCog:
 
             channel = reaction.message.channel
             b = self.buckets.get(channel)
+            
+            if b is None:
+                return
 
-            c1 = b is not None and b.message.id == reaction.message.id
+            c1 = b.message.id == reaction.message.id
             c2 = reaction.message.guild is not None
             c3 = user not in b.members
 
