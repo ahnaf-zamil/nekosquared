@@ -73,7 +73,7 @@ class DiscordUtilCog(traits.CogTraits, scribe.Scribe):
                              user: commands.MemberConverter):
         avatar_url = user.avatar_url
         url_obj = urllib.parse.urlparse(avatar_url)
-        avatar_url = f'{url_obj[0]}://{url_obj[1]}{url_obj[2]}'
+        avatar_url = f'{url_obj[0]}://{url_obj[1]}{url_obj[2]}?size=2048'
         embed = discord.Embed(
             title=f'{user}\'s avatar',
             colour=getattr(user, 'colour', 0))
