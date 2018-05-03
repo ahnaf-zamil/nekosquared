@@ -23,7 +23,7 @@ import async_timeout
 
 from discomaton.factories import bookbinding
 import discord
-from neko2.shared import traits, commands, alg
+from neko2.shared import traits, commands, alg, morefunctools
 
 
 class AdminCog(traits.CogTraits):
@@ -274,22 +274,26 @@ class NonAdminCog:
 
         em = '\N{REGIONAL INDICATOR SYMBOL LETTER X}'
 
-        try:
-            await ctx.bot.wait_for('reaction_add',
-                                   timeout=300,
-                                   check=lambda r, u:
-                                   r.emoji == em and not u.bot
-                                   and r.message.id == message.id)
-        except asyncio.TimeoutError:
+        @morefunctools.always_background()
+        async def later():
             try:
-                await message.clear_reactions()
-            finally:
-                return
-        else:
-            try:
-                await message.delete()
-            finally:
-                return
+                await message.add_reaction(em)
+                await ctx.bot.wait_for('reaction_add',
+                                       timeout=300,
+                                       check=lambda r, u:
+                                       r.emoji == em and not u.bot
+                                       and r.message.id == message.id)
+            except asyncio.TimeoutError:
+                try:
+                    await message.clear_reactions()
+                finally:
+                    return
+            else:
+                try:
+                    await message.delete()
+                finally:
+                    return
+        later()
 
     @commands.command(brief='Times the execution of another command.')
     async def timeit(self, ctx, *, content):
