@@ -17,7 +17,6 @@ import traceback
 import collections
 import discord
 
-import neko2.shared.alg
 from neko2.shared import traits, alg, commands
 
 from . import parser, lex, conversions, models
@@ -110,7 +109,7 @@ class UnitCog(traits.CogTraits):
 
             equivalents[quantity] = this_equivalents
 
-        embed = discord.Embed(colour=neko2.shared.alg.rand_colour())
+        embed = discord.Embed(colour=alg.rand_colour())
 
         mass_msg_added = False
 
