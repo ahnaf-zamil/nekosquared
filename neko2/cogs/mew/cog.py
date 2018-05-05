@@ -93,4 +93,5 @@ class MewReactsCog(scribe.Scribe):
                 )
             else:
                 await ctx.send('That wasn\'t found. Run without a name to get a '
-                               'list sent to you via DMs.')
+                               'list sent to you via DMs.',
+                               delete_after=15)
