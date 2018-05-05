@@ -40,7 +40,7 @@ def tokenize(*chunks):
     for token in chunks:
         try:
             yield Decimal(token)
-        except ValueError:
+        except:
             yield token
 
 
