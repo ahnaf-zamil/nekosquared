@@ -92,7 +92,7 @@ class UrlShortenerCog(traits.CogTraits):
             if mention_match:
                 mention = int(mention_match.group(1))
 
-            if mention.isdigit():
+            if isinstance(mention, int) or mention.isdigit() :
                 user = alg.find(lambda u: u.id == int(mention),
                                 guild_members)
             elif mention:
