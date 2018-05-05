@@ -56,7 +56,7 @@ def parse(tokens):
 
     try:
         for pos, token in enumerate(tokens):
-            if isinstance(token, (float, int)):
+            if isinstance(token, (float, int, Decimal)):
                 stack.append(token)
             else:
                 op = operations[token]
