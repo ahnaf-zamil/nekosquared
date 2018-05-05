@@ -138,7 +138,7 @@ class UrlShortenerCog(traits.CogTraits):
             pass
 
         # noinspection PyUnresolvedReferences
-        mention = user.mention + ':' if user else ''
+        mention = user.mention + ': ' if user else ''
 
         await ctx.send(''.join((mention, f'<{url}>')))
 
