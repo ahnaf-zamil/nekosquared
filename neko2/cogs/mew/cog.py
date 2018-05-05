@@ -82,8 +82,8 @@ class MewReactsCog(scribe.Scribe):
                         'was shot. Please try again later ^w^', delete_after=15)
             # Otherwise, if the react doesn't exist, or wasn't specified, then
             # list the reacts available.
-            else:
-                await ctx.send('**Mew reactions:**\n\n' + ' '.join(
+            elif not react_name:
+                await ctx.author.send('**Mew reactions:**\n\n' + ' '.join(
                         map(
                             lambda n: f'`{n}`',
                             sorted(self.images)
@@ -91,3 +91,6 @@ class MewReactsCog(scribe.Scribe):
                     ) + '.\n\nThanks to Zcissors for providing the emotes and '
                     'command alias configurations.'
                 )
+            else:
+                await ctx.send('That wasn\'t found. Run without a name to get a '
+                               'list sent to you via DMs.')
