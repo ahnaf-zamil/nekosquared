@@ -57,9 +57,11 @@ def parse(tokens):
                 stack.append(token)
             else:
                 op = operations[token]
-
-                left, right = stack.pop(), stack.pop()
-                stack.append(op(left, right))
+                right, left = stack.pop(), stack.pop()
+                try:
+                    stack.append(op(left, right))
+                except ZeroDivisionError:
+                    stack.append(float('nan'))
 
     except IndexError:
         return (
@@ -69,6 +71,8 @@ def parse(tokens):
         return (
             f'Operator was unrecognised. (At token {pos + 1} of '
             f'{len(tokens)}: {token!r})')
+    except Exception as ex:
+        return f'{type(ex).__name__}: {ex}'
     else:
         if len(stack) != 1:
             return 'Too many values. Perhaps you missed an operator?'
@@ -92,8 +96,17 @@ else:
             Executes the given reverse polish (postfix) notation expression.
 
             Note that only binary operators are currently supported. Run
-            with the `help` argument for the expression to view what is 
+            with the `help` argument for the expression to view what is
             supported.
+
+            For example:
+                12 22 /
+            will result in the infix expression:
+                12 / 22
+
+            5th May 2018: now evaluates expressions in the right order.
+                Division and mod operations are no longer inverted.
+                Division by zero errors are now handled.
             """
             if len(expression) == 1 and expression[0].lower() == 'help':
                 await ctx.send(
