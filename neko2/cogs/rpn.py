@@ -3,6 +3,9 @@
 """
 Reverse-polish-notation parser.
 """
+from decimal import Decimal
+
+
 operations = {
     '+': lambda a, b: a + b,            
     '-': lambda a, b: a - b, 
@@ -36,7 +39,7 @@ def tokenize(*chunks):
     """
     for token in chunks:
         try:
-            yield float(token)
+            yield Decimal(token)
         except ValueError:
             yield token
 
@@ -59,7 +62,7 @@ def parse(tokens):
                 op = operations[token]
                 right, left = stack.pop(), stack.pop()
                 try:
-                    stack.append(op(left, right))
+                    stack.append(Decimal(op(left, right)))
                 except ZeroDivisionError:
                     stack.append(float('nan'))
 
