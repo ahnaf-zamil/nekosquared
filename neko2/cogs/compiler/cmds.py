@@ -57,10 +57,14 @@ class CompilerCog(traits.CogTraits):
         code_block = tools.code_block_re.search(arguments)
 
         if not code_block or len(code_block.groups()) < 2:
-            return await ctx.send(
-                'Please provide a valid syntax highlighted '
-                'language. Check the help page out for this command '
-                'for more details and instructions.')
+            booklet = bookbinding.StringBookBinder(ctx)
+            booklet.add_line('I couldn\'t detect a valid language in your '
+                             'syntax highlighting... try again by editing '
+                             'your initial message.')
+            booklet = booklet.build()
+            booklet.start()
+
+            await self._listen_to_edit(ctx, booklet)
 
         # Extract the code
         language, source = code_block.groups()
@@ -70,9 +74,14 @@ class CompilerCog(traits.CogTraits):
             with ctx.typing():
                 output = await coliru_configs.targets[language](source)
         except KeyError:
-            return await ctx.send(
-                f'That language ({language}) is not currently supported by'
-                ' this toolchain. Sorry!')
+            booklet = bookbinding.StringBookBinder(ctx)
+            booklet.add_line('That language ({language})is not yet supported ' 
+                             'by this toolchain. Feel free to edit this '
+                             'message if you wish to do something else.')
+            booklet = booklet.build()
+            booklet.start()
+
+            await self._listen_to_edit(ctx, booklet)
         else:
             binder = bookbinding.StringBookBinder(ctx,
                                                   prefix='```markdown',
@@ -324,16 +333,16 @@ class CompilerCog(traits.CogTraits):
         await self._listen_to_edit(ctx, booklet, *additionals)
 
     @staticmethod
-    async def _listen_to_edit(ctx, booklet, *additional_messages):
+    async def _listen_to_edit(ctx, booklet=None, *additional_messages):
         # Lets the book start up first, otherwise we get an error. If
         # we cant send, then just give up.
         for _ in range(0, 60):
-            if not len(booklet.response_stk):
+            if booklet and not len(booklet.response_stk):
                 await asyncio.sleep(1)
             else:
                 await commands.wait_for_edit(ctx=ctx,
                                              msg=booklet.root_resp,
                                              timeout=1800)
                 for message in additional_messages:
-                    asyncio.ensure_future(message.delete())
+                    ctx.bot.loop.create_task(message.delete())
                 break

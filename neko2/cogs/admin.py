@@ -16,8 +16,6 @@ import time
 import traceback
 import websockets
 
-import uvloop
-
 import aiohttp
 import async_timeout
 
@@ -115,7 +113,6 @@ class AdminCog(traits.CogTraits):
 
         try:
             with async_timeout.timeout(600):
-                fp = None
                 # Random string name.
                 temp_script = f'/tmp/{time.monotonic()}{time.time()}.sh'
                 binder.add(f'# This will time out after 600 seconds...')
@@ -180,7 +177,7 @@ class AdminCog(traits.CogTraits):
         commands.acknowledge(ctx)
 
     @commands.command(brief='Shows host health, resource utilisation, etc.')
-    async def health(self, ctx):
+    async def syshealth(self, ctx):
         command = ('set -x',
                    'ps -eo euser,comm,rss,thcount,%cpu,%mem | '
                    'grep -P "^($(whoami)|EUSER)"',
@@ -192,6 +189,22 @@ class AdminCog(traits.CogTraits):
 
         await self.shell.callback(self, ctx, command=command)
 
+    @commands.command(brief='Shows event loop information.')
+    async def loophealth(self, ctx):
+        all_tasks = asyncio.Task.all_tasks(loop=ctx.bot.loop)
+
+        booklet = bookbinding.StringBookBinder(ctx,
+                                               prefix='```',
+                                               suffix='```',
+                                               max_lines=None)
+        booklet.add_line(f'{len(all_tasks)} coroutines in the loop.')
+
+        for task in all_tasks:
+            with io.StringIO() as fp:
+                task.print_stack(file=fp)
+                booklet.add_line(fp.getvalue())
+            booklet.add_break()
+        booklet.start()
 
 class NonAdminCog:
     """Cogs for "admin" commands that can be run by anyone."""
