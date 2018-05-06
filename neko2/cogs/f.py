@@ -11,8 +11,8 @@ import discord
 
 from neko2.shared import commands, alg, morefunctools, collections
 
-# We remember responses for 1 hour before allowing them to time out.
-F_TIMEOUT = 60 ** 2
+# We remember responses for 1/4 hour before allowing them to time out.
+F_TIMEOUT = 15 * 60
 
 
 # Set to True to enable `f' being a valid trigger for the command without
