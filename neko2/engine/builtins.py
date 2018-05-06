@@ -73,6 +73,20 @@ class Builtins(extrabits.InternalCogType):
         else:
             return 'No idea on how many lines of code'
 
+    @commands.command(brief='Shows the license.')
+    async def license(self, ctx):
+        binder = bookbinding.StringBookBinder(ctx, suffix='```', prefix='```',
+                                              max_lines=25)
+        async with self.file('LICENSE') as fp:
+            for line in await fp.readlines():
+                binder.add(line)
+        binder.start()
+
+    @commands.command(brief='Links to the GitHub repository.',
+                      aliases=['github', 'repo', 'bitbucket', 'svn'])
+    async def git(self, ctx):
+        await ctx.send(f'{ctx.author.mention}: <{neko2.__repository__}>')
+
     @commands.command(brief='Gets usage information for commands.')
     async def help(self, ctx, *, query: str=None):
         """
