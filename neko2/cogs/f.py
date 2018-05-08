@@ -11,9 +11,8 @@ import discord
 
 from neko2.shared import commands, alg, morefunctools, collections
 
-# We remember responses for 1/4 hour before allowing them to time out.
-F_TIMEOUT = 15 * 60
-
+# Timeout to reset after regardless
+F_TIMEOUT = 6 * 60 * 60
 
 # Set to True to enable `f' being a valid trigger for the command without
 # a prefix.
@@ -26,15 +25,20 @@ ENABLE_REACT = True
 
 @dataclasses.dataclass()
 class F:
+    initial_ctx: commands.Context
     members: collections.MutableOrderedSet
     message: discord.Message
     colour: int
+    reason: typing.Optional[str] = None
+
+
+ReasonChannel = typing.Tuple[discord.TextChannel, str]
 
 
 class RespectsCog:
     def __init__(self, bot):
         self.bot = bot
-        self.buckets: typing.Dict[discord.TextChannel, F] = {}
+        self.buckets: typing.Dict[ReasonChannel, F] = {}
 
     if ENABLE_NAKED:
         async def on_message(self, message):
@@ -54,8 +58,17 @@ class RespectsCog:
                 return
 
             channel = reaction.message.channel
-            b = self.buckets.get(channel)
-            
+            try:
+                b = alg.find(lambda k: k[0] == channel, list(self.buckets.keys()))
+            except:
+                # Debuggling.
+                import traceback
+                traceback.print_exc()
+                return
+
+            if b:
+                b = self.buckets[b]
+
             if b is None:
                 return
 
@@ -65,8 +78,9 @@ class RespectsCog:
 
             if c1 and c2 and c3:
                 await self.append_to_bucket(b, user)
-                message: discord.Message = reaction.message
-                await message.remove_reaction(reaction, user)
+
+            message: discord.Message = reaction.message
+            await message.remove_reaction(reaction, user)
 
     @staticmethod
     async def append_to_bucket(bucket, user):
@@ -92,27 +106,59 @@ class RespectsCog:
             description=message,
             colour=bucket.colour)
 
-        await bucket.message.edit(embed=embed)
+        if bucket.message:
+            await bucket.message.edit(embed=embed)
+        else:
+            bucket.message = await bucket.initial_ctx.send(embed=embed)
+
+        if ENABLE_REACT:
+            await bucket.message.add_reaction(
+                '\N{REGIONAL INDICATOR SYMBOL LETTER F}')
 
     @morefunctools.always_background()
     async def destroy_bucket_later(self, channel):
         await asyncio.sleep(F_TIMEOUT)
         if ENABLE_REACT:
             await self.buckets[channel].message.clear_reactions()
-
         del self.buckets[channel]
 
     @commands.guild_only()
     @commands.command(brief='Pay your respects.')
-    async def f(self, ctx, *, reason=None):
+    async def f(self, ctx, *, reason=''):
         try:
             await ctx.message.delete()
 
-            if ctx.channel not in self.buckets:
+            reason_low = reason.strip().lower()
+
+            bucket = self.buckets.get((ctx.channel, reason_low))
+
+            # Get the last 10 recent messages. If the bucket message
+            # is in there, then update, else, delete the old message if
+            # possible and then resend the new one. If the bucket is too
+            # old, start anew.
+            if bucket:
+                msg = bucket.message.id
+                most_recent = await ctx.channel.history(limit=10).flatten()
+
+                new_msg = alg.find(lambda m: m.id == msg, most_recent)
+
+                if new_msg:
+                    bucket.message = new_msg
+                else:
+                    try:
+                        await bucket.message.delete()
+                        bucket.message = None
+                    except:
+                        del self.buckets[ctx.channel]
+                        bucket = None
+                    else:
+                        return await self.append_to_bucket(bucket, ctx.author)
+
+            if not bucket or reason_low != bucket.reason.strip().lower():
 
                 colour = alg.rand_colour()
 
-                if reason is None:
+                if not reason:
                     message = await ctx.send(
                         embed=discord.Embed(
                             description=f'{ctx.author} paid their respects.',
@@ -123,22 +169,27 @@ class RespectsCog:
                             description=f'{ctx.author} paid their respects for'
                                         f' {reason}'))
 
+                self.destroy_bucket_later(self, ctx.channel)
+
+                f_bucket = F(ctx,
+                             collections.MutableOrderedSet({ctx.author}),
+                             message,
+                             colour,
+                             reason)
+
+                self.buckets[(ctx.channel, reason_low)] = f_bucket
+
                 if ENABLE_REACT:
                     await message.add_reaction(
                         '\N{REGIONAL INDICATOR SYMBOL LETTER F}')
-
-                f_bucket = F(collections.MutableOrderedSet({ctx.author}),
-                             message,
-                             colour)
-
-                self.buckets[ctx.channel] = f_bucket
-
-                await self.destroy_bucket_later(ctx.channel)
             else:
-                bucket = self.buckets[ctx.channel]
                 await self.append_to_bucket(bucket, ctx.author)
-        except BaseException:
-            pass
+
+                if ENABLE_REACT:
+                    await bucket.message.add_reaction(
+                        '\N{REGIONAL INDICATOR SYMBOL LETTER F}')
+        except BaseException as ex:
+            raise
 
 
 def setup(bot):

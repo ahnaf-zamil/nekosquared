@@ -64,7 +64,7 @@ class CompilerCog(traits.CogTraits):
             booklet = booklet.build()
             booklet.start()
 
-            await self._listen_to_edit(ctx, booklet)
+            return await self._listen_to_edit(ctx, booklet)
 
         # Extract the code
         language, source = code_block.groups()
