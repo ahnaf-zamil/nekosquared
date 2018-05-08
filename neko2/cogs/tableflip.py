@@ -1,8 +1,11 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
+import random
+
+from discomaton.factories import bookbinding
 import discord
 
-from neko2.shared import alg, traits
+from neko2.shared import alg, traits, commands
 
 
 class TableFlipCog(traits.CogTraits):
@@ -17,9 +20,37 @@ class TableFlipCog(traits.CogTraits):
 
     binds = {
         '/shrug': '¯\_(ツ)_/¯',
-        '/tableflip': '(╯°□°）╯︵ ┻━┻',
-        '/unflip': '┬──┬﻿ ノ(° - °ノ)'
+        '/tableflip': ('(╯°□°）╯︵ ┻━┻', '(ノಠ益ಠ)ノ︵ ┻━┻'),
+        '/unflip': '┬──┬﻿ ノ(° - °ノ)',
+        '/lenny': '( ͡° ͜ʖ ͡°)',
+        '/confused': '(⊙_☉)',
+        '/wizard': '(∩｀-´)⊃━☆ﾟ.*･｡ﾟ',
+        '/happy': '(　＾∇＾)',
+        '/dancing': ('(∼‾▿‾)∼', '(ノ^o^)ノ', '(ﾉ≧∀≦)ﾉ', '∼(‾▿‾)∼'),
+        '/yay': '(ง^ᗜ^)ง',
+        '/ayy': '(☞⌐■_■)☞',
+        '/ahh': '(ʘᗝʘ)',
+        '/spy': '┬┴┬┴┤ ͜ʖ ͡°) ├┬┴┬┴',
+        '/cry': ('(´ ͡༎ຶ ͜ʖ ͡༎ຶ )', '(πᗣπ)'),
+        '/shy': '（⌒▽⌒ゞ',
     }
+
+    @commands.guild_only()
+    @commands.command(name='binds', brief='Shows available binds.')
+    async def view_binds(self, ctx):
+        if ctx.guild.me.guild_permissions.manage_webhooks:
+            binder = bookbinding.StringBookBinder(ctx)
+            for bind_command, value in self.binds.items():
+                if isinstance(value, tuple):
+                    value = ', '.join(value)
+
+                binder.add_line(f'• `{bind_command}: {value}')
+            binder.start()
+        else:
+            await ctx.send('I don\'t seem to have the MANAGE_WEBHOOKS '
+                           'permission required for this to work. Please '
+                           'grant me that ')
+
 
     @classmethod
     async def delete_and_copy_handle_with_webhook(cls, message):
@@ -34,10 +65,10 @@ class TableFlipCog(traits.CogTraits):
 
         avatar_resp = await http.get(avatar_url)
 
+        # noinspection PyUnresolvedReferences
         wh: discord.Webhook = await channel.create_webhook(
             name=message.author.display_name,
             avatar=await avatar_resp.read())
-        wh.edit()
 
         try:
             await message.delete()
@@ -75,6 +106,8 @@ class TableFlipCog(traits.CogTraits):
             return
 
         bind_result = cls.binds[bind]
+        if isinstance(bind_result, tuple):
+            bind_result = random.choice(bind_result)
 
         # If we matched a bind, remove it.
         message.content = message.content[len(bind):].lstrip()

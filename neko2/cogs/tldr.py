@@ -53,6 +53,7 @@ class TldrCog(traits.CogTraits):
         conn = await self.acquire_http()
 
         if platform is None:
+            resp = None
             for platform in supported_platforms:
                 resp = await conn.get(f'{url}{platform}/{page}.md')
                 if 200 <= resp.status < 300:

@@ -40,7 +40,7 @@ class PyCog(traits.CogTraits):
             line = line.replace('`', '′')
             bb.add_line(line)
 
-        await bb.start()
+        bb.start()
 
     @commands.group(invoke_without_command=True,
                     aliases=['pip', 'pip3'],
@@ -81,7 +81,7 @@ class PyCog(traits.CogTraits):
         try:
             booklet = book.build()
             if len(booklet) > 1:
-                await booklet.start()
+                booklet.start()
             else:
                 await ctx.send(booklet[0])
         except IndexError:

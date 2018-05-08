@@ -35,8 +35,9 @@ service_names = {
     'ISteamGameCoordinator': 'Game Coordinator'
 }
 
-game_icon = 'http://cdn.edgecast.steamstatic.com/steamcommunity/public/images' \
-            '/avatars/6f/6f9b7a6739b06a8ec55d55ef4131782ab2a0f0af.jpg'
+game_icon = (
+    'http://cdn.edgecast.steamstatic.com/steamcommunity/public/images'
+    '/avatars/6f/6f9b7a6739b06a8ec55d55ef4131782ab2a0f0af.jpg')
 
 game_thumbs = {
     'steam': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/83'
@@ -44,7 +45,8 @@ game_thumbs = {
     'tf2': 'http://media.steampowered.com/apps/tf2/artwork/thumb_exp_date_2'
            '.jpg',
     'dota2': 'http://cdn.dota2.com/apps/dota2/images/blog/play/dota_logo.png',
-    'csgo': 'http://cdn3.avgleague.com/wp-content/uploads/2014/08/csgo-logo.png'
+    'csgo':
+        'http://cdn3.avgleague.com/wp-content/uploads/2014/08/csgo-logo.png'
 }
 
 steam_color = 0x171a21
@@ -54,7 +56,7 @@ class SteamStatusCog(traits.CogTraits):
     @commands.command(brief='Gets the Steam API status.')
     async def steam(self, ctx):
         """
-        Replies to the given context with the steam status as a formatted embed.
+        Replies to the given context with the steam status as a formatted embed
         """
 
         # Format the response.
@@ -72,7 +74,7 @@ class SteamStatusCog(traits.CogTraits):
         embed.set_thumbnail(url=game_thumbs['steam'])
 
         with ctx.typing():
-            resp = await self.get_status(ctx.bot)
+            resp = await self.get_status()
 
         for service in steam_core_services:
             if service not in resp:
@@ -114,7 +116,7 @@ class SteamStatusCog(traits.CogTraits):
         embed.set_thumbnail(url=game_thumbs['csgo'])
 
         with ctx.typing():
-            resp = await self.get_status(ctx.bot)
+            resp = await self.get_status()
 
         item_server_str = []
         for k, v in resp['IEconItems']['730'].items():
@@ -165,7 +167,7 @@ class SteamStatusCog(traits.CogTraits):
         embed.set_thumbnail(url=game_thumbs['dota2'])
 
         with ctx.typing():
-            resp = await self.get_status(ctx.bot)
+            resp = await self.get_status()
 
         item_server_str = []
         for k, v in resp['IEconItems']['570'].items():
@@ -213,7 +215,7 @@ class SteamStatusCog(traits.CogTraits):
         embed.set_thumbnail(url=game_thumbs['tf2'])
 
         with ctx.typing():
-            resp = await self.get_status(ctx.bot)
+            resp = await self.get_status()
 
         coordinator_str = []
         coordinator = resp['ISteamGameCoordinator']['440']
@@ -223,7 +225,7 @@ class SteamStatusCog(traits.CogTraits):
                 continue
             elif k == 'stats':
                 try:
-                    # This may change periodically, so I may have to alter this!
+                    # This may change periodically, so I may have to alter this
                     war = coordinator[k]['warScore']
 
                     war_name = 'War: Pyro vs Heavy'
@@ -314,7 +316,7 @@ class SteamStatusCog(traits.CogTraits):
 
         return '\n'.join(stats if stats else ['No stats'])
 
-    async def get_status(self, bot):
+    async def get_status(self):
         """Gets a dict of the status information."""
         conn = await self.acquire_http()
         response = await conn.request('GET', api_endpoint)

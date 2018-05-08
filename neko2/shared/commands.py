@@ -142,7 +142,7 @@ def acknowledge(ctx: Context,
                     except:
                         pass
 
-    asyncio.ensure_future(fut())
+    ctx.bot.loop.create_task(fut())
 
 
 class StatusMessage:

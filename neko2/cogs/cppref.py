@@ -37,7 +37,7 @@ search_cppr = base_cppr + '/mwiki/index.php'
 
 class CppCog(traits.CogTraits):
     @classmethod
-    async def results(cls, bot, *terms):
+    async def results(cls, *terms):
         """Gathers the results for the given search terms from Cppreference."""
         params = {'search': '|'.join(terms)}
 
@@ -100,7 +100,7 @@ class CppCog(traits.CogTraits):
         return [*c, *cpp, *other]
 
     @classmethod
-    async def get_information(cls, bot, href):
+    async def get_information(cls, href):
         """
         Gets information for the given search result.
         """
@@ -189,7 +189,6 @@ class CppCog(traits.CogTraits):
         # Fetch the result page.
         try:
             url, h1, tasters, header, desc = await self.get_information(
-                ctx.bot,
                 result.href)
         except:
             return await ctx.send('Rude! Cppreference just hung up on me..!')

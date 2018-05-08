@@ -156,7 +156,7 @@ class DiscordUtilCog(traits.CogTraits, scribe.Scribe):
     def maybe_spawn_status_worker(self):
         task = getattr(self, '_status_task', None)
         if not task or task.done() or task.cancelled():
-            task = asyncio.ensure_future(self.check_status())
+            task = self.bot.loop.create_task(self.check_status())
             setattr(self, '_status_task', task)
             # Invokes the message to spawn the first time.
             setattr(self, '_discord_down', True)

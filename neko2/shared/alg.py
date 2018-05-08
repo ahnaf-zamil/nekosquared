@@ -92,7 +92,7 @@ async def time_it_async(coro, *args, **kwargs) -> (typing.Any, float):
         end = time.monotonic()
 
     start = time.monotonic()
-    result_fut = asyncio.ensure_future(coro(*args, **kwargs))
+    result_fut = asyncio.get_event_loop().create_task(coro(*args, **kwargs))
     result_fut.add_done_callback(callback)
     result = await result_fut
     return result, end - start

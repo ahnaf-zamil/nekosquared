@@ -29,6 +29,7 @@ class F:
     members: collections.MutableOrderedSet
     message: discord.Message
     colour: int
+    ctx: commands.Context
 
 
 class RespectsCog:
@@ -101,7 +102,9 @@ class RespectsCog:
 
         if bucket.message:
             await bucket.message.edit(embed=embed)
+            # await bucket.ctx.send('105')
         else:
+            # await bucket.ctx.send('107')
             bucket.message = await bucket.ctx.send(embed=embed)
 
     @commands.guild_only()
@@ -152,7 +155,8 @@ class RespectsCog:
 
                 f_bucket = F(collections.MutableOrderedSet({ctx.author}),
                              message,
-                             colour)
+                             colour,
+                             ctx)
 
                 self.buckets[ctx.channel] = f_bucket
                 self.destroy_bucket_later(self, ctx.channel)

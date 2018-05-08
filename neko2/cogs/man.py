@@ -67,7 +67,7 @@ class ManCog:
             for line in main_stream.splitlines():
                 book.add_line(line, dont_alter=True)
 
-            await book.start()
+            book.start()
 
 
 def setup(bot):

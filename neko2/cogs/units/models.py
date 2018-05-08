@@ -320,7 +320,7 @@ def pretty_print(d: Decimal,
     # Divide by the chosen power of ten to get the
     # value in the base we want.
     if use_std_form:
-        if Decimal('0.000001') <= abs(d) < Decimal('1000000000'):
+        if Decimal('0.00001') <= abs(d) < Decimal('1000000000') or d.is_zero():
             rounded_str = f'{d:,.6f}'
             return f'{trunc(rounded_str)} {suffix_name}'
             # return f'{d:,.4f} {suffix_name}'

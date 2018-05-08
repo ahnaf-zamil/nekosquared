@@ -14,6 +14,7 @@ import random
 import threading
 import time
 
+from discomaton import book
 from cached_property import threaded_cached_property
 import discord
 import requests
@@ -42,8 +43,8 @@ def get_alphas(string):
     return ''.join(c for c in string if a <= ord(c) <= z or A <= ord(c) <= Z)
 
 
-# 12 hours
-SLEEP_FOR = 60 * 60 * 12
+# 2 hour
+SLEEP_FOR = 60 * 60 * 2
 CACHE_FILE = os.path.join(configfiles.CONFIG_DIRECTORY, 'xkcd.json')
 
 
@@ -55,7 +56,6 @@ class XkcdCache(threading.Thread,
                 metaclass=morefunctools.SingletonMeta):
     """
     Sequentially crawls xkcd periodically to gather metadata.
-
     Maintains an in-memory cache of XKCD comics and keeps it updated.
     """
 
@@ -116,6 +116,7 @@ class XkcdCache(threading.Thread,
                     })
 
             with open(CACHE_FILE, 'w') as fp:
+                data = data.sort(key=lambda c: c['num'])
                 json.dump(data, fp, indent='  ')
                 del self.__dict__['cached_metadata']
 

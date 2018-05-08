@@ -67,6 +67,27 @@ class Builtins(extrabits.InternalCogType):
             pass
 
     @property
+    def uptime(self) -> str:
+        uptime = self.bot.uptime
+        if uptime >= 60 * 60 * 24:
+            uptime /= (60.0 * 60 * 24)
+            uptime = round(uptime, 1)
+            uptime = f'{uptime} day{"s" if uptime != 1 else ""}'
+        elif uptime >= 60 * 60:
+            uptime /= (60.0 * 60)
+            uptime = round(uptime, 1)
+            uptime = f'{uptime} hour{"s" if uptime != 1 else ""}'
+        elif uptime >= 60:
+            uptime /= 60.0
+            uptime = round(uptime, 1)
+            uptime = f'{uptime} minute{"s" if uptime != 1 else ""}'
+        else:
+            uptime = int(uptime)
+            uptime = f'{uptime} second{"s" if uptime != 1 else ""}'
+
+        return uptime
+
+    @property
     def lines_of_code(self):
         if lines_of_code is not None:
             return f'{int(lines_of_code):,} lines of code'
@@ -464,14 +485,18 @@ class Builtins(extrabits.InternalCogType):
             int(b''.join([await f3_res.stdout.read()]).decode('utf-8'))
         )
 
-    @commands.command(aliases=['v'])
+    @commands.command(name='uptime')
+    async def uptime_cmd(self, ctx):
+        await ctx.send(self.uptime)
+
+    @commands.command(aliases=['v', 'ver', 'about'])
     async def version(self, ctx):
         """Shows versioning information and some other useful statistics."""
         author = neko2.__author__
         licence = neko2.__license__
         repo = neko2.__repository__
         version = neko2.__version__
-        uptime = ctx.bot.uptime
+        uptime = self.uptime
         docstring = inspect.getdoc(neko2)
         if docstring:
             docstring = [
@@ -495,22 +520,6 @@ class Builtins(extrabits.InternalCogType):
 
         embed.set_author(name=author)
 
-        if uptime >= 60 * 60 * 24:
-            uptime /= (60.0 * 60 * 24)
-            uptime = round(uptime, 1)
-            uptime = f'{uptime} day{"s" if uptime != 1 else ""}'
-        elif uptime >= 60 * 60:
-            uptime /= (60.0 * 60)
-            uptime = round(uptime, 1)
-            uptime = f'{uptime} hour{"s" if uptime != 1 else ""}'
-        elif uptime >= 60:
-            uptime /= 60.0
-            uptime = round(uptime, 1)
-            uptime = f'{uptime} minute{"s" if uptime != 1 else ""}'
-        else:
-            uptime = int(uptime)
-            uptime = f'{uptime} second{"s" if uptime != 1 else ""}'
-
         embed.set_footer(text=f'Uptime: {uptime}')
         embed.set_thumbnail(url=ctx.bot.user.avatar_url)
 
@@ -530,7 +539,7 @@ class Builtins(extrabits.InternalCogType):
                     f'`ACK` time: ~{rtt:,.2f}ms | '
                     f'System local time: `{time.asctime()}`)')
 
-    async def _load_extension(self, namespace) -> float:
+    async def _load_extension(self, namespace, recache=True) -> float:
         """
         Loads a given extension into the bot, returning the time taken to
         load it. If the extension is already present, an ImportWarning is
@@ -543,10 +552,11 @@ class Builtins(extrabits.InternalCogType):
         self.bot.load_extension(namespace)
         ttr = time.monotonic() - start_time
         # Recache LOC.
-        asyncio.ensure_future(self.run_in_io_executor(count_loc))
+        if recache:
+            self.bot.loop.create_task(self.run_in_io_executor(count_loc))
         return ttr
 
-    async def _unload_extension(self, namespace) -> float:
+    async def _unload_extension(self, namespace, recache=True) -> float:
         """
         Unloads a given extension from the bot, returning execution time.
         If no extension matching the namespace is found, a ModuleNotFoundError
@@ -567,7 +577,8 @@ class Builtins(extrabits.InternalCogType):
             self.bot.unload_extension(namespace)
             ttr = time.monotonic() - start_time
             # Recache LOC.
-            asyncio.ensure_future(self.run_in_io_executor(count_loc))
+            if recache:
+                self.bot.loop.create_task(self.run_in_io_executor(count_loc))
             return ttr
 
     @commands.is_owner()
@@ -661,7 +672,7 @@ class Builtins(extrabits.InternalCogType):
                         continue
                     
                     try:
-                        secs = await self._unload_extension(extension)
+                        secs = await self._unload_extension(extension, False)
                     except Exception as ex:
                         log.append(f'Unloading `{extension}` failed. '
                                    f'{type(ex).__qualname__}: {ex}')
@@ -676,7 +687,7 @@ class Builtins(extrabits.InternalCogType):
                 for extension in frozenset((*modules.modules,
                                             *unloaded_extensions)):
                     try:
-                        secs = await self._load_extension(extension)
+                        secs = await self._load_extension(extension, False)
                     except Exception as ex:
                         log.append(f'Loading `{extension}` failed. '
                                    f'{type(ex).__qualname__}: {ex}')
@@ -706,9 +717,9 @@ class Builtins(extrabits.InternalCogType):
                 book.add_line(line)
 
             # Recache LOC.
-            asyncio.ensure_future(self.run_in_io_executor(count_loc))
+            self.bot.loop.create_task(self.run_in_io_executor(count_loc))
 
-            await book.start()
+            book.start()
         else:
             await self.unload.callback(self, ctx, namespace=namespace)
             await self.load.callback(self, ctx, namespace=namespace)
