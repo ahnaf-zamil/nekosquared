@@ -11,6 +11,9 @@ import discord
 
 from neko2.shared import commands, alg, morefunctools, collections
 
+# Last for 6 hours otherwise.
+F_TIMEOUT = 60**2 * 6
+
 # Set to True to enable `f' being a valid trigger for the command without
 # a prefix.
 ENABLE_NAKED = False
@@ -65,6 +68,12 @@ class RespectsCog:
             message: discord.Message = reaction.message
             await message.remove_reaction(reaction, user)
 
+    @morefunctools.always_background()
+    async def destroy_bucket_later(self, channel):
+        await asyncio.sleep(F_TIMEOUT)
+        await self.buckets[channel].message.clear_reactions()
+        del self.buckets[channel]
+
     @staticmethod
     async def append_to_bucket(bucket, user):
         bucket.members.add(user)
@@ -96,7 +105,6 @@ class RespectsCog:
     async def f(self, ctx, *, reason=None):
         try:
             await ctx.message.delete()
-
             bucket = self.buckets.get(ctx.channel)
 
             # Get the last 10 recent messages. If the bucket message
@@ -143,6 +151,7 @@ class RespectsCog:
                              colour)
 
                 self.buckets[ctx.channel] = f_bucket
+                self.destroy_bucket_later(self, ctx.channel)
             else:
                 await self.append_to_bucket(bucket, ctx.author)
         except BaseException:
