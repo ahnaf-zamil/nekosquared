@@ -217,7 +217,7 @@ class ErrorHandler(extrabits.InternalCogType):
                 except:
                     pass
 
-        asyncio.ensure_future(fut())
+        bot.loop.create_task(fut())
 
     async def on_command_error(self, context, exception):
         """

@@ -29,6 +29,9 @@ lines_of_code = None
 
 
 def count_loc():
+    """
+    Counts the lines of code.
+    """
     global lines_of_code
     try:
         extrabits.InternalCogType.logger.info('Counting and caching LOC.')
@@ -66,8 +69,42 @@ class Builtins(extrabits.InternalCogType):
         except:
             pass
 
+    # Prevents webhook exploits spamming the hell out of this.
+
+    async def __global_check(self, ctx):
+        """
+        Prevents us, while not in debug mode, from responding to other
+        bots what-so-ever.
+
+        This is a useful thing to have in debugging mode for testing.
+        """
+        return self.bot.debug or not ctx.author.bot
+
+    @property
+    def uptime(self) -> str:
+        """Get the uptime of the bot as a string."""
+        uptime = self.bot.uptime
+        if uptime >= 60 * 60 * 24:
+            uptime /= (60.0 * 60 * 24)
+            uptime = round(uptime, 1)
+            uptime = f'{uptime} day{"s" if uptime != 1 else ""}'
+        elif uptime >= 60 * 60:
+            uptime /= (60.0 * 60)
+            uptime = round(uptime, 1)
+            uptime = f'{uptime} hour{"s" if uptime != 1 else ""}'
+        elif uptime >= 60:
+            uptime /= 60.0
+            uptime = round(uptime, 1)
+            uptime = f'{uptime} minute{"s" if uptime != 1 else ""}'
+        else:
+            uptime = int(uptime)
+            uptime = f'{uptime} second{"s" if uptime != 1 else ""}'
+
+        return uptime
+
     @property
     def lines_of_code(self):
+        """Gets the #lines of code as a string description."""
         if lines_of_code is not None:
             return f'{int(lines_of_code):,} lines of code'
         else:
@@ -75,6 +112,7 @@ class Builtins(extrabits.InternalCogType):
 
     @commands.command(brief='Shows the license.')
     async def license(self, ctx):
+        """Displays the current license agreement for source code usage."""
         binder = bookbinding.StringBookBinder(ctx, suffix='```', prefix='```',
                                               max_lines=25)
         async with self.file('LICENSE') as fp:
@@ -85,6 +123,7 @@ class Builtins(extrabits.InternalCogType):
     @commands.command(brief='Links to the GitHub repository.',
                       aliases=['github', 'repo', 'bitbucket', 'svn'])
     async def git(self, ctx):
+        """Gets the repository that the bot's source code is hosted in."""
         await ctx.send(f'{ctx.author.mention}: <{neko2.__repository__}>')
 
     @commands.command(brief='Gets usage information for commands.')
@@ -301,6 +340,11 @@ class Builtins(extrabits.InternalCogType):
             pages.append(current_page)
 
         def mk_page(body):
+            """
+            Makes a new page with the current body. This is a template
+            for embeds to ensure a consistent layout if we can't fit the
+            commands list on one page.
+            """
             page = embeds.Embed(
                 title='Available Neko² Commands',
                 colour=0x000663,
@@ -428,6 +472,10 @@ class Builtins(extrabits.InternalCogType):
 
     @staticmethod
     async def get_commit():
+        """
+        Gets the most recent commit.
+        :return:
+        """
         # Returns a tuple of how long ago, the body, and the number of commits.
         # %ar = how long ago
         # %b  = body
@@ -464,14 +512,21 @@ class Builtins(extrabits.InternalCogType):
             int(b''.join([await f3_res.stdout.read()]).decode('utf-8'))
         )
 
-    @commands.command(aliases=['v'])
+    @commands.command(name='uptime', brief='Shows how long I have been alive '
+                                           'for.')
+    async def uptime_cmd(self, ctx):
+        """Determines the monotonic runtime of the bot."""
+        await ctx.send(self.uptime)
+
+    @commands.command(aliases=['v', 'ver', 'about'],
+                      brief='Shows versioning info, and some other things.')
     async def version(self, ctx):
         """Shows versioning information and some other useful statistics."""
         author = neko2.__author__
         licence = neko2.__license__
         repo = neko2.__repository__
         version = neko2.__version__
-        uptime = ctx.bot.uptime
+        uptime = self.uptime
         docstring = inspect.getdoc(neko2)
         if docstring:
             docstring = [
@@ -495,32 +550,16 @@ class Builtins(extrabits.InternalCogType):
 
         embed.set_author(name=author)
 
-        if uptime >= 60 * 60 * 24:
-            uptime /= (60.0 * 60 * 24)
-            uptime = round(uptime, 1)
-            uptime = f'{uptime} day{"s" if uptime != 1 else ""}'
-        elif uptime >= 60 * 60:
-            uptime /= (60.0 * 60)
-            uptime = round(uptime, 1)
-            uptime = f'{uptime} hour{"s" if uptime != 1 else ""}'
-        elif uptime >= 60:
-            uptime /= 60.0
-            uptime = round(uptime, 1)
-            uptime = f'{uptime} minute{"s" if uptime != 1 else ""}'
-        else:
-            uptime = int(uptime)
-            uptime = f'{uptime} second{"s" if uptime != 1 else ""}'
-
         embed.set_footer(text=f'Uptime: {uptime}')
         embed.set_thumbnail(url=ctx.bot.user.avatar_url)
 
         embed.add_field(name='Current high score', value=self.lines_of_code)
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(brief='Shows the current latencies for the me.')
     async def ping(self, ctx):
         """
-        Checks whether the bot is online and responsive or not.
+        Checks whether I am online and responsive or not.
         """
         start = time.monotonic()
         message = await ctx.send(f'Pong!')
@@ -530,7 +569,7 @@ class Builtins(extrabits.InternalCogType):
                     f'`ACK` time: ~{rtt:,.2f}ms | '
                     f'System local time: `{time.asctime()}`)')
 
-    async def _load_extension(self, namespace) -> float:
+    async def _load_extension(self, namespace, recache=True) -> float:
         """
         Loads a given extension into the bot, returning the time taken to
         load it. If the extension is already present, an ImportWarning is
@@ -543,10 +582,11 @@ class Builtins(extrabits.InternalCogType):
         self.bot.load_extension(namespace)
         ttr = time.monotonic() - start_time
         # Recache LOC.
-        asyncio.ensure_future(self.run_in_io_executor(count_loc))
+        if recache:
+            self.bot.loop.create_task(self.run_in_io_executor(count_loc))
         return ttr
 
-    async def _unload_extension(self, namespace) -> float:
+    async def _unload_extension(self, namespace, recache=True) -> float:
         """
         Unloads a given extension from the bot, returning execution time.
         If no extension matching the namespace is found, a ModuleNotFoundError
@@ -567,13 +607,14 @@ class Builtins(extrabits.InternalCogType):
             self.bot.unload_extension(namespace)
             ttr = time.monotonic() - start_time
             # Recache LOC.
-            asyncio.ensure_future(self.run_in_io_executor(count_loc))
+            if recache:
+                self.bot.loop.create_task(self.run_in_io_executor(count_loc))
             return ttr
 
     @commands.is_owner()
-    @commands.command(hidden=True, brief='Loads a given extension.')
+    @commands.command(hidden=True, brief='Loads an extension into me.')
     async def load(self, ctx, *, namespace):
-        """Loads a given extension into the bot."""
+        """Makes me load a given extension from disk."""
         try:
             secs = await self._load_extension(namespace)
         except ImportWarning as ex:
@@ -605,9 +646,9 @@ class Builtins(extrabits.InternalCogType):
             ))
 
     @commands.is_owner()
-    @commands.command(hidden=True, brief='Unloads a given extension.')
+    @commands.command(hidden=True, brief='Unloads a given extension from me.')
     async def unload(self, ctx, *, namespace):
-        """Unloads the given extension from the bot."""
+        """Unloads the given extension from my code."""
         try:
             secs = await self._unload_extension(namespace)
         except ModuleNotFoundError as ex:
@@ -661,7 +702,7 @@ class Builtins(extrabits.InternalCogType):
                         continue
                     
                     try:
-                        secs = await self._unload_extension(extension)
+                        secs = await self._unload_extension(extension, False)
                     except Exception as ex:
                         log.append(f'Unloading `{extension}` failed. '
                                    f'{type(ex).__qualname__}: {ex}')
@@ -676,7 +717,7 @@ class Builtins(extrabits.InternalCogType):
                 for extension in frozenset((*modules.modules,
                                             *unloaded_extensions)):
                     try:
-                        secs = await self._load_extension(extension)
+                        secs = await self._load_extension(extension, False)
                     except Exception as ex:
                         log.append(f'Loading `{extension}` failed. '
                                    f'{type(ex).__qualname__}: {ex}')
@@ -706,9 +747,9 @@ class Builtins(extrabits.InternalCogType):
                 book.add_line(line)
 
             # Recache LOC.
-            asyncio.ensure_future(self.run_in_io_executor(count_loc))
+            self.bot.loop.create_task(self.run_in_io_executor(count_loc))
 
-            await book.start()
+            book.start()
         else:
             await self.unload.callback(self, ctx, namespace=namespace)
             await self.load.callback(self, ctx, namespace=namespace)
@@ -722,9 +763,10 @@ class Builtins(extrabits.InternalCogType):
 
         try:
             can_run = await command.can_run(ctx)
-        except:
-            can_run = False
-        finally:
+        except Exception as ex:
+            await ctx.send('You cannot run the command here, because: '
+                           f'`{type(ex).__name__}: {ex!s}`')
+        else:
             await ctx.send(f'You {can_run and "can" or "cannot"} run this '
                            'command here.')
 

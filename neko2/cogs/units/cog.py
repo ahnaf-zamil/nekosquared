@@ -60,7 +60,7 @@ class UnitCog(traits.CogTraits):
             if query is None:
                 # Get channel history until we find the message before the
                 # one corresponding to the invoked context.
-                is_next = False
+                is_next, message = False, None
                 async for message in ctx.channel.history(limit=None):
                     if is_next:
                         break
@@ -155,7 +155,7 @@ class UnitCog(traits.CogTraits):
     async def await_result_request(self, original_message, embed):
         try:
             # Run asynchronously to be more responsive.
-            asyncio.ensure_future(
+            self.bot.loop.create_task(
                 original_message.add_reaction(REACTION))
 
             def predicate(reaction, user):

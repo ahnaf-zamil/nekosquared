@@ -88,7 +88,6 @@ class Group(discord_commands.Group, CommandMixin):
         return super().group(**kwargs)
 
 
-
 def command(**kwargs):
     """Decorator for a command."""
     # Ensure the class is set correctly.
@@ -142,7 +141,7 @@ def acknowledge(ctx: Context,
                     except:
                         pass
 
-    asyncio.ensure_future(fut())
+    ctx.bot.loop.create_task(fut())
 
 
 class StatusMessage:

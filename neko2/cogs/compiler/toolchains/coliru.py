@@ -133,8 +133,7 @@ class Coliru:
         # Generate futures then await them together.
         futures = []
         for file in self.other_files:
-            futures.append(
-                asyncio.ensure_future(self._share(session, file)))
+            futures.append(loop.create_task(self._share(session, file)))
 
         results = await asyncio.gather(*futures, loop=loop)
 

@@ -14,7 +14,6 @@ import typing
 import discord
 from discord.ext import commands as discord_cmds
 
-
 from .abstract import AbstractIterableMachine
 from .button import Button, as_button
 from .util import validate
@@ -22,10 +21,8 @@ from .util.helpers import attempt_delete
 from .util.stack import Stack
 from .version_info import __version__, __author__, __repository__
 
-
 __all__ = ('default_buttons', 'default_formatter', 'AbstractBooklet',
            'StringBooklet', 'EmbedBooklet', 'FormatterType')
-
 
 PageType = typing.TypeVar('PageType')
 PagesType = typing.Union[
@@ -36,7 +33,8 @@ FormatterType = typing.Callable[['AbstractBooklet'], str]
 
 
 # Can be reassigned if we need to do something else for debugging.
-in_future = asyncio.ensure_future
+def in_future(x):
+    return asyncio.get_event_loop().create_task(x)
 
 
 def default_buttons() -> typing.List[Button]:
@@ -50,6 +48,7 @@ def default_buttons() -> typing.List[Button]:
             button = as_button(**kwargs)(coro)
             buttons.append(button)
             return button
+
         return decorator
 
     @_as_button(name='Go to the first page', reaction='⏮')
@@ -104,7 +103,7 @@ def default_buttons() -> typing.List[Button]:
 
         prompt = await machine.channel.send('Enter a page number:')
         msg = None
-       
+
         async def later_callback():
             try:
                 msg = await get_user_input((machine.channel, machine.client),
@@ -119,7 +118,7 @@ def default_buttons() -> typing.List[Button]:
                 await attempt_delete(*[prompt, msg] if msg else prompt)
                 setattr(machine, '_is_showing_page_prompt', False)
                 await machine._flush_reacts()
-        
+
         return in_future(later_callback())
 
     @_as_button(name='Show help', reaction='❓')
@@ -140,9 +139,11 @@ def default_buttons() -> typing.List[Button]:
             colour=random.randint(0, 0xFFFFFF))
 
         help_embed.add_field(name='Buttons',
-                             value='\n'.join(explanation[:len(explanation)//2]))
+                             value='\n'.join(
+                                 explanation[:len(explanation) // 2]))
         help_embed.add_field(name='\u200B',
-                             value='\n'.join(explanation[len(explanation)//2:]))
+                             value='\n'.join(
+                                 explanation[len(explanation) // 2:]))
 
         help_embed.set_footer(
             text='At the time of showing this help message, '
@@ -154,7 +155,7 @@ def default_buttons() -> typing.List[Button]:
             machine.response_stk.push(m)
         else:
             await machine.root_resp.edit(embed=help_embed)
-                      
+
         setattr(machine, '_help_shown', True)
 
     @_as_button(name='Next page', reaction='▶')
@@ -182,7 +183,7 @@ def default_buttons() -> typing.List[Button]:
         # print('>>|')
         await machine.set_page_index(-1)
 
-    @_as_button(name='Delete message', 
+    @_as_button(name='Delete message',
                 reaction='\N{REGIONAL INDICATOR SYMBOL LETTER X}')
     async def delete(_unused_button: Button,
                      machine: 'AbstractBooklet',
@@ -236,7 +237,8 @@ class AbstractBooklet(AbstractIterableMachine,
     book that uses embeds, messages, etc.
 
     :param buttons: the buttons to show. There must be at least one.
-    :param ctx: the context to respond to. Pass a tuple of Message, TextChannel,
+    :param ctx: the context to respond to. Pass a tuple of Message,
+    TextChannel,
             and discord.Client or discord.ext.commands.Bot if for any reason
             you cannot pass an actual Context object (e.g. are using this
             in some event handler rather than a command).
@@ -266,7 +268,8 @@ class AbstractBooklet(AbstractIterableMachine,
         True if only the initial author can manipulate this object's state.
         False otherwise.
     buttons: OrderedDict[str, Button]
-        An ordered dictionary mapping reaction emojis to button callback objects
+        An ordered dictionary mapping reaction emojis to button callback
+        objects
         to call when their respective event is invoked.
     response_stk: Stack[discord.Message]
         A stack of responses this class has sent to the user. A stack is used
@@ -311,7 +314,7 @@ class AbstractBooklet(AbstractIterableMachine,
                  timeout: typing.Optional[float] = 300,
                  start_page: int = 0,
                  only_author: bool = True,
-                 formatter: FormatterType=default_formatter
+                 formatter: FormatterType = default_formatter
                  ) -> None:
         """
         Initialise the booklet.
@@ -446,7 +449,8 @@ class AbstractBooklet(AbstractIterableMachine,
         if 0 < number <= len(self.pages):
             self._page_index = number - 1
         else:
-            raise IndexError(f'{number} is outside range [1,{len(self.pages)}]')
+            raise IndexError(
+                f'{number} is outside range [1,{len(self.pages)}]')
 
     def __len__(self):
         """Gets the number of pages in this booklet."""
@@ -554,6 +558,7 @@ class AbstractBooklet(AbstractIterableMachine,
 
     async def __update_root(self):
         """Gets a more up to date copy of the root message metadata."""
+
         async def up():
             self.root_resp = await self.channel.get_message(self.root_resp.id)
 
@@ -640,8 +645,8 @@ class AbstractBooklet(AbstractIterableMachine,
                         await root.remove_reaction(curr, user)
 
                 # If there are still targets left to check and the current
-                # reaction is the next target, remove all reacts that are not by
-                # me.
+                # reaction is the next target, remove all reacts that are not
+                # by me.
                 elif curr.emoji == targets[0]:
                     targets.pop(0)
                     async for user in curr.users():
@@ -703,6 +708,7 @@ class AbstractBooklet(AbstractIterableMachine,
             async with self:
                 async for _ in self:
                     pass
+
         return in_future(runner())
 
     @abc.abstractmethod
@@ -725,7 +731,8 @@ class AbstractBooklet(AbstractIterableMachine,
         - Setting the page index, page number, or offset will eventually call
             this method.
         - This will decorate any messages being sent if appropriate. For
-            example, by adding the page number to the message, etc. This is only
+            example, by adding the page number to the message, etc. This is
+            only
             done if there is space to do so.
         - This method validates the page content length before sending. A
             ValueError signifies that a page is invalid.
@@ -739,7 +746,8 @@ class StringBooklet(AbstractBooklet, typing.Generic[typing.AnyStr]):
     A booklet that contains raw strings for each page.
 
     :param buttons: the buttons to show. There must be at least one.
-    :param ctx: the context to respond to. Pass a tuple of Message, TextChannel,
+    :param ctx: the context to respond to. Pass a tuple of Message,
+    TextChannel,
             and discord.Client or discord.ext.commands.Bot if for any reason
             you cannot pass an actual Context object (e.g. are using this
             in some event handler rather than a command).
@@ -769,7 +777,8 @@ class StringBooklet(AbstractBooklet, typing.Generic[typing.AnyStr]):
         True if only the initial author can manipulate this object's state.
         False otherwise.
     buttons: OrderedDict[str, Button]
-        An ordered dictionary mapping reaction emojis to button callback objects
+        An ordered dictionary mapping reaction emojis to button callback
+        objects
         to call when their respective event is invoked.
     response_stk: Stack[discord.Message]
         A stack of responses this class has sent to the user. A stack is used
@@ -803,7 +812,7 @@ class StringBooklet(AbstractBooklet, typing.Generic[typing.AnyStr]):
                  timeout: float = 300,
                  start_page: int = 0,
                  only_author: bool = True,
-                 formatter: FormatterType=default_formatter) -> None:
+                 formatter: FormatterType = default_formatter) -> None:
         super().__init__(buttons=buttons,
                          pages=pages,
                          ctx=ctx,
@@ -831,7 +840,8 @@ class StringBooklet(AbstractBooklet, typing.Generic[typing.AnyStr]):
         - Setting the page index, page number, or offset will eventually call
             this method.
         - This will decorate any messages being sent if appropriate. For
-            example, by adding the page number to the message, etc. This is only
+            example, by adding the page number to the message, etc. This is
+            only
             done if there is space to do so.
         - This method validates the page content length before sending. A
             ValueError signifies that a page is invalid.
@@ -868,7 +878,8 @@ class EmbedBooklet(AbstractBooklet):
         simply changing out of the channel and changing back in.
 
     :param buttons: the buttons to show. There must be at least one.
-    :param ctx: the context to respond to. Pass a tuple of Message, TextChannel,
+    :param ctx: the context to respond to. Pass a tuple of Message,
+    TextChannel,
             and discord.Client or discord.ext.commands.Bot if for any reason
             you cannot pass an actual Context object (e.g. are using this
             in some event handler rather than a command).
@@ -898,7 +909,8 @@ class EmbedBooklet(AbstractBooklet):
         True if only the initial author can manipulate this object's state.
         False otherwise.
     buttons: OrderedDict[str, Button]
-        An ordered dictionary mapping reaction emojis to button callback objects
+        An ordered dictionary mapping reaction emojis to button callback
+        objects
         to call when their respective event is invoked.
     response_stk: Stack[discord.Message]
         A stack of responses this class has sent to the user. A stack is used
@@ -932,7 +944,7 @@ class EmbedBooklet(AbstractBooklet):
                  timeout: float = 300,
                  start_page: int = 0,
                  only_author: bool = True,
-                 formatter: FormatterType=default_formatter) -> None:
+                 formatter: FormatterType = default_formatter) -> None:
         super().__init__(buttons=buttons,
                          pages=pages,
                          ctx=ctx,
@@ -998,7 +1010,8 @@ class EmbedBooklet(AbstractBooklet):
         - Setting the page index, page number, or offset will eventually call
             this method.
         - This will decorate any messages being sent if appropriate. For
-            example, by adding the page number to the message, etc. This is only
+            example, by adding the page number to the message, etc. This is
+            only
             done if there is space to do so.
         - This method validates the page content length before sending. A
             ValueError signifies that a page is invalid.

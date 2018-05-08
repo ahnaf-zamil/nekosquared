@@ -105,6 +105,10 @@ class CompilerCog(traits.CogTraits):
 
     @coliru.command(brief='Shows help for supported languages.')
     async def help(self, ctx, *, language=None):
+        """
+        Shows all supported languages and their markdown highlighting
+        syntax expected to invoke them correctly.
+        """
         if not language:
             output = '**Supported languages**\n'
             for lang in sorted(coliru_configs.languages):

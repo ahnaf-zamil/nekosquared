@@ -100,7 +100,7 @@ class AdminCog(traits.CogTraits):
         except:
             binder.add(traceback.format_exc())
         finally:
-            await binder.start()
+            binder.start()
 
     @commands.command(hidden=True, rest_is_raw=True)
     async def shell(self, ctx, *, command):
@@ -151,7 +151,7 @@ class AdminCog(traits.CogTraits):
         except:
             binder.add(traceback.format_exc())
         finally:
-            await binder.start()
+            binder.start()
 
     @commands.command(brief='Disables repl until restart.', hidden=True)
     async def lockdown(self, ctx):
@@ -197,14 +197,29 @@ class AdminCog(traits.CogTraits):
                                                prefix='```',
                                                suffix='```',
                                                max_lines=None)
-        booklet.add_line(f'{len(all_tasks)} coroutines in the loop.')
+        summary = []
 
         for task in all_tasks:
             with io.StringIO() as fp:
                 task.print_stack(file=fp)
                 booklet.add_line(fp.getvalue())
+                # noinspection PyProtectedMember
+                # Repr, shorten it as it is obscenely long
+                first, last = task._repr_info()[1].split(' running at ', 1)
+                first = first[6:]
+                new_last = last[-31:-1]
+                if new_last != last:
+                    new_last = f'...{new_last}'
+                summary.append(f'{new_last:<33}\t=>\t{first}')
             booklet.add_break()
+
+        booklet.add_break(to_start=True)
+        summary = '\n'.join(summary)
+        booklet.add(summary, to_start=True)
+        booklet.add_line(f'{len(all_tasks)} coroutines in the loop.',
+                         to_start=True)
         booklet.start()
+
 
 class NonAdminCog:
     """Cogs for "admin" commands that can be run by anyone."""
@@ -230,7 +245,7 @@ class NonAdminCog:
             ack_time = monotonic()
 
         start_ack = monotonic()
-        future = asyncio.ensure_future(ctx.send('Getting ping!'))
+        future = ctx.bot.loop.create_task(ctx.send('Getting ping!'))
         future.add_done_callback(callback)
         message = await future
         event_loop_latency = monotonic() - start_ack
