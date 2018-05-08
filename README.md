@@ -23,8 +23,11 @@ rewrite, and generate shell scripts for running, and updating the bot.
 
 A sample systemd service file is also produced, as I find this useful.
 
-You need to have `git`, `python3.6` or `python3.7`, and `pip` installed,
+You need to have `git`, `python3.6` ~~or `python3.7`~~\*, and `pip` installed,
 and have the `python3-virtualenv package installed.`
+
+<small> \* There are reports that asyncio is not working correctly on Python3.7 at this
+    time, so support is purely 3.6 for the time being.</small>
 
 ### Non-python stuff
 
@@ -67,7 +70,7 @@ The bot currently supports the following serialization formats:
 | Extension | Format | Notes |
 |---|---|---|
 | `.json` | JSON | Recommended. |
-| `.yaml` | YAML | Yet Another Markup Language. Requires `pyyaml` to be installed. |
+| `.yaml` | YAML | YAML Ain't Markup Language. Requires `pyyaml` to be installed. |
 | `.py` | Python | Loads the file and attempts to `eval` it. This risks arbitrary code execution and is untested. | 
 
 The current config files are required for the bot to work:
