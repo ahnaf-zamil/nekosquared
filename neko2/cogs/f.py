@@ -4,6 +4,7 @@
 Press F to pay respects.
 """
 import asyncio
+import traceback
 import typing
 
 import dataclasses
@@ -11,8 +12,8 @@ import discord
 
 from neko2.shared import commands, alg, morefunctools, collections
 
-# Last for 6 hours otherwise.
-F_TIMEOUT = 60**2 * 6
+# Last for 1 hours otherwise.
+F_TIMEOUT = 60**2
 
 # Set to True to enable `f' being a valid trigger for the command without
 # a prefix.
@@ -61,12 +62,12 @@ class RespectsCog:
             c1 = b.message.id == reaction.message.id
             c2 = reaction.message.guild is not None
             c3 = user not in b.members
+            c4 = reaction.emoji == '\N{REGIONAL INDICATOR SYMBOL LETTER F}'
 
-            if c1 and c2 and c3:
+            if all((c1, c2, c3, c4)):
                 await self.append_to_bucket(b, user)
-
-            message: discord.Message = reaction.message
-            await message.remove_reaction(reaction, user)
+                message: discord.Message = reaction.message
+                await message.remove_reaction(reaction, user)
 
     @morefunctools.always_background()
     async def destroy_bucket_later(self, channel):
@@ -98,7 +99,10 @@ class RespectsCog:
             description=message,
             colour=bucket.colour)
 
-        await bucket.message.edit(embed=embed)
+        if bucket.message:
+            await bucket.message.edit(embed=embed)
+        else:
+            bucket.message = await bucket.ctx.send(embed=embed)
 
     @commands.guild_only()
     @commands.command(brief='Pay your respects.')
@@ -155,7 +159,7 @@ class RespectsCog:
             else:
                 await self.append_to_bucket(bucket, ctx.author)
         except BaseException:
-            pass
+            traceback.print_exc()
 
 
 def setup(bot):
