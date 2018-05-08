@@ -44,7 +44,7 @@ class TableFlipCog(traits.CogTraits):
                 if isinstance(value, tuple):
                     value = ', '.join(value)
 
-                binder.add_line(f'• `{bind_command}: {value}')
+                binder.add_line(f'• `{bind_command}`: {value}')
             binder.start()
         else:
             await ctx.send('I don\'t seem to have the MANAGE_WEBHOOKS '
