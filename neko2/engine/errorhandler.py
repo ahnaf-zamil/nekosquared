@@ -212,7 +212,7 @@ class ErrorHandler(extrabits.InternalCogType):
         # anywhere near this size, then it is a stupid error anyway.
 
         # Clear after 15 seconds and destroy the invoking message also.
-        async def fut():
+        async def fut(reply):
             if self.should_dm_on_error:
                 reply = f'{reply}\n\nEspy has been sent a DM about this issue.'
             
@@ -231,7 +231,7 @@ class ErrorHandler(extrabits.InternalCogType):
                 except:
                     pass
 
-        bot.loop.create_task(fut())
+        bot.loop.create_task(fut(reply))
 
     async def on_command_error(self, context, exception):
         """
