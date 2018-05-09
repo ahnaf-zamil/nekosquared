@@ -6,6 +6,7 @@ import sys
 import traceback  # Traceback utils.
 import discord  # Embeds
 import discord.errors as dpy_errors  # Errors for dpy base.
+from discord.ext.commands import Paginator
 import discord.ext.commands.errors as dpyext_errors  # Errors for ext.
 from neko2.shared import excuses, errors
 from . import extrabits
@@ -19,12 +20,12 @@ async def _dm_me_error(*, bot, cog, ctx, error, event_method):
 
     trace = traceback.format_tb(error.__traceback__)
     trace = ''.join(trace)
-    if len(trace) > 1010:
-        embed.set_footer(text='Traceback has been truncated.')
-        trace = trace[:1007] + '...'
+    should_pag = len(trace) > 1010
+        
 
-    trace = f'```\n{trace}\n```'
-    embed.add_field(name='Traceback', value=trace, inline=False)
+    if not should_pag:
+        trace = f'```\n{trace}\n```'
+        embed.add_field(name='Traceback', value=trace, inline=False)
 
     if ctx:
         whom_info = (
@@ -47,6 +48,15 @@ async def _dm_me_error(*, bot, cog, ctx, error, event_method):
 
     owner = bot.get_user(bot.owner_id)
     await owner.send(embed=embed)
+    
+    if should_pag:
+        p = Paginator()
+        for line in trace.split('\n'):
+            p.add_line(line)
+        for page in p.pages:
+            # Send the last 15 only. Prevents a hell of a lot
+            # of spam if the bot hits a stack overflow.
+            await owner.send(page[-15:])
 
 
 class ErrorHandler(extrabits.InternalCogType):
@@ -203,10 +213,14 @@ class ErrorHandler(extrabits.InternalCogType):
 
         # Clear after 15 seconds and destroy the invoking message also.
         async def fut():
+            if self.should_dm_on_error:
+                reply = f'{reply}\n\nEspy has been sent a DM about this issue.'
+            
             resp = await destination.send(reply[:2000])
 
             if not bot.debug:
-                await asyncio.sleep(15)
+                # Delete after 5 minutes.
+                await asyncio.sleep(300)
 
                 futs = [resp.delete()]
                 if ctx:
