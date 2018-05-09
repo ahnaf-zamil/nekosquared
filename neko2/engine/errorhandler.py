@@ -201,6 +201,7 @@ class ErrorHandler(extrabits.InternalCogType):
                     type(error), error, error.__traceback__))
 
             if self.should_dm_on_error:
+                reply = f'{reply}\n\nEspy has been sent a DM about this issue.'
                 # DM me some information about what went wrong.
                 await _dm_me_error(bot=bot, ctx=ctx, cog=cog, error=error,
                                    event_method=event_method)
@@ -213,9 +214,6 @@ class ErrorHandler(extrabits.InternalCogType):
 
         # Clear after 15 seconds and destroy the invoking message also.
         async def fut(reply):
-            if self.should_dm_on_error:
-                reply = f'{reply}\n\nEspy has been sent a DM about this issue.'
-            
             resp = await destination.send(reply[:2000])
 
             if not bot.debug:
