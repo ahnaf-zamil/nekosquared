@@ -53,14 +53,7 @@ class AdminCog(traits.CogTraits):
             NotImplementedError, FileExistsError, FileNotFoundError,
             InterruptedError, EOFError, NameError, AttributeError, ValueError,
             KeyError, FutureWarning, DeprecationWarning,
-            PendingDeprecationWarning, discord.ClientException,
-            discord.DiscordException, discord.HTTPException,
-            commands.CommandError, commands.DisabledCommand,
-            commands.CheckFailure, commands.MissingRequiredArgument,
-            commands.BotMissingPermissions('abc'), commands.UserInputError,
-            commands.TooManyArguments, commands.NoPrivateMessage,
-            commands.MissingPermissions, commands.NotOwner
-        ))()
+            PendingDeprecationWarning))
 
     @commands.command(hidden=True)
     async def exec(self, ctx, *, command):
