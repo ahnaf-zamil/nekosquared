@@ -12,8 +12,9 @@ __all__ = ('get_excuse', 'excuses')
 def get_excuse():
     """Get a random excuse."""
     excuse = random.choice(excuses)
-    # Capitalise
-    excuse = f'{excuse[0:1].upper()}{excuse[1:]}'
+    # Capitalise, if not a url
+    if not any(excuse.startswith(x) for x in ('http://', 'https://')):
+        excuse = f'{excuse[0:1].upper()}{excuse[1:]}'
     return excuse
 
 
