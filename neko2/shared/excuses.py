@@ -16,6 +16,7 @@ def get_excuse():
     excuse = f'{excuse[0:1].upper()}{excuse[1:]}'
     return excuse
 
+
 def incrange(a, b):
     return range(a, b + 1)
 
