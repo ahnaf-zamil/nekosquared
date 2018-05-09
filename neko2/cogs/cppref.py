@@ -167,10 +167,13 @@ class CppCog(traits.CogTraits):
 
         try:
             async with ctx.typing():
-                results = await self.results(ctx.bot, *terms)
-        except:
-            return await ctx.send('Cppreference read my message, but'
-                                  ' ignored it! How rude!!')
+                results = await self.results(*terms)
+        except BaseException as ex:
+            return await ctx.send(
+                 'CppReference did something unexpected. If this keeps '
+                 'happening, contact Esp with the following info: \n\n'
+                 f'{type(ex).__qualname__}: {ex!s}')
+
 
         if not results:
             return await ctx.send('No results were found.', delete_after=10)
