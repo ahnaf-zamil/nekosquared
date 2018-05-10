@@ -163,7 +163,7 @@ class AdminCog(traits.CogTraits):
             await ctx.send('Disabled shell.')
 
     @commands.command(brief='Changes the avatar to the given URL.')
-    async def avatar(self, ctx, *, url):
+    async def setavatar(self, ctx, *, url):
         conn = await self.acquire_http()
         async with conn.request('get', url) as r, ctx.typing():
             await ctx.bot.user.edit(avatar=await r.read())
