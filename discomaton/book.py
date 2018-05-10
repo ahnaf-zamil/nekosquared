@@ -76,14 +76,16 @@ def default_buttons() -> typing.List[Button]:
         # print('<-')
         await machine.move_forwards_by(-1)
 
-    @_as_button(name='Let anyone control this', reaction='🔓')
+    @_as_button(name='Let anyone control this',
+                reaction='\N{LEFT LUGGAGE}')
     async def unlock(_unused_button: Button,
                      machine: 'AbstractBooklet',
                      _unused_reaction: discord.Reaction,
                      _unused_user: discord.User) -> None:
         machine.only_author = False
 
-    @_as_button(name='Enter a page number', reaction='💯')
+    @_as_button(name='Enter a page number',
+                reaction='\N{INPUT SYMBOL FOR NUMBERS}')
     async def enter_page(_unused_button: Button,
                          machine: 'AbstractBooklet',
                          _usused_reaction: discord.Reaction,
@@ -121,7 +123,8 @@ def default_buttons() -> typing.List[Button]:
 
         return in_future(later_callback())
 
-    @_as_button(name='Show help', reaction='❓')
+    @_as_button(name='Show help',
+                reaction='\N{INFORMATION SOURCE}')
     async def show_help(_unused_button: Button,
                         machine: 'AbstractBooklet',
                         _unused_reaction: discord.Reaction,
@@ -183,8 +186,16 @@ def default_buttons() -> typing.List[Button]:
         # print('>>|')
         await machine.set_page_index(-1)
 
+    @_as_button(name='Close pagination controls',
+                reaction='\N{WHITE HEAVY CHECK MARK}')
+    async def delete(_unused_button: Button,
+                     _machine: 'AbstractBooklet',
+                     _unused_reaction: discord.Reaction,
+                     _unused_user: discord.User) -> None:
+        raise StopAsyncIteration
+
     @_as_button(name='Delete message',
-                reaction='\N{REGIONAL INDICATOR SYMBOL LETTER X}')
+                reaction='\N{NEGATIVE SQUARED CROSS MARK}')
     async def delete(_unused_button: Button,
                      machine: 'AbstractBooklet',
                      _unused_reaction: discord.Reaction,
