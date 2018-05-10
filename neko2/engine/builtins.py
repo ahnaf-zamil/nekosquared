@@ -146,7 +146,7 @@ class Builtins(extrabits.InternalCogType):
     async def git(self, ctx, who: discord.Member=None):
         """Gets the repository that the bot's source code is hosted in."""
         who = who or ctx.author
-        await ctx.send(f'{who..mention}: <{neko2.__repository__}>')
+        await ctx.send(f'{who.mention}: <{neko2.__repository__}>')
 
     @commands.command(brief='Gets usage information for commands.')
     async def help(self, ctx, *, query: str=None):
