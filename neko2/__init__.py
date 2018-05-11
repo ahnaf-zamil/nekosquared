@@ -40,7 +40,7 @@ import neko2.engine
 __author__ = 'Neko404NotFound'
 __license__ = 'MIT License'
 __url__ = 'https://github.com/neko404notfound/nekosquared'
-__version__ = '1.10.0-BLEEDING'
+__version__ = '1.11.1-BLEEDING'
 __repository__ = __url__
 
 

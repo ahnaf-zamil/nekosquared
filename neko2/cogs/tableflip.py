@@ -118,6 +118,8 @@ class TableFlipCog(traits.CogTraits):
         content = message.content
 
         # Cases where we should refuse to run.
+        if message.guild is None:
+            return
         if not message.guild.me.guild_permissions.manage_webhooks:
             return
         elif author.bot:
