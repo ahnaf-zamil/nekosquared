@@ -34,4 +34,4 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from neko2.engine import runner
 
-runner.run()
+runner.NekoSquaredBotProcess().run()

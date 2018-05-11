@@ -576,6 +576,10 @@ class Builtins(extrabits.InternalCogType):
         uptime = self.uptime
         docstring = inspect.getdoc(neko2)
         if docstring:
+            # Ensures the license is not included in the description, as that
+            # is rather long.
+            docstring = docstring.split('===', count=1)[0:1]
+
             docstring = [
                 string.remove_single_lines(inspect.cleandoc(docstring))]
         else:
