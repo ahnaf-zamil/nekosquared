@@ -57,5 +57,6 @@ modules = frozenset({
     _('chatty'),
     _('steam'),
     _('iss'),
-    _('mocksql')
+    _('mocksql'),
+    _('nonick'),
 })
