@@ -1,4 +1,5 @@
 #!/usr/bin/env python3.6
+#!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
 """
 Got sick and tired of trying to get stuff to work with pip automatically, and
@@ -189,6 +190,7 @@ with open('temp-install-script.sh', 'w') as script_file:
     script = f'''
         #!/bin/bash
         function main() {{
+            trap 'pkill python3.6; exit' INT
             source venv/bin/activate
             python3.6 -m pip install --upgrade pip
         '''.lstrip()
