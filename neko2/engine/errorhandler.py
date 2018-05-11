@@ -33,11 +33,29 @@ import logging
 import sys
 import traceback  # Traceback utils.
 import discord  # Embeds
-import discord.errors as dpy_errors  # Errors for dpy base.
 from discord.ext.commands import Paginator
 import discord.ext.commands.errors as dpyext_errors  # Errors for ext.
-from neko2.shared import excuses, errors
+from neko2.shared import excuses
 from . import extrabits
+
+
+ignored_errors = {
+    dpyext_errors.CommandNotFound,
+    dpyext_errors.DisabledCommand,
+    dpyext_errors.CommandOnCooldown
+}
+
+
+handled_errors = {
+    dpyext_errors.CheckFailure: 'You lack the permission to do that here',
+    dpyext_errors.NotOwner: 'Only the owner can do this',
+    dpyext_errors.MissingRequiredArgument: 'You are missing a parameter',
+    dpyext_errors.BadArgument: 'You gave a badly formatted parameter',
+    dpyext_errors.BotMissingPermissions: 'I am missing permissions',
+    dpyext_errors.MissingPermissions: 'You are missing permissions',
+    dpyext_errors.NoPrivateMessage: 'This is not allowed in direct messages',
+    dpyext_errors.TooManyArguments: 'You gave too many parameters'
+}
 
 
 async def _dm_me_error(*, bot, cog, ctx, error, event_method):
@@ -49,7 +67,6 @@ async def _dm_me_error(*, bot, cog, ctx, error, event_method):
     trace = traceback.format_tb(error.__traceback__)
     trace = ''.join(trace)
     should_pag = len(trace) > 1010
-        
 
     if not should_pag:
         trace = f'```\n{trace}\n```'
@@ -112,7 +129,8 @@ class ErrorHandler(extrabits.InternalCogType):
                              event_method=None):
         # Print the traceback first. This means I still see the TB even if
         # something else breaks when outputting results to discord.
-        tb = traceback.format_exception(type(error), error, error.__traceback__)
+        tb = traceback.format_exception(
+            type(error), error, error.__traceback__)
 
         if cog:
             rel_log = logging.getLogger(type(cog).__name__)
@@ -121,103 +139,13 @@ class ErrorHandler(extrabits.InternalCogType):
 
         rel_log.warning('An error was handled.\n' + ''.join(tb).strip())
 
-        # CommandInvokeErrors tend to wrap other errors. If we have a
-        # command invoke error wrapping something else, then get that
-        # something else.
-        check_failed = isinstance(error, dpyext_errors.CheckFailure)
-        too_few_args = isinstance(error, dpyext_errors.MissingRequiredArgument)
-        bad_args = isinstance(error, dpyext_errors.BadArgument)
-        missing_arg = isinstance(error, dpyext_errors.MissingRequiredArgument)
-        no_bot_permission = isinstance(error,
-                                       dpyext_errors.BotMissingPermissions)
-        no_user_permission = isinstance(error, dpyext_errors.MissingPermissions)
-        not_owner = isinstance(error, dpyext_errors.NotOwner)
-        not_dms = isinstance(error, dpyext_errors.NoPrivateMessage)
-        is_not_found = isinstance(error, dpyext_errors.CommandNotFound)
-        on_cool_down = isinstance(error, dpyext_errors.CommandOnCooldown)
-        too_many_args = isinstance(error, dpyext_errors.TooManyArguments)
-        is_disabled = isinstance(error, dpyext_errors.DisabledCommand)
-
-        if isinstance(error,
-                      dpyext_errors.CommandInvokeError) and error.__cause__:
-            error = error.__cause__
-
-        is_discord = isinstance(error, dpy_errors.HTTPException)
-        is_assert = isinstance(error, AssertionError)
-        is_deprecation = isinstance(error, (FutureWarning,
-                                            DeprecationWarning,
-                                            PendingDeprecationWarning))
-        is_unfinished = isinstance(error, NotImplementedError)
-        is_warning = isinstance(error, Warning)
-        is_command_execution_error = isinstance(error,
-                                                errors.CommandExecutionError)
-
-        if is_command_execution_error:
-            return await ctx.message.send(f'\N{WARNING SIGN} {error!s}')
+        cause = error.__cause__ or error
 
         # Don't reply to errors with cool downs. Just add a reaction and stop.
-        if on_cool_down:
-            assert ctx
-            try:
-                await ctx.message.add_reaction('\N{STOPWATCH}')
-                await asyncio.sleep(5)
-                await ctx.message.delete()
-            finally:
-                return
-
-        # If something was not found, just re-raise.
-        if isinstance(error, dpy_errors.NotFound):
-            raise error
-
-        # Pick an appropriate emote and heading based on the type of error.
-        # If we have an event method parameter present, this likely means an
-        # event is broken, which means we should notify the owner immediately.
-        if event_method:
-            reply = f'\N{SQUARED SOS} Error in event {event_method!r}'
-        elif is_assert:
-            reply = f'\N{CROSS MARK} Assertion failed {error}'
-        elif is_deprecation:
-            reply = f'\N{WASTEBASKET} Deprecation warning: {error}'
-        elif is_unfinished:
-            reply = '\N{HAMMER AND WRENCH} This feature is not yet finished!'
-        elif missing_arg:
-            reply = f'\N{SPEECH BALLOON} {error}'
-        elif no_bot_permission:
-            reply = f'\N{ROBOT FACE} {error}'
-        elif no_user_permission:
-            return  # Pass silently
-            # reply = f'\N{NO ENTRY SIGN} {error}'
-        elif not_owner:
-            return  # Pass silently
-            # reply = f'\N{NO ENTRY SIGN} You must be the bot owner to do this'
-        elif not_dms:
-            reply = f'\N{NO ENTRY SIGN} You cannot do this in private messages.'
-        elif too_few_args or bad_args or too_many_args:
-            # Pick the right adjective.
-            if too_many_args:
-                adj = 'Too many'
-            elif too_few_args:
-                adj = 'Too few'
-            else:  # elif bad_args:
-                adj = 'Bad'
-            reply = f'\N{SPEECH BALLOON} {adj} arguments'
-
-            reply += f': {error!s}'
-
-            if ctx is not None:
-                reply += f'\nCommand signature: `{ctx.command.signature}`'
-        elif is_disabled:
-            reply = '\N{NO ENTRY SIGN} This command is disabled globally'
-        elif is_not_found:
-            return  # Pass silently.
-            # reply = f'\N{LEFT-POINTING MAGNIFYING GLASS} {error}'
-        elif check_failed:
-            reply = '\N{NO ENTRY SIGN} You cannot do that here'
-        elif is_discord:
-            reply = f'\N{RAISED BACK OF HAND} Discord said: `{error}`'
-        elif is_warning:
-            reply = ('\N{WARNING SIGN} '
-                     + str(error) if str(error) else type(error).__name__)
+        if type(cause) in handled_errors:
+            reply = handled_errors[type(error)]
+        elif type(cause) in ignored_errors:
+            return
         else:
             reply = '\N{SQUARED SOS} Something serious went wrong... '
             reply += excuses.get_excuse()
@@ -226,12 +154,12 @@ class ErrorHandler(extrabits.InternalCogType):
                 reply += '\n\nThe following is included while debug mode is ' \
                          'on\n\n '
                 reply += ''.join(traceback.format_exception(
-                    type(error), error, error.__traceback__))
+                    type(cause), cause, cause.__traceback__))
 
             if self.should_dm_on_error:
                 reply = f'{reply}\n\nEspy has been sent a DM about this issue.'
                 # DM me some information about what went wrong.
-                await _dm_me_error(bot=bot, ctx=ctx, cog=cog, error=error,
+                await _dm_me_error(bot=bot, ctx=ctx, cog=cog, error=cause,
                                    event_method=event_method)
 
         destination = ctx if ctx else bot.get_owner()
