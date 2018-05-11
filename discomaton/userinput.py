@@ -69,6 +69,7 @@ async def option_picker(ctx,
                         *options,
                         timeout: float=300,
                         formatter=option_picker_formatter,
+                        option_formatter=str,
                         max_lines: int=6) -> typing.Any:
     """
     Displays a list of options, enabling the user to pick one by
@@ -81,6 +82,8 @@ async def option_picker(ctx,
     :param options: the options to show.
     :param timeout: timeout to wait for before killing the prompt.
     :param formatter: the formatter for each page of options.
+    :param option_formatter: the formatter to use to get what to display
+        for each option.
     :param max_lines: the max lines to show per page.
     """
     if isinstance(ctx, commands.Context):
@@ -98,7 +101,8 @@ async def option_picker(ctx,
     binder.with_page_number_formatter(formatter)
 
     for i, option in enumerate(options):
-        binder.add_line(f'{i + 1} - {option!s}', dont_alter=True)
+        binder.add_line(f'{i + 1} - {option_formatter(option)!s}',
+                        dont_alter=True)
 
     book = binder.build()
 

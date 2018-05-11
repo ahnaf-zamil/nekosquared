@@ -162,7 +162,7 @@ def default_buttons() -> typing.List[Button]:
 
         help_embed = discord.Embed(
             title='Discomaton Pagination for Neko²',
-            description=f'@{whom.name}#{whom.discriminator}! Here are the '
+            description=f'{whom.mention}! Here are the '
                         'basics for using this control:',
             colour=random.randint(0, 0xFFFFFF))
 
