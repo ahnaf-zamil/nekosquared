@@ -578,7 +578,7 @@ class Builtins(extrabits.InternalCogType):
         if docstring:
             # Ensures the license is not included in the description, as that
             # is rather long.
-            docstring = docstring.split('===', maxsplit=1)[0:1]
+            docstring = ''.join(docstring.split('===', maxsplit=1)[0:1])
 
             docstring = [
                 string.remove_single_lines(inspect.cleandoc(docstring))]
