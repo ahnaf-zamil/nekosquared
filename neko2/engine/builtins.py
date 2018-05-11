@@ -156,8 +156,8 @@ class Builtins(extrabits.InternalCogType):
         else:
             return 'No idea on how many lines of code'
 
-    @commands.command(brief='Shows the license.')
-    async def license(self, ctx):
+    @commands.command(brief='Shows the license for this bot.')
+    async def mylicense(self, ctx):
         """Displays the current license agreement for source code usage."""
         binder = bookbinding.StringBookBinder(ctx, suffix='```', prefix='```',
                                               max_lines=25)

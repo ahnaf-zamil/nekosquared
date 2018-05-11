@@ -59,4 +59,5 @@ modules = frozenset({
     _('iss'),
     _('mocksql'),
     _('nonick'),
+    _('tldrlegal')
 })

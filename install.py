@@ -1,5 +1,5 @@
 #!/usr/bin/env python3.6
-#!/usr/bin/env python3.6
+# !/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
 """
 Got sick and tired of trying to get stuff to work with pip automatically, and
@@ -137,10 +137,12 @@ if not just_deps:
     except ImportError:
         print('Attempting to install venv')
         try:
-            assert getpass.getuser() == 'root', 'You must be root to install ' \
-                                                'venv '
+            assert getpass.getuser() == 'root', ('You must be root to install '
+                                                 'venv')
+            # noinspection PyUnresolvedReferences
             pip.main(['install', '-U', 'python3-venv'])
             import venv
+
             print('Now reinvoke this command again, but not as root!')
             exit(0)
         except BaseException as ex:
@@ -176,7 +178,7 @@ if not just_deps:
             traceback.print_exception(type(ex), ex, ex.__traceback__)
             exit(7)
 
-    # Ensure bash is installed. Atm I cba to try and get this to work on Windows
+# Ensure bash is installed. Atm I cba to try and get this to work on Windows
 bash_path = shutil.which('bash')
 
 try:

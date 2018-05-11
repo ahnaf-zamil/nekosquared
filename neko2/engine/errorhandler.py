@@ -61,7 +61,7 @@ handled_errors = {
 async def _dm_me_error(*, bot, cog, ctx, error, event_method):
     embed = discord.Embed(
         title=f'An error occurred: `{type(error).__qualname__}`',
-        description=f'Supplied error message: `{error!s}`',
+        description=f'Supplied error message: `{error or "—"}`',
         colour=0xFF0000)
 
     trace = traceback.format_tb(error.__traceback__)
