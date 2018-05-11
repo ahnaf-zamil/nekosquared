@@ -70,15 +70,36 @@ class AdminCog(traits.CogTraits):
         await ctx.bot.logout()
 
     @commands.command(hidden=True)
-    async def error(self, ctx):
+    async def error(self, ctx, discord: bool=False):
         """Tests error handling."""
-        raise random.choice((
-            Exception, RuntimeError, IOError, BlockingIOError,
-            UnboundLocalError, UnicodeDecodeError, SyntaxError, SystemError,
-            NotImplementedError, FileExistsError, FileNotFoundError,
-            InterruptedError, EOFError, NameError, AttributeError, ValueError,
-            KeyError, FutureWarning, DeprecationWarning,
-            PendingDeprecationWarning))
+        if discord:
+            from discord.ext.commands import errors
+
+            error_type = random.choice((
+                errors.TooManyArguments,
+                errors.CommandOnCooldown,
+                errors.DisabledCommand,
+                errors.CommandNotFound,
+                errors.NoPrivateMessage,
+                errors.MissingPermissions,
+                errors.NotOwner,
+                errors.BadArgument,
+                errors.MissingRequiredArgument,
+                errors.CheckFailure,
+                errors.CommandError,
+                errors.DiscordException,
+                errors.CommandInvokeError))
+        else:
+            error_type = random.choice((
+                Exception, RuntimeError, IOError, BlockingIOError,
+                UnboundLocalError, UnicodeDecodeError, SyntaxError,
+                SystemError, NotImplementedError, FileExistsError,
+                FileNotFoundError, InterruptedError, EOFError, NameError,
+                AttributeError, ValueError, KeyError, FutureWarning,
+                DeprecationWarning, PendingDeprecationWarning))
+
+        await ctx.send(f'Raising {error_type.__qualname__}')
+        raise error_type
 
     @commands.command(hidden=True)
     async def exec(self, ctx, *, command):
