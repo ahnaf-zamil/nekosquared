@@ -124,7 +124,7 @@ class XkcdCache(threading.Thread,
                 # Get most recent strip.
                 most_recent = sesh.get(most_recent_xkcd()).json()
 
-                for i in range(0, most_recent['num'] + 1):
+                for i in range(1, most_recent['num'] + 1):
                     try:
                         next_comic = sesh.get(get_xkcd(i)).json()
                     except:
