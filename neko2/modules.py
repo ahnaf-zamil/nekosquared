@@ -58,6 +58,6 @@ modules = frozenset({
     _('steam'),
     _('iss'),
     _('mocksql'),
-    _('nonick'),
+#    _('nonick'),
     _('tldrlegal')
 })
