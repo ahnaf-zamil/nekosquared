@@ -218,7 +218,7 @@ class AdminCog(traits.CogTraits):
     @commands.command(brief='Shows host health, resource utilisation, etc.')
     async def syshealth(self, ctx):
         command = ('set -x',
-                   'ps -eo euser,comm,rss,thcount,%cpu,%mem | '
+                   'ps -eo euser,args,rss,thcount,%cpu,%mem | '
                    'grep -P "^($(whoami)|EUSER)"',
                    'uptime',
                    'free -hl',
