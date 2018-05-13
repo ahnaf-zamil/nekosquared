@@ -36,13 +36,15 @@ import discord  # Embeds
 from discord.ext.commands import Paginator
 import discord.ext.commands.errors as dpyext_errors  # Errors for ext.
 from neko2.shared import excuses
+from neko2.shared import morefunctools
 from . import extrabits
 
 
+# Respond with a reaction.
 ignored_errors = {
-    dpyext_errors.CommandNotFound,
-    dpyext_errors.DisabledCommand,
-    dpyext_errors.CommandOnCooldown
+    dpyext_errors.CommandNotFound: '\N{BLACK QUESTION MARK ORNAMENT}',
+    dpyext_errors.DisabledCommand: '\N{NO ENTRY SIGN},
+    dpyext_errors.CommandOnCooldown: '\N{SNOWFLAKE},
 }
 
 
@@ -54,8 +56,18 @@ handled_errors = {
     dpyext_errors.BotMissingPermissions: 'I am missing permissions',
     dpyext_errors.MissingPermissions: 'You are missing permissions',
     dpyext_errors.NoPrivateMessage: 'This is not allowed in direct messages',
-    dpyext_errors.TooManyArguments: 'You gave too many parameters'
+    dpyext_errors.TooManyArguments: 'You gave too many parameters',
 }
+
+
+@morefunctools.always_background()
+async def _react_for_a_little_while(me, message, reaction, time=5):
+    try:
+        await message.add_reaction(reaction)
+        await asyncio.sleep(time)
+        await message.remove_reaction(reaction, me)
+    except:
+        pass
 
 
 async def _dm_me_error(*, bot, cog, ctx, error, event_method):
@@ -145,7 +157,9 @@ class ErrorHandler(extrabits.InternalCogType):
         if type(cause) in handled_errors:
             reply = handled_errors[type(error)]
         elif type(cause) in ignored_errors:
-            return
+            return _react_for_a_little_while(ctx.bot.user, 
+                                             ctx.message, 
+                                             ignored_errors[type(cause)])
         else:
             reply = '\N{SQUARED SOS} Something serious went wrong... '
             reply += excuses.get_excuse()
