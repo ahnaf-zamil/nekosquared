@@ -43,8 +43,8 @@ from . import extrabits
 # Respond with a reaction.
 ignored_errors = {
     dpyext_errors.CommandNotFound: '\N{BLACK QUESTION MARK ORNAMENT}',
-    dpyext_errors.DisabledCommand: '\N{NO ENTRY SIGN},
-    dpyext_errors.CommandOnCooldown: '\N{SNOWFLAKE},
+    dpyext_errors.DisabledCommand: '\N{NO ENTRY SIGN}',
+    dpyext_errors.CommandOnCooldown: '\N{SNOWFLAKE}',
 }
 
 
