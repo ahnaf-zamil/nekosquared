@@ -244,12 +244,8 @@ class AdminCog(traits.CogTraits):
                 booklet.add_line(fp.getvalue())
                 # noinspection PyProtectedMember
                 # Repr, shorten it as it is obscenely long
-                first, last = task._repr_info()[1].split(' running at ', 1)
-                first = first[6:]
-                new_last = last[-31:-1]
-                if new_last != last:
-                    new_last = f'...{new_last}'
-                summary.append(f'{new_last:<33}\t=>\t{first}')
+                tup = task._repr_info()[1]
+                summary.append(tup)
             booklet.add_break()
 
         booklet.add_break(to_start=True)
