@@ -37,8 +37,6 @@ from discord.ext import commands
 
 class MentionConverter(commands.Converter):
     async def convert(self, ctx, argument: str):
-        print(argument)
-
         if len(argument) < 4:
             raise commands.BadArgument('Expected a mention here')
 
@@ -55,12 +53,23 @@ class MentionConverter(commands.Converter):
             return await commands.CategoryChannelConverter().convert(
                 ctx, argument)
         else:
-            raise commands.BadArgument('Unrecognised mention.')
+            try:
+                return await commands.EmojiConverter().convert(ctx, argument)
+            except:
+                pass
 
-            
+            try:
+                return await commands.PartialEmojiConverter() \
+                    .convert(ctx, argument)
+            except:
+                pass
+
+            raise commands.BadArgument('Unrecognised mention type')
+
+
 class MentionOrSnowflakeConverter(MentionConverter):
     async def convert(self, ctx, argument: str):
         if argument.isdigit():
             return int(argument)
         else:
-            return super().convert(ctx, argument)
+            return await super().convert(ctx, argument)

@@ -36,7 +36,7 @@ class AbstractASDict(abc.ABC, typing.Dict[typing.Any, typing.Any]):
     def __init__(self):
         super().__init__()
 
-    async def get(self, k: typing.Any, default: typing.Any=None):
+    async def get(self, k: typing.Any, default: typing.Any = None):
         """
         Accesses the given element or returns the default if nothing
         is found.

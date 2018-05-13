@@ -33,9 +33,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 import asyncio
 import base64
 import json
-from typing import Optional, List, Tuple
+from typing import List, Optional, Tuple
 
-import aiohttp
 import async_timeout
 from dataclasses import dataclass
 

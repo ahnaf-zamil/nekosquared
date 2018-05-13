@@ -29,10 +29,9 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-import asyncio    # Future type
-import time       # Basic timestamps
-import typing     # Type checking
-
+import asyncio  # Future type
+import time  # Basic timestamps
+import typing  # Type checking
 
 __all__ = ('find', 'find_async', 'find_async_iterator', 'find_all',
            'time_it', 'time_it_async')

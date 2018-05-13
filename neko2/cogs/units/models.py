@@ -28,14 +28,13 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from decimal import Decimal
 import enum
 import typing
+from decimal import Decimal
 
 from dataclasses import dataclass
 
 from neko2.shared import alg
-
 
 __all__ = ('UnitCategoryModel', 'UnitModel', 'UnitCollectionModel',
            'PotentialValueModel', 'ValueModel', 'pretty_print')
@@ -57,7 +56,8 @@ class UnitModel:
     """
     Representation of some unit measurement definition, such as meters.
 
-    This will not store an arbitrary quantity. It exists as a way of simplifying
+    This will not store an arbitrary quantity. It exists as a way of
+    simplifying
     the definition of what a unit is.
 
     The last name should be the abbreviated form to use for output. I could
@@ -75,7 +75,8 @@ class UnitModel:
             for allowing `mm` as input while not displaying it as a separate
             entity to `m` which can be pretty-printed to `mm` anyway.
     :param never_use_std_form: Defaults to False. If True, it requests that any
-            code formatting a string from this unit should not use standard form
+            code formatting a string from this unit should not use standard
+            form
             and instead prefer kilo/mega/giga prefixes, etc.
     """
 
@@ -85,7 +86,7 @@ class UnitModel:
                  from_si: typing.Callable[[Decimal], Decimal],
                  name: str,
                  *other_names: str,
-                 is_si: bool=False,
+                 is_si: bool = False,
                  exclude_from_conversions=False,
                  never_use_std_form=False):
         self.names = (name, *other_names)
@@ -160,6 +161,7 @@ class UnitModel:
     def new_si(cls, name: str, *other_names: str,
                never_use_std_form=False) -> "UnitModel":
         """Initialises a new SI measurement."""
+
         # noinspection PyTypeChecker
         def pass_through(x):
             return x
@@ -314,6 +316,7 @@ def pretty_print(d: Decimal,
         down to zero, then we return None to allow the caller to exclude it
         from results.
     """
+
     def trunc(rounded_str):
         # Remove trailing zeros if we have any.
         if '.' in rounded_str and 'e' not in rounded_str.lower():

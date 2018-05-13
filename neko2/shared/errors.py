@@ -29,7 +29,6 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-
 __all__ = ('HttpError', 'NotFound')
 
 
@@ -65,6 +64,7 @@ class CommandExecutionError(RuntimeError):
     This should send the raw message to the user in any error handler
     implementation.
     """
+
     def __init__(self, message: str):
         self.message = message
 

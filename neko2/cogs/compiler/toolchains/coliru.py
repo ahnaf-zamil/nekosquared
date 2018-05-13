@@ -38,7 +38,6 @@ from .. import tools
 
 __all__ = ('HOST', 'SourceFile', 'Coliru')
 
-
 HOST = 'http://coliru.stacked-crooked.com'
 SHARE_EP = '/share'
 COMPILE_EP = '/compile'
@@ -175,45 +174,3 @@ class Coliru:
         resp = await session.post(f'{HOST}{COMPILE_EP}', data=payload)
         resp.raise_for_status()
         return await resp.text()
-
-
-# Quick unit test
-if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-
-    file1 = SourceFile('main.c', '\n'.join((
-        '#include "greet.h"',
-        '',
-        'int main(void) {',
-        '  greet();',
-        '  return 0;',
-        '}',
-        '')))
-
-    file2 = SourceFile('greet.h', '\n'.join((
-        '#ifndef GREET_H',
-        '#define GREET_H',
-        'void greet(void);',
-        '#endif'
-        '')))
-
-    file3 = SourceFile('greet.c', '\n'.join((
-        '#include <stdio.h>',
-        '#include "greet.h"',
-        '',
-        'void greet(void) { printf("Hello, World!\\n"); }',
-        '')))
-
-    build = '\n'.join((
-        'gcc -Wall -Wextra -Wpedantic -Werror -std=c11 -o a.out main.c greet.c',
-        './a.out'
-    ))
-
-    compiler = Coliru(build, file1, file2, file3)
-
-
-    async def run():
-        output = await compiler.execute(loop)
-        print(output)
-
-    loop.run_until_complete(run())

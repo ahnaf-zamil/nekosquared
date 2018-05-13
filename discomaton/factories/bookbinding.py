@@ -33,15 +33,11 @@ import typing
 import discord
 import discord.ext.commands as discord_cmds
 
-from ..book import StringBooklet
-from ..book import FormatterType
-from ..book import default_buttons
-from ..book import default_formatter
-from .. import button
-from ..util import pag
-
 from .abstractfactory import AbstractFactory
-
+from .. import button
+from ..book import FormatterType, StringBooklet, default_buttons, \
+    default_formatter
+from ..util import pag
 
 __all__ = ('StringBookBinder',)
 
@@ -109,8 +105,8 @@ class StringBookBinder(AbstractFactory[str, StringBooklet]):
                  page_number_formatter: typing.Optional[FormatterType] = None,
                  buttons: typing.Optional[typing.List[button.Button]] = None,
                  timeout: typing.Optional[float] = 300,
-                 start_page: int=1,
-                 only_author: bool=True,
+                 start_page: int = 1,
+                 only_author: bool = True,
                  pag_class: typing.Type[pag.Paginator] = pag.Paginator):
         self._context = context
         self._paginator = pag_class(max_chars=max_chars,
@@ -135,7 +131,8 @@ class StringBookBinder(AbstractFactory[str, StringBooklet]):
         self._paginator._max_chars = count
         return self
 
-    def with_max_lines(self, count: typing.Optional[int]) -> 'StringBookBinder':
+    def with_max_lines(self,
+                       count: typing.Optional[int]) -> 'StringBookBinder':
         """
         Sets the maximum lines to allow per page. If `None` is given,
         we instead disable this check.

@@ -38,7 +38,6 @@ from discord.ext import commands
 
 from discomaton import book
 from discomaton.util import pag
-
 from . import lipsum
 
 

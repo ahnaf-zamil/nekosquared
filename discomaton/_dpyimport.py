@@ -31,9 +31,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 import importlib
 import warnings
 
-
 __all__ = ()
-
 
 discord = None
 
@@ -47,4 +45,3 @@ except BaseException as ex:
 
 del warnings
 del discord
-

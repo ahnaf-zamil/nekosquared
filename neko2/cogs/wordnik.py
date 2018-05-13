@@ -29,22 +29,16 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import functools
-import urllib.error
 import typing
+import urllib.error
 
 # The API poops out XML tags.
 import bs4
 from discord import embeds
-from wordnik import swagger
-from wordnik import WordApi
+from wordnik import WordApi, swagger
 
 from discomaton import book
-
-from neko2.shared import configfiles, commands
-from neko2.shared import errors
-from neko2.shared import alg
-from neko2.shared import traits
-
+from neko2.shared import alg, commands, configfiles, errors, traits
 
 config_file = 'wordnik'
 
@@ -96,7 +90,7 @@ def sorting_key(word: dict):
 def ellipse(text: str, maximum=1024) -> typing.Optional[str]:
     if not text:
         return embeds.EmptyEmbed
-    return text[:maximum-3] + '...' if len(text) > maximum else text
+    return text[:maximum - 3] + '...' if len(text) > maximum else text
 
 
 def quote(text: str):
@@ -107,6 +101,7 @@ def quote(text: str):
         if not y:
             y = x
         return text.startswith(x) and text.endswith(y)
+
     if any(pred(x) for x in ('"', "'", ('‘', '’'), ('“', '”'))):
         text = text[1:-1]
 
@@ -123,6 +118,7 @@ class WordnikCog(traits.CogTraits):
     Wordnik support cog. Allows searching for words through a selection
     of online dictionaries.
     """
+
     def __init__(self):
         self._token = configfiles.get_config_data(config_file)
         self.api_client = swagger.ApiClient(self._token, wordnik_endpoint)

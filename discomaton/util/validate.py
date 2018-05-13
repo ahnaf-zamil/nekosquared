@@ -32,12 +32,12 @@ import typing
 
 from discord import embeds
 
-
 __all__ = ('FormatError', 'validate_embed', 'validate_message')
 
 
 class FormatError(ValueError):
     """Message formatting error."""
+
     def __init__(self, reason: str) -> None:
         """
         Init this formatting error.
@@ -56,10 +56,10 @@ class FormatError(ValueError):
 
 def _len_validation(content: str,
                     *,
-                    min_l: int=0,
+                    min_l: int = 0,
                     max_l: int,
                     name: str,
-                    acceptable: typing.Iterable=None) -> None:
+                    acceptable: typing.Iterable = None) -> None:
     """
     Validates a string. Used internally to make error checking more concise.
 
@@ -138,7 +138,8 @@ def validate_embed(embed: embeds.Embed) -> None:
         add_len(name)
         add_len(value)
         _len_validation(name, max_l=256, name=f'Name in field {i} (0 based)')
-        _len_validation(value, max_l=1024, name=f'Value in field {i} (0 based)')
+        _len_validation(value, max_l=1024,
+                        name=f'Value in field {i} (0 based)')
 
     if hasattr(embed, '_footer'):
         add_len(embed._footer.get('text', ''))

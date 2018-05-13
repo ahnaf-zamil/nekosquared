@@ -30,14 +30,13 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import contextlib
 import io
-from urllib import parse
 import xmlrpc.client as xmlrpcclient
+from urllib import parse
 
 import discord
 
 from discomaton.factories import bookbinding
-from neko2.shared import commands, string, alg
-from neko2.shared import traits
+from neko2.shared import alg, commands, string, traits
 
 
 class PyCog(traits.CogTraits):

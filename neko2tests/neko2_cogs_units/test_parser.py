@@ -30,8 +30,6 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import unittest
 
-from neko2.cogs.units.models import *
-from neko2.cogs.units.conversions import _models
 from neko2.cogs.units.lex import *
 from neko2.cogs.units.parser import *
 
@@ -47,10 +45,13 @@ class TestParser(unittest.TestCase):
             ('33e78cm', ValueModel('33e78', find_unit_by_str('centimeters'))),
             ('-33cm', ValueModel('-33', find_unit_by_str('centimeters'))),
             ('+33cm', ValueModel('33', find_unit_by_str('centimeters'))),
-            ('-33e78cm', ValueModel('-33e78', find_unit_by_str('centimeters'))),
+            (
+            '-33e78cm', ValueModel('-33e78', find_unit_by_str('centimeters'))),
             ('+33e78cm', ValueModel('33e78', find_unit_by_str('centimeters'))),
-            ('33.1234cm', ValueModel('33.1234', find_unit_by_str('centimeters'))),
-            ('-33.1234cm', ValueModel('-33.1234', find_unit_by_str('centimeters'))),
+            ('33.1234cm',
+             ValueModel('33.1234', find_unit_by_str('centimeters'))),
+            ('-33.1234cm',
+             ValueModel('-33.1234', find_unit_by_str('centimeters'))),
             ('33cm', ValueModel('33', find_unit_by_str('centimeters'))),
             ('33cm', ValueModel('33', find_unit_by_str('centimeters')))
         }

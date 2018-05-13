@@ -1,7 +1,8 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
 """
-Hard coded model definitions. These are singletons, and are evil... if you alter
+Hard coded model definitions. These are singletons, and are evil... if you
+alter
 them. They should not be altered however, so there should never be a problem.
 
 ===
@@ -30,14 +31,12 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from decimal import Decimal
-from typing import Optional, Iterator
+from typing import Iterator, Optional
 
 from neko2.shared import alg
 from .models import *
 
-
 __all__ = ('get_category', 'get_compatible_models', 'find_unit_by_str')
-
 
 # Last name should be abbreviation. First should be singular and second should
 # be plural.
@@ -108,7 +107,8 @@ _models = {
         UnitModel.new_cv('0.0283168', 'feet³', 'foot³', 'feet^3', 'foot^3',
                          'ft^3'),
         UnitModel.new_cv('1.6387e-5', 'inches³', 'inch³', 'inchs³', 'in^3'
-                         'inches^3', 'inch^3', 'inchs^3', 'in³'),
+                                                                    'inches^3',
+                         'inch^3', 'inchs^3', 'in³'),
     ),
 
     # Includes mass for the benefit of the doubt.
@@ -166,8 +166,8 @@ def get_category(category: UnitCategoryModel) -> Optional[UnitCollectionModel]:
 
 
 def get_compatible_models(model: UnitModel,
-                          ignore_self: bool=False,
-                          ignore_si: bool=False) -> Iterator[UnitModel]:
+                          ignore_self: bool = False,
+                          ignore_si: bool = False) -> Iterator[UnitModel]:
     """Yields any compatible models with the given model, including itself."""
     if ignore_self or ignore_si:
         for pm in get_category(model.unit_type):

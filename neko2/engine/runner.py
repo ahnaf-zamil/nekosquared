@@ -30,19 +30,18 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import asyncio
-import logging
 import sys
 import traceback
 
-
-from neko2.engine import client, autoloader, BotInterrupt
-from neko2.shared import configfiles, traits, scribe
+from neko2.engine import BotInterrupt, autoloader, client
+from neko2.shared import configfiles, scribe, traits
 
 
 class NekoSquaredBotProcess(scribe.Scribe):
     """
     Holds the bot, and the resource handlers.
     """
+
     def __init__(self, args=sys.argv):
         """
         Inits the bot process handler.
@@ -110,4 +109,3 @@ class NekoSquaredBotProcess(scribe.Scribe):
         finally:
             self.loop.run_until_complete(traits.CogTraits._dealloc())
             delattr(self.bot, 'neko2botprocess')
-

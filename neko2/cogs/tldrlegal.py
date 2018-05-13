@@ -29,14 +29,14 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from typing import Tuple, List
+from typing import List, Tuple
 
 import bs4
+import discord
 from dataclasses import dataclass
 
-import discord
 from discomaton import option_picker
-from neko2.shared import traits, commands, string, alg
+from neko2.shared import alg, commands, string, traits
 
 base_url = 'https://tldrlegal.com/'
 

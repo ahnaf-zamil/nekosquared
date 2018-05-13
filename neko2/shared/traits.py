@@ -28,17 +28,16 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import asyncio
-import concurrent.futures             # Executors.
+import concurrent.futures  # Executors.
 import functools
-import os                             # File system access.
+import os  # File system access.
 import typing
 
 import aiofiles
 import aiohttp
 import async_timeout
 
-from neko2.shared import scribe       # Scribe
-from neko2.shared.morefunctools import ClassProperty
+from neko2.shared import scribe  # Scribe
 
 __all__ = ('CogTraits',)
 
@@ -121,8 +120,8 @@ class CogTraits(scribe.Scribe):
     @classmethod
     async def run_in_io_executor(cls,
                                  call: typing.Callable,
-                                 args: typing.List=None,
-                                 kwargs: typing.Dict=None,
+                                 args: typing.List = None,
+                                 kwargs: typing.Dict = None,
                                  loop=None):
         if not loop:
             loop = cls.__loop

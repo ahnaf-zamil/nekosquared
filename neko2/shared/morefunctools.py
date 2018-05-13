@@ -35,7 +35,6 @@ from functools import *
 
 __all__ = (*dir(_functools), 'old_wraps')
 
-
 old_wraps = _functools.wraps
 
 
@@ -61,6 +60,7 @@ def wraps(what):
                 except BaseException:
                     pass
             return new_klass
+
         return decorator
     else:
         def decorator(fn: callable):
@@ -73,6 +73,7 @@ def wraps(what):
                 except BaseException:
                     pass
             return fn
+
         return decorator
 
 
@@ -81,6 +82,7 @@ class ClassProperty:
     A property that belongs to the class it is defined in, rather than the
     object instances themselves.
     """
+
     def __init__(self, getter):
         self.getter = getter
 
@@ -104,7 +106,7 @@ class SingletonMeta(type):
         return cls._cache[cls]
 
 
-def always_background(loop: asyncio.AbstractEventLoop=None):
+def always_background(loop: asyncio.AbstractEventLoop = None):
     """
     Decorates a coroutine and ensures that whenever we invoke it, we
     actually end up creating a task in the background. This is a neat
@@ -114,6 +116,7 @@ def always_background(loop: asyncio.AbstractEventLoop=None):
     :param loop: the event loop to delegate on. Uses the default if
         unspecified.
     """
+
     def decorator(coro):
         @wraps(coro)
         class AlwaysInvokeAsTaskInBackground:
@@ -132,4 +135,5 @@ def always_background(loop: asyncio.AbstractEventLoop=None):
                 return task
 
         return AlwaysInvokeAsTaskInBackground()
+
     return decorator

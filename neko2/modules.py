@@ -40,7 +40,6 @@ modules = frozenset({
     _('admin'),
     _('cat'),
     _('cppref'),
-    _('discord'),
     _('botupdate'),
     _('man'),
     _('py'),
@@ -58,6 +57,9 @@ modules = frozenset({
     _('steam'),
     _('iss'),
     _('mocksql'),
-#    _('nonick'),
-    _('tldrlegal')
+    # _('nonick'),      # Uncomment to enforce nickname sanitation.
+    _('tldrlegal'),
+    _('isdiscorddownstatus'),
+    _('botutils'),
+    _('guildstuff'),
 })

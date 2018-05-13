@@ -31,12 +31,12 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-import logging                         # Loggers.
-import traceback                       # Traceback utils.
-import typing                          # Type checking
-from neko2.shared import alg           # Timing.
-from neko2.modules import modules      # Modules to load with.
+import logging  # Loggers.
+import traceback  # Traceback utils.
+import typing  # Type checking
 
+from neko2.modules import modules  # Modules to load with.
+from neko2.shared import alg  # Timing.
 
 __all__ = ('auto_load_modules',)
 

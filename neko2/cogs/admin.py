@@ -39,14 +39,14 @@ import os
 import random
 import time
 import traceback
-import websockets
 
 import aiohttp
 import async_timeout
+import discord
+import websockets
 
 from discomaton.factories import bookbinding
-import discord
-from neko2.shared import traits, commands, alg, morefunctools
+from neko2.shared import alg, commands, morefunctools, traits
 
 
 class AdminCog(traits.CogTraits):
@@ -70,7 +70,7 @@ class AdminCog(traits.CogTraits):
         await ctx.bot.logout()
 
     @commands.command(hidden=True)
-    async def error(self, ctx, discord: bool=False):
+    async def error(self, ctx, discord: bool = False):
         """Tests error handling."""
         if discord:
             from discord.ext.commands import errors
@@ -360,6 +360,7 @@ class NonAdminCog:
                     await message.delete()
                 finally:
                     return
+
         later()
 
     @commands.command(brief='Times the execution of another command.')

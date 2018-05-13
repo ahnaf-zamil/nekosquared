@@ -28,18 +28,15 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-import re                             # Regex
-import typing                         # Type checking
-
 import asyncio
-import bs4                            # HTML parser
+import re  # Regex
+import typing  # Type checking
 
-from discomaton import userinput      # Option picker
+import bs4  # HTML parser
+
+from discomaton import userinput  # Option picker
 from discomaton.factories import bookbinding
-
-from neko2.shared import errors, commands  # standard errors
-from neko2.shared import traits       # HTTP pool
-
+from neko2.shared import commands, errors, traits  # standard errors; HTTP pool
 
 # CppReference stuff
 result_path = re.compile(r'^/w/c(pp)?/', re.I)
@@ -71,14 +68,14 @@ class CppCog(traits.CogTraits):
         resp = await conn.get(search_cppr, params=params)
         if resp.status != 200:
             raise errors.HttpError(resp)
-            
+
         href = str(resp.url)[len(base_cppr):]
-            
+
         resp = await resp.text()
 
         # Parse the HTML response.
         tree = bs4.BeautifulSoup(resp)
-        
+
         if href.startswith('/w/'):
             # Assume we are redirected to the first result page
             # only.
@@ -134,7 +131,7 @@ class CppCog(traits.CogTraits):
         response = await conn.get(url)
         # Make soup.
         bs = bs4.BeautifulSoup(await response.text())
-        
+
         header = bs.find(name='tr', attrs={'class': 't-dsc-header'})
         if header:
             header = header.text
@@ -195,10 +192,9 @@ class CppCog(traits.CogTraits):
                 results = await self.results(*terms)
         except BaseException as ex:
             return await ctx.send(
-                 'CppReference did something unexpected. If this keeps '
-                 'happening, contact Esp with the following info: \n\n'
-                 f'{type(ex).__qualname__}: {ex!s}')
-
+                'CppReference did something unexpected. If this keeps '
+                'happening, contact Esp with the following info: \n\n'
+                f'{type(ex).__qualname__}: {ex!s}')
 
         if not results:
             return await ctx.send('No results were found.', delete_after=10)

@@ -40,21 +40,18 @@ import datetime
 import os
 from typing import Dict, Union
 
-from async_timeout import timeout
-from dataclasses import dataclass
 import discord
 import youtube_dl
+from async_timeout import timeout
+from dataclasses import dataclass
 
-from neko2.shared import commands
-from neko2.shared import traits
-
+from neko2.shared import commands, traits
 
 if not discord.opus.is_loaded():
     if os.name == 'winnt':
         discord.opus.load_opus('libopus-0.dll')
     else:
         discord.opus.load_opus('libopus.so')
-
 
 YOUTUBE_OPTS = {
     'format': 'webm[abr>0]/bestaudio/best',
@@ -74,10 +71,10 @@ def acknowledge(what, emoji=None):
 
 @dataclass()
 class YouTubeVideo:
-    requested_by: discord.Member    # Referrer
-    when: datetime.datetime         # UTC
-    yt_url: str                     # YouTube URL
-    player: object                  # Not quite sure.
+    requested_by: discord.Member  # Referrer
+    when: datetime.datetime  # UTC
+    yt_url: str  # YouTube URL
+    player: object  # Not quite sure.
 
 
 class Session(traits.CogTraits):

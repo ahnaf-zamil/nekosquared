@@ -30,26 +30,25 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from decimal import Decimal
 
-
 operations = {
-    '+': lambda a, b: a + b,            
-    '-': lambda a, b: a - b, 
+    '+': lambda a, b: a + b,
+    '-': lambda a, b: a - b,
     '*': lambda a, b: a * b,
     '/': lambda a, b: a / b,
     'div': lambda a, b: a / b,
     'idiv': lambda a, b: a // b,
-    '//': lambda a, b: a // b,    
+    '//': lambda a, b: a // b,
     '%': lambda a, b: a % b,
     '**': lambda a, b: a ** b,
-    '|': lambda a, b: int(a) | int(b),            
+    '|': lambda a, b: int(a) | int(b),
     '&': lambda a, b: int(a) & int(b),
-    '^': lambda a, b: int(a) ^ int(b),           
+    '^': lambda a, b: int(a) ^ int(b),
     '<<': lambda a, b: int(a) << int(b),
-    '>>': lambda a, b: int(a) >> int(b),  
+    '>>': lambda a, b: int(a) >> int(b),
     '<': lambda a, b: 1 if a < b else 0,
-    '>': lambda a, b: 1 if a > b else 0,           
+    '>': lambda a, b: 1 if a > b else 0,
     '<=': lambda a, b: 1 if a <= b else 0,
-    '>=': lambda a, b: 1 if a >= b else 0,           
+    '>=': lambda a, b: 1 if a >= b else 0,
     '==': lambda a, b: 1 if a == b else 0,
     '!=': lambda a, b: 1 if a != b else 0,
     '&&': lambda a, b: 1 if a and b else 0,
@@ -111,11 +110,13 @@ def parse(tokens):
 # Test CLI.
 if __name__ == '__main__':
     import sys
+
     tokens = list(tokenize(*sys.argv[1:]))
     result = parse(tokens)
     print(result)
 else:
     from neko2.shared import commands
+
 
     class ReversePolishCog:
         @commands.command(brief='Parses the given reverse polish notation.')
@@ -140,13 +141,14 @@ else:
                 await ctx.send(
                     '**Supported Operators:**\n' +
                     ', '.join(sorted(f'`{o}`' for o in operations)) + '\n\n' +
-                    '**"What the hell is this?"**\n' + 
+                    '**"What the hell is this?"**\n' +
                     '<http://en.wikipedia.org/wiki/' +
                     'Reverse_Polish_notation>')
             else:
                 _tokens = list(tokenize(*expression))
                 _result = parse(_tokens)
                 await ctx.send(_result)
+
 
     def setup(bot):
         bot.add_cog(ReversePolishCog())

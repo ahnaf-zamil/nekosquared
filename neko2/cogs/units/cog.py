@@ -37,15 +37,13 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import asyncio
+import collections
 import traceback
 
-import collections
 import discord
 
-from neko2.shared import traits, alg, commands
-
-from . import parser, lex, conversions, models
-
+from neko2.shared import alg, commands, traits
+from . import conversions, lex, models, parser
 
 # Wait 30 minutes.
 TIME_TO_WAIT = 30 * 60
@@ -74,8 +72,8 @@ class UnitCog(traits.CogTraits):
     #
     #         if e:
     #             await self.await_result_request(message, e)
-    
-    @commands.command(brief='Performs conversions on the given input.', 
+
+    @commands.command(brief='Performs conversions on the given input.',
                       aliases=['conv'])
     async def convert(self, ctx, *, query=None):
         """
@@ -91,12 +89,12 @@ class UnitCog(traits.CogTraits):
                         break
                     elif message.id == ctx.message.id:
                         is_next = True
-                
+
                 if is_next:
                     query = message.content
                 else:
                     raise ValueError('No valid message found in history.')
-            
+
             e = await self.run_in_io_executor(self.worker, [query])
             await ctx.send(embed=e)
 

@@ -31,9 +31,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 import abc
 import typing
 
-
 __all__ = ('AbstractFactory',)
-
 
 InputT = typing.TypeVar('InputT')
 OutputT = typing.TypeVar('OutputT')

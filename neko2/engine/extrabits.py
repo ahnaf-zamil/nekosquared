@@ -37,5 +37,6 @@ class InternalCogType(traits.CogTraits):
     it when unloading all cogs, otherwise we lose the ability to
     reload extensions later.
     """
+
     def __init__(self, bot):
         self.bot = bot

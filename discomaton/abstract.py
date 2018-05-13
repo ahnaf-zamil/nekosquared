@@ -34,9 +34,7 @@ import collections
 import types
 import typing
 
-
 __all__ = ('AbstractIterableMachine',)
-
 
 IterRetT = typing.TypeVar('IterRetT')
 
@@ -121,6 +119,7 @@ class AbstractIterableMachine(abc.ABC,
             deadlocking other co-routines if for whatever reason, this object
             never starts iterating.
         """
+
         async def awaitable():
             nonlocal self
             async with self._condition:

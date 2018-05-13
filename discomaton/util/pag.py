@@ -34,12 +34,12 @@ import typing
 import cached_property
 from discord.ext.commands import Paginator as RapptzPaginator
 
-
 __all__ = ('Paginator', 'RapptzPaginator')
 
 
 class DontAlter:
     """Used to prevent breaking up a piece of input to fit the page."""
+
     def __init__(self, bit):
         self.bit = bit
 
@@ -60,10 +60,12 @@ class Paginator:
     up strings into multiple chunks to send when each Message on Discord has a
     2K character limit.
 
-    Similar to Danny/Rapptz's paginator, but we can check the value at any time,
+    Similar to Danny/Rapptz's paginator, but we can check the value at any
+    time,
     whether or not this is fully constructed yet. This also will attempt to
     make a string fit by splitting on common breaking characters such as
-    hyphens, spaces, tabs, newlines, etc if needbe. This originally used Danny's
+    hyphens, spaces, tabs, newlines, etc if needbe. This originally used
+    Danny's
     paginator but it became too complicated to work with, so it was easier to
     write my own implementation.
 
@@ -113,7 +115,8 @@ class Paginator:
         if max_l <= 0:
             raise ValueError(f'The max character count ({self._max_chars}) is '
                              'too short to produce pages with the given '
-                             'suffix and prefix. Please choose a larger value.')
+                             'suffix and prefix. Please choose a larger '
+                             'value.')
 
         for bit in self._bits:
             if bit is self._page_break:
@@ -121,12 +124,12 @@ class Paginator:
                 continue
 
             bit = str(bit)
-            
+
             if len(pages[-1]) >= max_l:
                 page = pages.pop()
                 for i in range(0, len(page), max_l):
-                    pages.append(page[i:i+max_l])
-            
+                    pages.append(page[i:i + max_l])
+
             if not isinstance(bit, DontAlter) and len(bit) >= max_l:
                 if ' ' in bit:
                     for new_bit in re.split(r'\b ', bit):
@@ -139,16 +142,16 @@ class Paginator:
                             pages[-1] += next_bit
                         else:
                             for i in range(0, len(next_bit), max_l):
-                                pages.append(next_bit[i:i+max_l])
+                                pages.append(next_bit[i:i + max_l])
 
                 else:
                     for i in range(0, len(bit), max_l):
-                        pages.append(bit[i:i+max_l])
+                        pages.append(bit[i:i + max_l])
                 continue
             elif isinstance(bit, DontAlter):
                 if len(pages[-1]) + len(bit) >= self._max_chars:
                     for i in range(0, len(bit), max_l):
-                        pages.append(bit[i:i+max_l])
+                        pages.append(bit[i:i + max_l])
                 else:
                     pages[-1] += bit
                 continue
@@ -253,4 +256,3 @@ class Paginator:
                   to_start: bool = False) -> None:
         """Inserts in a page break."""
         self.add(self._page_break, to_start=to_start)
-

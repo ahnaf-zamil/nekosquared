@@ -32,14 +32,11 @@ import datetime
 import enum
 import io
 
-import discord
 import PIL.Image as image
 import PIL.ImageDraw as draw
+import discord
 
-from neko2.shared import commands
-from neko2.shared import ioutil
-from neko2.shared import traits
-
+from neko2.shared import commands, ioutil, traits
 
 default_map_image = image.open(ioutil.in_here('mercator-small.png'))
 
@@ -56,7 +53,8 @@ class MercatorProjection:
 
     :param map_image: the image object to use for the projection.
     """
-    def __init__(self, map_image: image.Image=None):
+
+    def __init__(self, map_image: image.Image = None):
         """
         Creates a mercator projection from the given Image object.
 
@@ -120,6 +118,7 @@ class SpaceCog(traits.CogTraits):
         :param longitude: the longitude.
         :param bytesio: the bytes IO to dump PNG data to.
         """
+
         def _plot():
             mercator = MercatorProjection()
 
@@ -140,11 +139,13 @@ class SpaceCog(traits.CogTraits):
                 (x + 1, y - 1), (x + 1, y + 1),
             ]
 
-            pen.point([(x % mercator.width, y) for x, y in pixels], (255, 0, 0))
+            pen.point([(x % mercator.width, y) for x, y in pixels], (255, 0, 
+            0))
             """
-            pen.ellipse([(x-4, y-4), (x+4, y+4)], (255, 0, 0))
+            pen.ellipse([(x - 4, y - 4), (x + 4, y + 4)], (255, 0, 0))
 
             return mercator.image
+
         img = await self.run_in_io_executor(_plot)
 
         img.save(bytesio, 'PNG')
@@ -182,8 +183,8 @@ class SpaceCog(traits.CogTraits):
                 is_day = data['visibility'] == 'daylight'
 
                 desc = '\n'.join([
-                    f'**Longitude**: {long:.3f} °E',
-                    f'**Latitude**: {abs(lat):.3f} °{"N" if lat >= 0 else "S"}',
+                    f'**Longitude**: {long:.3f}°E',
+                    f'**Latitude**: {abs(lat):.3f}°{"N" if lat >= 0 else "S"}',
                     f'**Altitude**: {altitude:.3f} km',
                     f'**Velocity**: {velocity:.3f} km/h',
                     f'**Timestamp**: {time} UTC'

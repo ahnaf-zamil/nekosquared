@@ -30,7 +30,6 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import re
 
-
 __inline_block = r'`([^\s`][^`]*?)`'
 
 # Matches the file name and source in a block formatted like so.

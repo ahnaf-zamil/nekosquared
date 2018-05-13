@@ -28,9 +28,8 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-import inspect      # Stack frame inspection
-import os           # OS path utils
-
+import inspect  # Stack frame inspection
+import os  # OS path utils
 
 __all__ = ('in_here', 'json', 'yaml', 'get_inode_type')
 
@@ -46,7 +45,8 @@ def in_here(*paths, nested_by=0):
     :param nested_by: how many function calls to consider this call nested in.
             This is important if you call this as part of an outer utility,
             as we have to inspect the stack to get the file name. This defaults
-            to zero, inferring to get the file that directly calls this function
+            to zero, inferring to get the file that directly calls this
+            function
             itself.
     """
     try:

@@ -32,13 +32,13 @@ from . import _dpyimport
 from .abstract import *
 from .book import *
 from .button import *
-from .factories.bookbinding import *
 from .factories.abstractfactory import *
+from .factories.bookbinding import *
 from .userinput import *
 from .util.helpers import *
-from .util.validate import *
-from .util.stack import *
 from .util.pag import *
+from .util.stack import *
+from .util.validate import *
 from .version_info import *
-del _dpyimport
 
+del _dpyimport

@@ -33,10 +33,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 import discord
 
 import discomaton
-from . import books
-from . import bookbinders
-from . import optionpicker
-
+from . import bookbinders, books, optionpicker
 
 __author__ = discomaton.__author__
 __license__ = discomaton.__license__

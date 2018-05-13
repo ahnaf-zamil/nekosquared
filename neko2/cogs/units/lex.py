@@ -33,11 +33,8 @@ import re
 import typing
 
 from neko2.cogs.units.models import PotentialValueModel
-from .conversions import *
-
 
 __all__ = ('tokenize',)
-
 
 # Regex to match a unit of measurement. This essentially looks for a word
 # boundary, followed by a valid IEEE floating point representation of a number,

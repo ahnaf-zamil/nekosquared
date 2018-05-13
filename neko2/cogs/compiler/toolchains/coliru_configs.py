@@ -31,11 +31,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 import asyncio
 import inspect
 
+from neko2.cogs.compiler.toolchains import coliru
 from neko2.shared import traits
-
-from neko2.cogs.compiler import tools
-from neko2.cogs.compiler.toolchains import coliru, r as r_compiler
-
 
 # Maps human readable languages to their syntax highlighting strings.
 languages = {}
@@ -58,6 +55,7 @@ def register(*names, language):
             languages[language.lower()].append(n)
 
         return coro
+
     return decorator
 
 
@@ -80,7 +78,7 @@ async def c(source):
     script = (
         '-Wall -Wextra -pedantic -O0 -lm -lpthread -std=c11 -o a.out '
         'main.c && ./a.out')
-    
+
     if source.startswith('//clang'):
         # Concat extra \n at start to enable line numbers in errors
         # still add up.
@@ -88,7 +86,7 @@ async def c(source):
         script = 'clang ' + script
     else:
         script = 'gcc ' + script
-    
+
     cc = coliru.Coliru(script, coliru.SourceFile('main.c', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
@@ -113,7 +111,7 @@ async def cpp(source):
     script = (
         '-Wall -Wextra -std=c++17 -pedantic -O0 -lm -lstdc++fs -lpthread '
         '-o a.out main.cpp && ./a.out')
-    
+
     if source.startswith('//clang++'):
         # Concat extra \n at start to enable line numbers in errors
         # still add up.
@@ -121,7 +119,7 @@ async def cpp(source):
         script = 'clang++ ' + script
     else:
         script = 'g++ ' + script
-    
+
     cc = coliru.Coliru(script, coliru.SourceFile('main.cpp', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
@@ -141,8 +139,8 @@ async def python2(source):
     cc = coliru.Coliru(script, coliru.SourceFile('main.py', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
-    
-    
+
+
 # Thank asottile for this!
 asottile_base = 'https://raw.githubusercontent.com/asottile'
 ffstring_url = asottile_base + '/future-fstrings/master/future_fstrings.py'
@@ -175,9 +173,9 @@ async def python(source):
         trt_req.text())
     script = 'python3.5 future_fstrings.py main.py | python3.5'
     cc = coliru.Coliru(script,
-        coliru.SourceFile('main.py', source),
-        coliru.SourceFile('tokenize_rt.py', trt),
-        coliru.SourceFile('future_fstrings.py', ffstring))
+                       coliru.SourceFile('main.py', source),
+                       coliru.SourceFile('tokenize_rt.py', trt),
+                       coliru.SourceFile('future_fstrings.py', ffstring))
 
     return await cc.execute(sesh)
 
@@ -450,6 +448,3 @@ async def make(source):
     cc = coliru.Coliru(script, coliru.SourceFile('Makefile', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
-
-
-

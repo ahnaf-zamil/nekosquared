@@ -30,7 +30,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import discord
 
-from neko2.shared import traits, commands
+from neko2.shared import commands, traits
 
 
 class CatCog(traits.CogTraits):

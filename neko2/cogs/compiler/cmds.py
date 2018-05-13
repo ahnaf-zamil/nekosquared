@@ -31,14 +31,13 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 import asyncio
 import io
 
-from discomaton.factories import bookbinding
 import discord
 
-from neko2.shared import traits, commands
-from .toolchains import latex
+from discomaton.factories import bookbinding
+from neko2.cogs.compiler.toolchains import coliru, coliru_configs, r
+from neko2.shared import commands, traits
 from . import tools
-from neko2.cogs.compiler.toolchains import coliru_configs, coliru
-from neko2.cogs.compiler.toolchains import r
+from .toolchains import latex
 
 
 class CompilerCog(traits.CogTraits):
@@ -100,7 +99,7 @@ class CompilerCog(traits.CogTraits):
                 output = await coliru_configs.targets[language](source)
         except KeyError:
             booklet = bookbinding.StringBookBinder(ctx)
-            booklet.add_line('That language ({language})is not yet supported ' 
+            booklet.add_line('That language ({language})is not yet supported '
                              'by this toolchain. Feel free to edit this '
                              'message if you wish to do something else.')
             booklet = booklet.build()

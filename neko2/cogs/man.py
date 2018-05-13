@@ -31,7 +31,6 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 import asyncio
 
 from discomaton.factories import bookbinding
-
 from neko2.shared import commands
 
 

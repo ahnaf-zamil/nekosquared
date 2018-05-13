@@ -34,7 +34,6 @@ import unittest
 
 from neko2.cogs.units.lex import *
 
-
 d = decimal.Decimal
 
 
@@ -72,10 +71,12 @@ class TokenizerTests(unittest.TestCase):
         """Tests positive and negative float measurements"""
         for input, output in (('5.1124 cm', (d('5.1124'), 'cm')),
                               ('10.97291q', (d('10.97291'), 'q')),
-                              ('20.32482346868246859846196419 miles', (d('20.32482346868246859846196419'), 'miles')),
+                              ('20.32482346868246859846196419 miles',
+                               (d('20.32482346868246859846196419'), 'miles')),
                               ('-5.1124 cm', (d('-5.1124'), 'cm')),
                               ('-10.97291q', (d('-10.97291'), 'q')),
-                              ('-20.32482346868246859846196419 miles', (d('-20.32482346868246859846196419'), 'miles'))):
+                              ('-20.32482346868246859846196419 miles', (
+                              d('-20.32482346868246859846196419'), 'miles'))):
             result = list(tokenize(input))
             self.assertEqual(1, len(result), input)
             result = result[0]
@@ -102,14 +103,17 @@ class TokenizerTests(unittest.TestCase):
         """Tests positive and negative float measurements"""
         for input, output in (('5.1124e69 cm', (d('5.1124e69'), 'cm')),
                               ('10.97291e+9999q', (d('10.97291e+9999'), 'q')),
-                              ('20.32482346868246859846196419e-124 miles', (d('20.32482346868246859846196419e-124'), 'miles')),
+                              ('20.32482346868246859846196419e-124 miles', (
+                              d('20.32482346868246859846196419e-124'),
+                              'miles')),
                               ('5.1124e69 cm', (d('5.1124e69'), 'cm')),
                               ('10.97291e+9999q', (d('10.97291e+9999'), 'q')),
-                              ('20.32482346868246859846196419e-124 miles', (d('20.32482346868246859846196419e-124'), 'miles'))):
+                              ('20.32482346868246859846196419e-124 miles', (
+                              d('20.32482346868246859846196419e-124'),
+                              'miles'))):
             result = list(tokenize(input))
             self.assertEqual(1, len(result), input)
             result = result[0]
             value, unit = output
             self.assertEqual(result.value, value, input)
             self.assertEqual(result.unit, unit, input)
-

@@ -35,9 +35,7 @@ import discord
 
 from .abstract import AbstractIterableMachine
 
-
 __all__ = ('Button', 'as_button')
-
 
 callback_t = typing.Callable[
     [
@@ -63,6 +61,7 @@ class Button:
             returns is what the button will output back to the implementation
             of async iterator being used, and returned.
     """
+
     def __init__(self,
                  name: str,
                  reaction: str,
@@ -111,8 +110,8 @@ class Button:
 
     def with_predicate(self,
                        predicate: typing.Callable[
-                            [AbstractIterableMachine],
-                            bool
+                           [AbstractIterableMachine],
+                           bool
                        ]) -> typing.Callable:
         """
         Decorates a predicate and sets the predicate. See `should_show` for
@@ -126,13 +125,14 @@ class Button:
 
 
 def as_button(*,
-              name: typing.Optional[str]=None,
+              name: typing.Optional[str] = None,
               reaction: str,
               predicate: typing.Callable[
                   [AbstractIterableMachine],
                   bool
               ] = lambda _: True) -> typing.Callable[[callback_t], Button]:
     """Decorator for a co-routine to generate a new Button type."""
+
     def decorator(coro: callback_t) -> Button:
         nonlocal name
         if name is None:

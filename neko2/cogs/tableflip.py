@@ -31,10 +31,10 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import random
 
-from discomaton.factories import bookbinding
 import discord
 
-from neko2.shared import alg, traits, commands
+from discomaton.factories import bookbinding
+from neko2.shared import alg, commands, traits
 
 
 class TableFlipCog(traits.CogTraits):
@@ -79,7 +79,6 @@ class TableFlipCog(traits.CogTraits):
             await ctx.send('I don\'t seem to have the MANAGE_WEBHOOKS '
                            'permission required for this to work. Please '
                            'grant me that ')
-
 
     @classmethod
     async def delete_and_copy_handle_with_webhook(cls, message):

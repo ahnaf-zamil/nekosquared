@@ -35,10 +35,10 @@ import typing
 import dataclasses
 import discord
 
-from neko2.shared import commands, alg, morefunctools, collections
+from neko2.shared import alg, collections, commands, morefunctools
 
 # Last for 1 hours otherwise.
-F_TIMEOUT = 60**2
+F_TIMEOUT = 60 ** 2
 
 # Set to True to enable `f' being a valid trigger for the command without
 # a prefix.
@@ -81,7 +81,7 @@ class RespectsCog:
 
             channel = reaction.message.channel
             b = self.buckets.get(channel)
-            
+
             if b is None:
                 return
 

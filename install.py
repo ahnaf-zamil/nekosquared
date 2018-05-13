@@ -40,12 +40,13 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 import getpass
 import inspect
 import os
-import pip
 import shutil
 import subprocess
 import sys
 import time
 import traceback
+
+import pip
 
 # Maps import name to pypi name.
 dependencies = {
@@ -231,7 +232,8 @@ if not just_deps:
 
     run_script = inspect.cleandoc(f'''#!/bin/bash
     source venv/bin/activate
-    eval 'find -name "__pycache__" -type d -exec rm {{}} -rf \;' > /dev/null 2>&1
+    eval 'find -name "__pycache__" -type d -exec rm {{}} -rf \;' > /dev/null 
+    2>&1
     {python_command} -m neko2
     ''')
 

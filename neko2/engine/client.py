@@ -28,32 +28,31 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-import copy                             # Deep and shallow copies of objects.
-import inspect                          # Inspection
-import os                               # Access to file system tools.
-import signal                           # Access to kernel signals.
-import time                             # Measuring uptime.
-import traceback                        # Exception traceback utilities.
+import copy  # Deep and shallow copies of objects.
+import inspect  # Inspection
+import os  # Access to file system tools.
+import signal  # Access to kernel signals.
+import time  # Measuring uptime.
+import traceback  # Exception traceback utilities.
 
-import cached_property                  # Cached properties.
-import discord                          # Basic discord.py bits and pieces.
-from discord.ext import commands        # Discord.py extensions.
-from discord.utils import oauth_url     # OAuth URL generator
+import cached_property  # Cached properties.
+import discord  # Basic discord.py bits and pieces.
+from discord.ext import commands  # Discord.py extensions.
+from discord.utils import oauth_url  # OAuth URL generator
 
-from neko2.engine import errorhandler, extrabits  # Error handling.
-from neko2.shared import scribe, perms  # Logging
+from neko2.engine import errorhandler  # Error handling.
+from neko2.shared import perms, scribe  # Logging
 
 __all__ = ('BotInterrupt', 'Bot')
-
 
 # Sue me.
 BotInterrupt = KeyboardInterrupt
 
 
-################################################################################
-# Register the termination signals to just raise a keyboard interrupt, as      #
-# I can catch this in the event loop and ensure a graceful shutdown.           #
-################################################################################
+###############################################################################
+# Register the termination signals to just raise a keyboard interrupt, as     #
+# I can catch this in the event loop and ensure a graceful shutdown.          #
+###############################################################################
 def terminate(signal_no, frame):
     raise BotInterrupt(f'Caught interrupt {signal_no} in frame {frame}')
 
@@ -70,9 +69,9 @@ for s in signals:
 del signals, unix_signals, windows_signals, terminate
 
 
-################################################################################
-# Bot class definition.                                                        #
-################################################################################
+###############################################################################
+# Bot class definition.                                                       #
+###############################################################################
 class Bot(commands.Bot, scribe.Scribe):
     """
     My implementation of the Discord.py bot. This implements a few extra things
@@ -102,7 +101,7 @@ class Bot(commands.Bot, scribe.Scribe):
     - on_load_extension(extension)
     - on_unload_extension(name)
 
-    :param loop: the event loop to run on.
+    :param _unused_loop: the event loop to run on.
     :param bot_config:
         This accepts a dict with two sub-dictionaries:
         - ``auth`` - this must contain a ``token`` and a ``client_id`` member.
@@ -111,7 +110,7 @@ class Bot(commands.Bot, scribe.Scribe):
     """
 
     def __init__(self,
-                 loop,
+                 _unused_loop,
                  bot_config: dict):
         """
         Initialise the bot using the given configuration.
@@ -134,8 +133,6 @@ class Bot(commands.Bot, scribe.Scribe):
 
         self.load_extension('neko2.engine.builtins')
         self.add_cog(errorhandler.ErrorHandler(True, self))
-        self.add_listener(self._on_connect)
-        self.add_listener(self._on_ready)
 
     def on_exit(self, func):
         """
@@ -297,8 +294,15 @@ class Bot(commands.Bot, scribe.Scribe):
     def run(self):
         raise NotImplementedError
 
-    async def _on_connect(self):
-        await self.change_presence(status=discord.Status.dnd)
+    async def on_connect(self):
+        await self.change_presence(status=discord.Status.idle)
 
-    async def _on_ready(self):
-        await self.change_presence(status=discord.Status.online)
+    async def on_ready(self):
+        # noinspection PyTypeChecker
+        prefix = await self.get_prefix(None)
+
+        await self.change_presence(
+            status=discord.Status.online,
+            activity=discord.Activity(
+                type=discord.ActivityType.watching,
+                name=f'for {prefix}help'))

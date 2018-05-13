@@ -32,21 +32,20 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
+import asyncio
 import typing  # Type checking
 
-import asyncio
 import cached_property  # Caching properties
 import discord  # Message type.
-
 from discord.ext import commands as discord_commands
 # noinspection PyUnresolvedReferences
 from discord.ext.commands.context import Context
 # noinspection PyUnresolvedReferences
-from discord.ext.commands.core import *
-# noinspection PyUnresolvedReferences
 from discord.ext.commands.converter import *
 # noinspection PyUnresolvedReferences
 from discord.ext.commands.cooldowns import *
+# noinspection PyUnresolvedReferences
+from discord.ext.commands.core import *
 # noinspection PyUnresolvedReferences
 from discord.ext.commands.errors import *
 
@@ -143,7 +142,8 @@ def acknowledge(ctx: Context,
 
     :param ctx: the context to acknowledge.
     :param emoji: emoji to use. This defaults to OK HAND SIGN
-    :param timeout: how long to wait before destroying messages, or None if they
+    :param timeout: how long to wait before destroying messages, or None if
+    they
             should not be destroyed. Defaults to 15 seconds.
     """
 
@@ -231,7 +231,7 @@ async def try_delete(message: typing.Union[Context, discord.Message]):
 
 async def wait_for_edit(*,
                         ctx: Context,
-                        msg: typing.Optional[discord.Message]=None,
+                        msg: typing.Optional[discord.Message] = None,
                         timeout: float,
                         custom_delete=None):
     """

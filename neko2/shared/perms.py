@@ -33,7 +33,6 @@ import typing
 
 import discord
 
-
 __all__ = ('Permissions',)
 
 

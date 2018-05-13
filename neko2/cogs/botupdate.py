@@ -28,15 +28,14 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-import asyncio                      # Asyncio subprocess
-import io                           # StringIO
-import os                           # File path utils
-import shutil                       # which (find in $PATH env-var)
-import traceback                    # Traceback utils
+import asyncio  # Asyncio subprocess
+import io  # StringIO
+import os  # File path utils
+import shutil  # which (find in $PATH env-var)
+import traceback  # Traceback utils
 
 from discomaton.util import pag
-
-from neko2.shared import scribe, commands  # Scribe
+from neko2.shared import commands, scribe  # Scribe
 
 
 class GitCog(scribe.Scribe):

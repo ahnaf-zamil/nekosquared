@@ -6,7 +6,8 @@ rewritten so stuff makes sense to me.
 
 Citations:
 [1]: http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
-[2]: https://github.com/seatgeek/fuzzywuzzy (specifically the fuzzywuzzy/fuzz.py
+[2]: https://github.com/seatgeek/fuzzywuzzy (specifically the
+fuzzywuzzy/fuzz.py
     and fuzzywuzzy/util.py files.
 [3]: https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/utils/fuzzy.py
 
@@ -35,16 +36,14 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-import difflib   # Calculating string closeness
-import heapq     # Built-in heap data-type.
-import re        # Regex to match word boundaries.
-import typing    # Type hinting.
-
+import difflib  # Calculating string closeness
+import heapq  # Built-in heap data-type.
+import re  # Regex to match word boundaries.
+import typing  # Type hinting.
 
 __all__ = ('tokenize_sort', 'float_to_ratio', 'ratio', 'quick_ratio',
            'real_quick_ratio', 'deep_ratio', 'sorted_token_ratio',
            'extract', 'extract_best')
-
 
 _word = re.compile(r'\w+')
 
@@ -55,7 +54,8 @@ _scorer = typing.Callable[[str, str], int]
 
 def tokenize_sort(text: str) -> str:
     """
-    Splits the input string up into words, discards any form of case sensitivity
+    Splits the input string up into words, discards any form of case
+    sensitivity
     by casting to lower case, and then sorts each word lexicographically. The
     words are then rejoined by a single space.
     """
@@ -181,7 +181,7 @@ def deep_ratio(a: str, b: str) -> int:
     return int(round(score))
 
 
-def sorted_token_ratio(a: str, b: str, scorer: _scorer=quick_ratio) -> int:
+def sorted_token_ratio(a: str, b: str, scorer: _scorer = quick_ratio) -> int:
     """
     Returns the ``scorer`` for a and b when the tokens are in lexicographical
     order.
@@ -196,8 +196,8 @@ _results_t = typing.Iterable[_result_t]
 def _results_iterator(query: str,
                       choices: typing.Iterable[str],
                       *,
-                      scoring_algorithm: _scorer=quick_ratio,
-                      min_score: int=0) -> _results_t:
+                      scoring_algorithm: _scorer = quick_ratio,
+                      min_score: int = 0) -> _results_t:
     """
     Generates an iterator of results for the given query out of the given
     choices.
@@ -218,9 +218,9 @@ def _results_iterator(query: str,
 def extract(query: str,
             choices: typing.Iterable[str],
             *,
-            scoring_algorithm: _scorer=quick_ratio,
-            min_score: int=0,
-            max_results: typing.Union[int, None]=10) -> _results_t:
+            scoring_algorithm: _scorer = quick_ratio,
+            min_score: int = 0,
+            max_results: typing.Union[int, None] = 10) -> _results_t:
     """
     Extracts upto ``max_results`` of the best matches for ``query`` in the
     iterable ``choices`` using the ``scoring_algorithm`` and ignoring any
@@ -247,22 +247,21 @@ def extract(query: str,
 def extract_best(query: str,
                  choices: typing.Iterable[str],
                  *,
-                 scoring_algorithm: _scorer=quick_ratio,
-                 min_score: int=0) -> _result_t:
+                 scoring_algorithm: _scorer = quick_ratio,
+                 min_score: int = 0) -> _result_t:
     """
     Extracts the best result for the query in the given choices... if there is
     one!
     """
 
     result = extract(
-            query,
-            choices,
-            scoring_algorithm=scoring_algorithm,
-            min_score=min_score,
-            max_results=1)
+        query,
+        choices,
+        scoring_algorithm=scoring_algorithm,
+        min_score=min_score,
+        max_results=1)
 
     result = list(result)
 
     if result:
         return result[0]
-

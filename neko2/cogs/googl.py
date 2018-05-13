@@ -40,10 +40,7 @@ import re
 import traceback
 import urllib.parse
 
-from neko2.shared import configfiles, alg
-from neko2.shared import commands
-from neko2.shared import errors
-from neko2.shared import traits
+from neko2.shared import alg, commands, configfiles, errors, traits
 
 config_file = 'urlshorten'
 
@@ -78,7 +75,8 @@ class UrlShortenerCog(traits.CogTraits):
         return (await res.json())['id']
 
     @commands.command(brief='Shortens the given URL', aliases=['goo.gl'])
-    async def shorten(self, ctx, url: str, *, optional_description: str=None):
+    async def shorten(self, ctx, url: str, *,
+                      optional_description: str = None):
         """
         You can pass a description to put with the link if you like.
         """
@@ -117,7 +115,7 @@ class UrlShortenerCog(traits.CogTraits):
             if mention_match:
                 mention = int(mention_match.group(1))
 
-            if isinstance(mention, int) or mention.isdigit() :
+            if isinstance(mention, int) or mention.isdigit():
                 user = alg.find(lambda u: u.id == int(mention),
                                 guild_members)
             elif mention:

@@ -29,11 +29,13 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-import io                            # BytesIO
-import discord                       # Discord.py
-import PIL.Image                     # PIL Image loading
-import PIL.ImageDraw                 # PIL Image drawing
-from neko2.shared import traits      # IOBound, CpuBound, and HTTP pools.
+import io  # BytesIO
+
+import PIL.Image  # PIL Image loading
+import PIL.ImageDraw  # PIL Image drawing
+import discord  # Discord.py
+
+from neko2.shared import traits  # IOBound, CpuBound, and HTTP pools.
 
 # URL endpoint to use.
 end_point = 'http://latex.codecogs.com/'
@@ -72,7 +74,7 @@ backgrounds = {
 
 padding_pct_height = 1.5  # %/100
 padding_pct_width = 1.15  # %/100
-padding_min_width = 20   # pixels
+padding_min_width = 20  # pixels
 
 
 class LatexCogHelper(traits.CogTraits):
@@ -153,6 +155,7 @@ class LatexCogHelper(traits.CogTraits):
         EDIT: this has to be done on a Thread, not a Process. We cannot pickle
         BytesIO objects.
         """
+
         def cpu_work():
             old_img: PIL.Image.Image = PIL.Image.open(in_img)
 

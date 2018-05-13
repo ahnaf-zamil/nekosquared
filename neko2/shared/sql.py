@@ -30,11 +30,9 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import logging
 
-from neko2.shared import ioutil      # in_here
-
+from neko2.shared import ioutil  # in_here
 
 __all__ = ('sql_query',)
-
 
 __logger = logging.getLogger(__name__)
 

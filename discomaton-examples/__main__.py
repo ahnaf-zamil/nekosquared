@@ -35,7 +35,6 @@ import traceback
 import discord
 from discord.ext import commands
 
-
 logging.basicConfig(level='INFO')
 
 try:
@@ -67,6 +66,7 @@ async def on_command_error(ctx: commands.Context, error: BaseException):
                        f' {error}')
     except BaseException:
         pass
+
 
 bot.load_extension('examples')
 logging.info(discord.utils.oauth_url(client_id))

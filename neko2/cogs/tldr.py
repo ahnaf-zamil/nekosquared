@@ -28,14 +28,12 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-import random
-
-from discomaton import book
-from discomaton.util import pag
 
 import discord
 
-from neko2.shared import traits, commands, alg
+from discomaton import book
+from discomaton.util import pag
+from neko2.shared import alg, commands, traits
 
 
 def scrub_tags(text):

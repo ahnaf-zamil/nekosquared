@@ -39,7 +39,7 @@ class ChattyCog:
             await ctx.send(message)
         finally:
             return
-            
+
 
 def setup(bot):
     bot.add_cog(ChattyCog())

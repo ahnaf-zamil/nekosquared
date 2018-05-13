@@ -35,7 +35,6 @@ import re
 
 from neko2.shared import commands
 
-
 regex = re.compile(r'```[a-zA-Z0-9]+\s([\s\S(^\\`{3})]*?)\s*```')
 
 
@@ -50,7 +49,7 @@ class MockSqlCog:
         double_quote = False
         single_comment = False
         multiline_comment = False
-        
+
         output = ''
         index = 0
 

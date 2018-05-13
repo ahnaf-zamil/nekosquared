@@ -29,7 +29,6 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-
 __all__ = ('remove_single_lines',)
 
 
@@ -81,7 +80,7 @@ def remove_single_lines(string: str) -> str:
     return '\n'.join(lines)
 
 
-def trunc(text, max_length: int=2000):
+def trunc(text, max_length: int = 2000):
     """Truncates output if it is too long."""
     if len(text) <= max_length:
         return text
@@ -104,3 +103,8 @@ def plur_diff(cardinality: int, singular: str, plural: str):
 def yn(boolean: bool) -> str:
     """Converts 'True' or 'False' to 'Yes' or 'No'"""
     return 'Yes' if boolean else 'No'
+
+
+def cap(string):
+    """Capitalises stuff."""
+    return string[0:1].upper() + string[1:]

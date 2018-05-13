@@ -32,31 +32,31 @@ import asyncio  # Async sleep
 import logging
 import sys
 import traceback  # Traceback utils.
-import discord  # Embeds
-from discord.ext.commands import Paginator
-import discord.ext.commands.errors as dpyext_errors  # Errors for ext.
-from neko2.shared import excuses
-from neko2.shared import morefunctools
-from . import extrabits
 
+import discord  # Embeds
+import discord.ext.commands.errors as dpyext_errors  # Errors for ext.
+from discord.ext.commands import Paginator
+
+from neko2.shared import excuses, morefunctools, string
+from . import extrabits
 
 # Respond with a reaction.
 ignored_errors = {
     dpyext_errors.CommandNotFound: '\N{BLACK QUESTION MARK ORNAMENT}',
     dpyext_errors.DisabledCommand: '\N{NO ENTRY SIGN}',
     dpyext_errors.CommandOnCooldown: '\N{SNOWFLAKE}',
+    NotImplementedError: '\N{CONSTRUCTION SIGN}'
 }
 
-
 handled_errors = {
-    dpyext_errors.CheckFailure: 'You lack the permission to do that here',
-    dpyext_errors.NotOwner: 'Only the owner can do this',
-    dpyext_errors.MissingRequiredArgument: 'You are missing a parameter',
-    dpyext_errors.BadArgument: 'You gave a badly formatted parameter',
-    dpyext_errors.BotMissingPermissions: 'I am missing permissions',
-    dpyext_errors.MissingPermissions: 'You are missing permissions',
-    dpyext_errors.NoPrivateMessage: 'This is not allowed in direct messages',
-    dpyext_errors.TooManyArguments: 'You gave too many parameters',
+    dpyext_errors.CheckFailure,
+    dpyext_errors.NotOwner,
+    dpyext_errors.MissingRequiredArgument,
+    dpyext_errors.BadArgument,
+    dpyext_errors.BotMissingPermissions,
+    dpyext_errors.MissingPermissions,
+    dpyext_errors.NoPrivateMessage,
+    dpyext_errors.TooManyArguments,
 }
 
 
@@ -105,7 +105,7 @@ async def _dm_me_error(*, bot, cog, ctx, error, event_method):
 
     owner = bot.get_user(bot.owner_id)
     await owner.send(embed=embed)
-    
+
     if should_pag:
         p = Paginator()
         for line in trace.split('\n'):
@@ -155,23 +155,25 @@ class ErrorHandler(extrabits.InternalCogType):
 
         # Don't reply to errors with cool downs. Just add a reaction and stop.
         if type(cause) in handled_errors:
-            reply = handled_errors[type(error)]
+            reply = string.cap(str(cause))
         elif type(cause) in ignored_errors:
-            return _react_for_a_little_while(ctx.bot.user, 
-                                             ctx.message, 
+            return _react_for_a_little_while(ctx.bot.user,
+                                             ctx.message,
                                              ignored_errors[type(cause)])
         else:
             reply = '\N{SQUARED SOS} Something serious went wrong... '
             reply += excuses.get_excuse()
 
             if bot.debug:
-                reply += '\n\nThe following is included while debug mode is ' \
-                         'on\n\n '
+                reply += (
+                    '\n\nThe following is included while debug mode is '
+                    'on. As a result, I won\'t bother DMing '
+                    f'<@{ctx.bot.owner_id}> about it.\n\n ')
                 reply += ''.join(traceback.format_exception(
                     type(cause), cause, cause.__traceback__))
 
-            if self.should_dm_on_error:
-                reply = f'{reply}\n\nEspy has been sent a DM about this issue.'
+            if self.should_dm_on_error and not bot.debug:
+                reply += '\n\nEspy has been sent a DM about this issue.'
                 # DM me some information about what went wrong.
                 await _dm_me_error(bot=bot, ctx=ctx, cog=cog, error=cause,
                                    event_method=event_method)
@@ -183,12 +185,13 @@ class ErrorHandler(extrabits.InternalCogType):
         # anywhere near this size, then it is a stupid error anyway.
 
         # Clear after 15 seconds and destroy the invoking message also.
+        @morefunctools.always_background()
         async def fut(reply):
-            resp = await destination.send(reply[:2000])
+            resp = await destination.send(string.trunc(reply))
 
             if not bot.debug:
-                # Delete after 5 minutes.
-                await asyncio.sleep(300)
+                # Delete after 30s.
+                await asyncio.sleep(30)
 
                 futs = [resp.delete()]
                 if ctx:
@@ -199,7 +202,7 @@ class ErrorHandler(extrabits.InternalCogType):
                 except:
                     pass
 
-        bot.loop.create_task(fut(reply))
+        fut(reply)
 
     async def on_command_error(self, context, exception):
         """

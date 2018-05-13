@@ -31,7 +31,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 import typing
 
 from neko2.cogs.units.conversions import find_unit_by_str
-from neko2.cogs.units.models import ValueModel, PotentialValueModel
+from neko2.cogs.units.models import PotentialValueModel, ValueModel
 
 
 def _parse(input_model: PotentialValueModel) -> typing.Optional[ValueModel]:
@@ -45,7 +45,8 @@ def parse(input_model: PotentialValueModel,
           *input_models: PotentialValueModel) -> typing.Iterator[ValueModel]:
     """
     Takes one or more input models that may be a measurement, and attempts
-    to parse them, returning an iterator across all parsed results, and ignoring
+    to parse them, returning an iterator across all parsed results,
+    and ignoring
     any that turn out to be invalid.
     """
     # Parse the potential models.

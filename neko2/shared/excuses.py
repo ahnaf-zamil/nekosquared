@@ -28,8 +28,7 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-import random    # RNG
-
+import random  # RNG
 
 __all__ = ('get_excuse', 'excuses')
 
@@ -48,7 +47,7 @@ def incrange(a, b):
 
 
 http_dot_cat_endpoints = {
-    100, 101, 
+    100, 101,
     200, 201, 202, 204, 206, 207,
     *incrange(300, 307),
     *incrange(400, 406), *incrange(408, 418), *incrange(420, 426),

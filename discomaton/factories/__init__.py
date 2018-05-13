@@ -1,7 +1,8 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
 """
-Various factories to make certain operations and object generation a little more
+Various factories to make certain operations and object generation a little
+more
 concise and simple.
 
 ===
@@ -29,4 +30,3 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-

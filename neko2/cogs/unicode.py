@@ -37,18 +37,14 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # appears to be incomplete. We only fall back to this therefore if we cannot
 # resolve a character normally.
 import re
-from typing import Union, Optional
 import unicodedata
+from typing import Optional, Union
 
 import bs4
 from dataclasses import dataclass
 
 from discomaton.factories import bookbinding
-
-from neko2.shared import alg, commands
-from neko2.shared import collections
-from neko2.shared import errors
-from neko2.shared import traits
+from neko2.shared import alg, collections, commands, errors, traits
 
 
 def _make_fileformat_url(codepoint: int) -> str:

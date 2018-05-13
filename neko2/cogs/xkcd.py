@@ -39,17 +39,12 @@ import random
 import threading
 import time
 
-from discomaton import book
-from cached_property import threaded_cached_property
 import discord
 import requests
+from cached_property import threaded_cached_property
 
-from neko2.shared import morefunctools
-from neko2.shared import commands
-from neko2.shared import configfiles
-from neko2.shared import fuzzy
-from neko2.shared import scribe
-from neko2.shared import traits
+from neko2.shared import commands, configfiles, fuzzy, morefunctools, scribe, \
+    traits
 
 
 def most_recent_xkcd():

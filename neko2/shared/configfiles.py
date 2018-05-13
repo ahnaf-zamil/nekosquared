@@ -28,20 +28,17 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-import io                        # Streams
-import os                        # File operations
-import typing                    # Type checking
-import warnings                  # Warnings
+import io  # Streams
+import os  # File operations
+import typing  # Type checking
+import warnings  # Warnings
 
-import aiofiles                  # Async file IO
+import aiofiles  # Async file IO
 
-from neko2.shared import ioutil  # IO utilities
-from neko2.shared import scribe  # Logger
-
+from neko2.shared import ioutil, scribe  # IO utilities; Logger
 
 __all__ = ('CONFIG_DIRECTORY', 'ConfigFile', 'get_config_data',
            'get_from_config_dir', 'get_config_data_async')
-
 
 # Overwrite this variable to alter where we look for config files if you
 # need to.
@@ -95,6 +92,7 @@ class ConfigFile(scribe.Scribe):
     :param should_guess: defaults to true. If true, we allow guessing of the
         extension if we fail to find it.
     """
+
     def __init__(self, path, *, should_guess=True):
         path, ext = self._get_extension(path, should_guess)
 
@@ -113,7 +111,7 @@ class ConfigFile(scribe.Scribe):
 
     @staticmethod
     def _get_extension(base: str,
-                       should_guess: bool=True) \
+                       should_guess: bool = True) \
             -> typing.Optional[typing.Tuple[str, str]]:
         """
         Assuming that base is not found as an actual file path, attempt

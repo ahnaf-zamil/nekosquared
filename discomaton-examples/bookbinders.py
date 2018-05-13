@@ -31,7 +31,6 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 from discord.ext import commands
 
 from discomaton.factories import bookbinding
-
 from . import lipsum
 
 

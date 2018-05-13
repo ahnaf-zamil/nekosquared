@@ -40,10 +40,9 @@ import async_timeout
 import discord
 from discord.ext import commands
 
-from .util import helpers
 from .book import AbstractBooklet, default_formatter
 from .factories import bookbinding
-
+from .util import helpers
 
 __all__ = ('option_picker_formatter', 'ResultPickedInterrupt',
            'ClosedInterrupt', 'option_picker', 'get_user_input')
@@ -56,6 +55,7 @@ def option_picker_formatter(booklet: AbstractBooklet) -> str:
 
 class ResultPickedInterrupt(RuntimeError):
     """Exceptions can interrupt asyncio.gather immediately!"""
+
     def __init__(self, result):
         self.result = result
 
@@ -67,10 +67,10 @@ class ClosedInterrupt(RuntimeError):
 
 async def option_picker(ctx,
                         *options,
-                        timeout: float=300,
+                        timeout: float = 300,
                         formatter=option_picker_formatter,
                         option_formatter=str,
-                        max_lines: int=6) -> typing.Any:
+                        max_lines: int = 6) -> typing.Any:
     """
     Displays a list of options, enabling the user to pick one by
     providing input. If the user closes the pagination of options, we assume
@@ -142,6 +142,7 @@ async def option_picker(ctx,
                 await helpers.attempt_delete(m)
 
             raise ResultPickedInterrupt(options[option_num - 1])
+
     try:
         option, _ = await asyncio.gather(
             get_option(),
@@ -168,22 +169,25 @@ def from_user(user):
     Generates a predicate for a message validator that only returns
     true if the given user sent the message.
     """
+
     def predicate(msg):
         return msg.author == user
+
     return predicate
 
 
 async def get_user_input(ctx: typing.Union[
-                            commands.Context,
-                            typing.Tuple[discord.TextChannel, discord.Client]
-                         ],
+    commands.Context,
+    typing.Tuple[discord.TextChannel, discord.Client]
+],
                          only_if: typing.Callable[
                              [discord.Message], bool
-                         ]=lambda _: True,
+                         ] = lambda _: True,
                          timeout=300) -> discord.Message:
     """
     Awaits user input.
-    :param ctx: the context to associate with. This is either a commands.Context
+    :param ctx: the context to associate with. This is either a
+    commands.Context
         object, or a tuple of the channel and the discord client object.
     :param only_if: a predicate to use to determine whether to accept the
         given message event or not. Defaults to a predicate that returns True

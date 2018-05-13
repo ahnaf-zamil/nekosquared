@@ -28,27 +28,26 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-import asyncio                             # Async subprocess.
+import asyncio  # Async subprocess.
 import collections
-import copy                                # Shallow copies.
-import inspect                             # Introspection
-import subprocess                          # Sync subprocess.
-import sys                                 # System streams and bits
-import time                                # Timing stuff.
-import traceback                           # Error stuff
-import typing                              # Type checking bits and pieces.
+import copy  # Shallow copies.
+import inspect  # Introspection
+import subprocess  # Sync subprocess.
+import sys  # System streams and bits
+import time  # Timing stuff.
+import traceback  # Error stuff
+import typing  # Type checking bits and pieces.
 
 import discord
-from discord import embeds                 # Embeds.
-import discomaton                          # Finite state machines.
+from discord import embeds  # Embeds.
+
+import discomaton  # Finite state machines.
+import neko2  # n2 versioning
 from discomaton.factories import bookbinding
-
-import neko2                               # n2 versioning
-from neko2 import modules                  # Loadable modules
-from neko2.shared import fuzzy, commands   # Fuzzy string matching.
-from neko2.shared import string            # String voodoo.
-from . import extrabits                    # Internal cog type
-
+from neko2 import modules  # Loadable modules
+from neko2.shared import commands, fuzzy, \
+    string  # Fuzzy string matching.; String voodoo.
+from . import extrabits  # Internal cog type
 
 lines_of_code = None
 
@@ -73,9 +72,9 @@ def count_loc():
         # Gets the number from the total line of the output for wc
         lines_of_code = (
             lines_of_code.strip()
-            .split('\n')[-1]
-            .strip()
-            .split(' ')[0])
+                .split('\n')[-1]
+                .strip()
+                .split(' ')[0])
     finally:
         return
 
@@ -168,13 +167,13 @@ class Builtins(extrabits.InternalCogType):
 
     @commands.command(brief='Links to the GitHub repository.',
                       aliases=['github', 'repo', 'bitbucket', 'svn'])
-    async def git(self, ctx, who: discord.Member=None):
+    async def git(self, ctx, who: discord.Member = None):
         """Gets the repository that the bot's source code is hosted in."""
         who = who or ctx.author
         await ctx.send(f'{who.mention}: <{neko2.__repository__}>')
 
     @commands.command(brief='Gets usage information for commands.')
-    async def help(self, ctx, *, query: str=None):
+    async def help(self, ctx, *, query: str = None):
         """
         If a command name is given, perform a search for that command and
         display info on how to use it. Otherwise, if nothing is provided, then
@@ -652,7 +651,7 @@ class Builtins(extrabits.InternalCogType):
             raise ModuleNotFoundError(
                 f'{namespace} was not loaded into this bot instance, and so '
                 'was not able to be unloaded.')
-        
+
         else:
             start_time = time.monotonic()
             self.bot.unload_extension(namespace)
@@ -751,7 +750,7 @@ class Builtins(extrabits.InternalCogType):
                     if extension.startswith('neko2.engine'):
                         # Ignore internals
                         continue
-                    
+
                     try:
                         secs = await self._unload_extension(extension, False)
                     except Exception as ex:
@@ -763,7 +762,7 @@ class Builtins(extrabits.InternalCogType):
                                    f'{secs*1000:,.2f}ms')
                         unloaded_count += 1
                         unloaded_extensions.append(extension)
-    
+
                 # Reload.
                 for extension in frozenset((*modules.modules,
                                             *unloaded_extensions)):
@@ -779,7 +778,7 @@ class Builtins(extrabits.InternalCogType):
                         loaded_count += 1
 
             time_taken = time.monotonic() - start_time
-            
+
             book = bookbinding.StringBookBinder(ctx, max_lines=None,
                                                 timeout=30)
 

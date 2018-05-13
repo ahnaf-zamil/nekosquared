@@ -35,7 +35,6 @@ from cached_property import cached_property
 
 __all__ = ('OrderedSet', 'MutableOrderedSet', 'Stack', 'TwoWayDict')
 
-
 SetType = typing.TypeVar('SetType')
 
 
@@ -44,7 +43,8 @@ class OrderedSet(collections.Set, typing.Generic[SetType]):
     A set data-type that maintains insertion order. This implementation
     is immutable for the most part.
     """
-    def __init__(self, iterable: typing.Iterable=None):
+
+    def __init__(self, iterable: typing.Iterable = None):
         """Initialise the set."""
 
         # This implementation is just a dictionary that only utilises the keys.
@@ -80,6 +80,7 @@ class OrderedSet(collections.Set, typing.Generic[SetType]):
 # noinspection PyProtectedMember
 class MutableOrderedSet(OrderedSet, collections.MutableSet):
     """An ordered set that allows mutation."""
+
     def add(self, x: SetType) -> None:
         """Adds a new element to the set."""
         self._dict[x] = None
@@ -97,8 +98,10 @@ class _FifoFiloBase(collections.Sequence, typing.Generic[FifoFiloType]):
     Underlying implementation of either a FIFO/LILO or FILO/LIFO datatype.
     This is exposed as a Queue or Stack subtype.
     """
+
     def __init__(self,
-                 items: typing.Optional[typing.Sequence[FifoFiloType]] = None) \
+                 items: typing.Optional[typing.Sequence[FifoFiloType]] =
+                 None) \
             -> None:
         """
         Initialise the stack.
@@ -157,6 +160,7 @@ class _FifoFiloBase(collections.Sequence, typing.Generic[FifoFiloType]):
 
 class Stack(_FifoFiloBase):
     """First-in-Last-out."""
+
     def push(self, x: FifoFiloType) -> FifoFiloType:
         """Pushes the item onto the stack and returns it."""
         self._deque.append(x)
@@ -169,6 +173,7 @@ class Stack(_FifoFiloBase):
 
 class Queue(_FifoFiloBase):
     """First-in-first out"""
+
     def enqueue(self, x: FifoFiloType) -> FifoFiloType:
         """Pushes the item onto the Queue and returns it."""
         self._deque.append(x)
@@ -183,6 +188,7 @@ class Queue(_FifoFiloBase):
 
 class Deque(Queue, Stack):
     """Implementation of both a Stack and a Queue in one."""
+
     def shift(self):
         """Shifts from the front."""
         return self._deque.pop(0)
@@ -203,6 +209,7 @@ class TwoWayDict(collections.OrderedDict):
 
     To comply with Python3.7, this is Ordered by default.
     """
+
     @cached_property
     def _reversed_representation(self) -> dict:
         rev = collections.OrderedDict()

@@ -33,4 +33,3 @@ from neko2.cogs.compiler.cmds import CompilerCog
 
 def setup(bot):
     bot.add_cog(CompilerCog())
-

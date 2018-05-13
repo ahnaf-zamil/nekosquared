@@ -44,7 +44,6 @@ from .button import Button, as_button
 from .util import validate
 from .util.helpers import attempt_delete
 from .util.stack import Stack
-from .version_info import __version__, __author__, __repository__
 
 __all__ = ('default_buttons', 'default_formatter', 'AbstractBooklet',
            'StringBooklet', 'EmbedBooklet', 'FormatterType')

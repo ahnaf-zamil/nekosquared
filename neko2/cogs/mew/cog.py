@@ -34,10 +34,7 @@ import traceback
 
 import discord
 
-from neko2.shared import configfiles, commands
-from neko2.shared import ioutil
-from neko2.shared import scribe
-
+from neko2.shared import commands, configfiles, ioutil, scribe
 
 # Relative to this directory.
 bindings_file = 'bindings'
@@ -46,6 +43,7 @@ assets_directory = ioutil.in_here('assets')
 
 class MewReactsCog(scribe.Scribe):
     """Reactions cog."""
+
     def __init__(self):
         bindings = configfiles.get_from_here(bindings_file).sync_get()
 
@@ -104,19 +102,21 @@ class MewReactsCog(scribe.Scribe):
                     traceback.print_exc()
                     await ctx.send(
                         'Something broke and the dev '
-                        'was shot. Please try again later ^w^', delete_after=15)
+                        'was shot. Please try again later ^w^',
+                        delete_after=15)
             # Otherwise, if the react doesn't exist, or wasn't specified, then
             # list the reacts available.
             elif not react_name:
                 await ctx.author.send('**Mew reactions:**\n\n' + ' '.join(
-                        map(
-                            lambda n: f'`{n}`',
-                            sorted(self.images)
-                        )
-                    ) + '.\n\nThanks to Zcissors for providing the emotes and '
+                    map(
+                        lambda n: f'`{n}`',
+                        sorted(self.images)
+                    )
+                ) + '.\n\nThanks to Zcissors for providing the emotes and '
                     'command alias configurations.'
-                )
+                                      )
             else:
-                await ctx.send('That wasn\'t found. Run without a name to get a '
-                               'list sent to you via DMs.',
-                               delete_after=15)
+                await ctx.send(
+                    'That wasn\'t found. Run without a name to get a '
+                    'list sent to you via DMs.',
+                    delete_after=15)

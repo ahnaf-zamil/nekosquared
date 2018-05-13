@@ -31,10 +31,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 import discord
 
 from discomaton import book
-
-from neko2.shared import traits, commands
-from neko2.shared import string
-
+from neko2.shared import commands, string, traits
 
 urban_random = 'http://api.urbandictionary.com/v0/random'
 urban_search = 'http://api.urbandictionary.com/v0/define'
@@ -42,6 +39,7 @@ urban_search = 'http://api.urbandictionary.com/v0/define'
 
 class UrbanDictionaryCog(traits.CogTraits):
     """Urban dictionary cog."""
+
     @staticmethod
     def _format_urban_defn(definition: dict) -> discord.Embed:
         """
@@ -51,7 +49,8 @@ class UrbanDictionaryCog(traits.CogTraits):
 
         # Adds ellipses to the end and truncates if a string is too long.
         def dots(string, limit=1024):
-            return string if len(string) < limit else string[:limit-3] + '...'
+            return string if len(string) < limit else string[
+                                                      :limit - 3] + '...'
 
         title = definition['word'].title()
         defn = dots(definition['definition'], 2000)
@@ -78,7 +77,8 @@ class UrbanDictionaryCog(traits.CogTraits):
             url=permalink)
 
         embed.set_author(
-            name=f'{author} (\N{HEAVY BLACK HEART} {yes} \N{PILE OF POO} {no})')
+            name=f'{author} (\N{HEAVY BLACK HEART} {yes} '
+                 f'\N{PILE OF POO} {no})')
 
         if example:
             embed.add_field(name='Example', value=example)
@@ -91,7 +91,7 @@ class UrbanDictionaryCog(traits.CogTraits):
     @commands.command(
         brief='Looks up a definition on Urban Dictionary',
         examples=['java', ''], aliases=['ud', 'udd', 'urband'])
-    async def urban(self, ctx: commands.Context, *, phrase: str=None):
+    async def urban(self, ctx: commands.Context, *, phrase: str = None):
         """If no phrase is given, we pick some random ones to show."""
 
         conn = await self.acquire_http()
