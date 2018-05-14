@@ -298,18 +298,18 @@ class NonAdminCog:
             # 'Private channels': f'{len(ctx.bot.private_channels):,}',
             'Shards': f'{ctx.bot.shard_count or 1:,}',
             'Commands': f'{len(frozenset(ctx.bot.walk_commands())):,}',
-            'Commands (inc. aliases)': f'{len(ctx.bot.all_commands):,}',
-            'Loaded cogs': f'{len(ctx.bot.cogs):,}',
-            'Loaded extensions': f'{len(ctx.bot.extensions):,}',
-            'Active/sleeping tasks': f'{tasks:,}',
-            'Active/sleeping threads': f'{threading.active_count():,}',
+            'Aliases': f'{len(ctx.bot.all_commands):,}',
+            'Cogs': f'{len(ctx.bot.cogs):,}',
+            'Extensions': f'{len(ctx.bot.extensions):,}',
+            'Futures': f'{tasks:,}',
+            'Threads': f'{threading.active_count():,}',
             'Uptime': str(timedelta(seconds=ctx.bot.uptime)),
             'System uptime': str(timedelta(seconds=monotonic())),
-            # 'L.O.C. at startup': f'{int(builtins.lines_of_code or 0):,}',
+            'L.O.C.': f'{int(builtins.lines_of_code or 0):,}',
             'Latency': f'{ctx.bot.latency * 1000:,.2f}ms; '
                        f'`ACK`: {ack_time * 1000:,.2f}ms',
             # 'Days since last accident': random.randrange(0, 100),
-            'Event loop latency': f'{event_loop_latency * 1e6:,.2f}µs',
+            'Loop latency': f'{event_loop_latency * 1e6:,.2f}µs',
             'Affinity': f'{", ".join(map(str, os.sched_getaffinity(0)))}',
             # 'Scheduling nice': f'{priority}',
             'Architecture': f'{platform.machine()} '
@@ -317,7 +317,7 @@ class NonAdminCog:
             # 'discord.py': f'v{discord.__version__}',
             # 'aiohttp': f'v{aiohttp.__version__}',
             # 'websockets': f'v{websockets.__version__}',
-            'Python implementation': 
+            'Python': 
                     f'{platform.python_implementation()} '
                     f'{platform.python_version()}\n'
                     f'{" ".join(platform.python_build()).title()}\n'
