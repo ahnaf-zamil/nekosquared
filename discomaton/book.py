@@ -100,13 +100,13 @@ def default_buttons() -> typing.List[Button]:
         # print('<-')
         await machine.move_forwards_by(-1)
 
-    @_as_button(name='Let anyone control this',
-                reaction='\N{LEFT LUGGAGE}')
-    async def unlock(_unused_button: Button,
-                     machine: 'AbstractBooklet',
-                     _unused_reaction: discord.Reaction,
-                     _unused_user: discord.User) -> None:
-        machine.only_author = False
+    #@_as_button(name='Let anyone control this',
+    #            reaction='\N{LEFT LUGGAGE}')
+    #async def unlock(_unused_button: Button,
+    #                 machine: 'AbstractBooklet',
+    #                 _unused_reaction: discord.Reaction,
+    #                 _unused_user: discord.User) -> None:
+    #    machine.only_author = False
 
     @_as_button(name='Enter a page number',
                 reaction='\N{INPUT SYMBOL FOR NUMBERS}')
@@ -152,43 +152,43 @@ def default_buttons() -> typing.List[Button]:
 
         return in_future(later_callback())
 
-    @_as_button(name='Show help',
-                reaction='\N{INFORMATION SOURCE}')
-    async def show_help(_unused_button: Button,
-                        machine: 'AbstractBooklet',
-                        _unused_reaction: discord.Reaction,
-                        whom: discord.User) -> None:
-        explanation = []
-        for button in machine.buttons.values():
-            explanation.append(f'{button.reaction} → {button.name}')
+    #@_as_button(name='Show help',
+    #            reaction='\N{INFORMATION SOURCE}')
+    #async def show_help(_unused_button: Button,
+    #                    machine: 'AbstractBooklet',
+    #                    _unused_reaction: discord.Reaction,
+    #                    whom: discord.User) -> None:
+    #    explanation = []
+    #    for button in machine.buttons.values():
+    #        explanation.append(f'{button.reaction} → {button.name}')
 
-        assert len(explanation), 'No buttons?'
+    #    assert len(explanation), 'No buttons?'
 
-        help_embed = discord.Embed(
-            title='Discomaton Pagination for Neko²',
-            description=f'{whom.mention}! Here are the '
-                        'basics for using this control:',
-            colour=random.randint(0, 0xFFFFFF))
+    #    help_embed = discord.Embed(
+    #        title='Discomaton Pagination for Neko²',
+    #        description=f'{whom.mention}! Here are the '
+    #                    'basics for using this control:',
+    #        colour=random.randint(0, 0xFFFFFF))
 
-        help_embed.add_field(name='Buttons',
-                             value='\n'.join(
-                                 explanation[:len(explanation) // 2]))
-        help_embed.add_field(name='\u200B',
-                             value='\n'.join(
-                                 explanation[len(explanation) // 2:]))
+    #    help_embed.add_field(name='Buttons',
+    #                         value='\n'.join(
+    #                             explanation[:len(explanation) // 2]))
+    #    help_embed.add_field(name='\u200B',
+    #                         value='\n'.join(
+    #                             explanation[len(explanation) // 2:]))
 
-        help_embed.set_footer(
-            text='At the time of showing this help message, '
-                 f'{"only the author" if machine.only_author else "anyone"} '
-                 'is allowed control the book above by using reactions.')
+    #    help_embed.set_footer(
+    #        text='At the time of showing this help message, '
+    #             f'{"only the author" if machine.only_author else "anyone"} '
+    #             'is allowed control the book above by using reactions.')
 
-        if machine.root_resp.embeds:
-            m = await machine.root_resp.channel.send(embed=help_embed)
-            machine.response_stk.push(m)
-        else:
-            await machine.root_resp.edit(embed=help_embed)
+    #    if machine.root_resp.embeds:
+    #        m = await machine.root_resp.channel.send(embed=help_embed)
+    #        machine.response_stk.push(m)
+    #    else:
+    #        await machine.root_resp.edit(embed=help_embed)
 
-        setattr(machine, '_help_shown', True)
+    #    setattr(machine, '_help_shown', True)
 
     @_as_button(name='Next page', reaction='▶')
     async def next_page(_unused_button: Button,
@@ -215,13 +215,13 @@ def default_buttons() -> typing.List[Button]:
         # print('>>|')
         await machine.set_page_index(-1)
 
-    @_as_button(name='Close pagination controls',
-                reaction='\N{WHITE HEAVY CHECK MARK}')
-    async def delete(_unused_button: Button,
-                     _machine: 'AbstractBooklet',
-                     _unused_reaction: discord.Reaction,
-                     _unused_user: discord.User) -> None:
-        raise StopAsyncIteration
+    #@_as_button(name='Close pagination controls',
+    #            reaction='\N{WHITE HEAVY CHECK MARK}')
+    #async def delete(_unused_button: Button,
+    #                 _machine: 'AbstractBooklet',
+    #                 _unused_reaction: discord.Reaction,
+    #                 _unused_user: discord.User) -> None:
+    #    raise StopAsyncIteration
 
     @_as_button(name='Delete message',
                 reaction='\N{NEGATIVE SQUARED CROSS MARK}')
@@ -233,9 +233,9 @@ def default_buttons() -> typing.List[Button]:
         await machine.initial_message.delete()
         raise StopAsyncIteration
 
-    @show_help.with_predicate
-    def help_show_if(machine: 'AbstractBooklet') -> bool:
-        return not hasattr(machine, '_help_shown')
+    #@show_help.with_predicate
+    #def help_show_if(machine: 'AbstractBooklet') -> bool:
+    #    return not hasattr(machine, '_help_shown')
 
     @go_to_start.with_predicate
     @previous_page.with_predicate
@@ -247,14 +247,14 @@ def default_buttons() -> typing.List[Button]:
     def multiple_pages_only(machine: 'AbstractBooklet') -> bool:
         return len(machine) > 1
 
-    @unlock.with_predicate
-    def show_unlock_iff(machine: 'AbstractBooklet') -> bool:
-        return machine.only_author
+    #@unlock.with_predicate
+    #def show_unlock_iff(machine: 'AbstractBooklet') -> bool:
+    #    return machine.only_author
 
     @go_back_10_pages.with_predicate
     @go_forwards_10_pages.with_predicate
-    def ten_or_more_pages(machine: 'AbstractBooklet') -> bool:
-        return len(machine) > 10
+    def thirty_or_more_pages(machine: 'AbstractBooklet') -> bool:
+        return len(machine) > 30
 
     return buttons
 
