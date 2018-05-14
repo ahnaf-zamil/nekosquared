@@ -173,4 +173,4 @@ class Coliru:
 
         resp = await session.post(f'{HOST}{COMPILE_EP}', data=payload)
         resp.raise_for_status()
-        return await resp.text()
+        return (await resp.read()).decode('utf-8', 'ignore')
