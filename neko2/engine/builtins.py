@@ -29,7 +29,6 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import asyncio  # Async subprocess.
-import collections
 import copy  # Shallow copies.
 import inspect  # Introspection
 import subprocess  # Sync subprocess.
@@ -38,15 +37,15 @@ import time  # Timing stuff.
 import traceback  # Error stuff
 import typing  # Type checking bits and pieces.
 
+from cached_property import cached_property
 import discord
 from discord import embeds  # Embeds.
 
 import discomaton  # Finite state machines.
-import neko2  # n2 versioning
 from discomaton.factories import bookbinding
+import neko2  # n2 versioning
 from neko2 import modules  # Loadable modules
-from neko2.shared import commands, fuzzy, \
-    string  # Fuzzy string matching.; String voodoo.
+from neko2.shared import commands, fuzzy, string, collections, alg
 from . import extrabits  # Internal cog type
 
 lines_of_code = None
@@ -71,10 +70,10 @@ def count_loc():
             universal_newlines=True)
         # Gets the number from the total line of the output for wc
         lines_of_code = (
-            lines_of_code.strip()
-                .split('\n')[-1]
-                .strip()
-                .split(' ')[0])
+            lines_of_code.strip().split('\n')[-1]
+                                 .strip()
+                                 .split(' ')[0]
+        )
     finally:
         return
 
@@ -179,10 +178,14 @@ class Builtins(extrabits.InternalCogType):
         display info on how to use it. Otherwise, if nothing is provided, then
         a list of available commands is output instead.
 
-        Provide the `--all` for the given query to view all aliases.
+        Provide the `--all` flag for the given query to view all aliases.
+
+        Provide the `--cogs` flag to view command categories.
         """
         if not query or query.lower() == '--all':
             await self._summary_screen(ctx, bool(query))
+        elif query.lower().startswith('--cog'):
+            await self._by_cogs(ctx)
         else:
             result = await self.get_best_match(query, ctx)
             if result:
@@ -192,6 +195,79 @@ class Builtins(extrabits.InternalCogType):
             else:
                 await ctx.send(f'No command found that matches `{query}`',
                                delete_after=15)
+
+    @staticmethod
+    async def _by_cogs(ctx):
+        embeds = []
+        page2cog = {}
+        for name in sorted(ctx.bot.cogs):
+            # Includes those that cannot be run.
+            all_cmds = list(sorted(ctx.bot.get_cog_commands(name), key=str))
+
+            commands = []
+
+            for potential_command in all_cmds:
+                if await potential_command.can_run(ctx):
+                    commands.append(potential_command)
+
+            if not commands:
+                continue
+
+            # We only show 10 commands per page.
+            page_count = (len(commands) // 10) + 1
+
+            title = string.pascal2title(name)
+
+            page2cog[len(embeds) + 1] = title
+
+            for i in range(0, len(commands), 10):
+                embed_page = discord.Embed(
+                    title=title,
+                    colour=alg.rand_colour())
+                # embed_page.set_thumbnail(url=ctx.bot.user.avatar_url)
+
+                if page_count - 1:
+                    embed_page.set_footer(text=f'Page {i+1} of {page_count}')
+
+                next_commands = commands[i:i+10]
+
+                for command in next_commands:
+                    embed_page.add_field(
+                        name=f'`{command.qualified_name}`',
+                        value=command.brief or '\u200b',
+                        inline=False)
+
+                embeds.append(embed_page)
+
+        title_pages = []
+        expected_title_pages = (len(page2cog) // 20) + 1
+
+        indexes = list(page2cog.keys())
+
+        # Title page
+        for i in range(0, len(page2cog), 20):
+            mappings = {idx: page2cog[idx] for idx in indexes[i:i+20]}
+
+            title_embed = discord.Embed(
+                title='Command categories - Table of contents',
+                description='\n'.join(f'{pn + expected_title_pages} - {cog}'
+                                      for pn, cog in mappings.items()),
+                colour=alg.rand_colour()
+            )
+
+            title_embed.set_thumbnail(url=ctx.bot.user.avatar_url)
+
+            if expected_title_pages - 1:
+                title_embed.set_footer(
+                    text=f'Page {len(title_pages) + 1} '
+                         f'of {expected_title_pages}')
+
+            title_pages.append(title_embed)
+
+        for title_page in reversed(title_pages):
+            embeds.insert(0, title_page)
+
+        discomaton.EmbedBooklet(pages=embeds, ctx=ctx).start()
 
     @staticmethod
     async def _command_page(ctx, query, command, real_match):
@@ -223,6 +299,7 @@ class Builtins(extrabits.InternalCogType):
         full_doc = string.remove_single_lines(full_doc)
         examples = getattr(command, 'examples', [])
         signature = command.signature
+        cog = command.cog_name
 
         parent = command.full_parent_name
         cooldown = getattr(command, '_buckets')
@@ -233,6 +310,11 @@ class Builtins(extrabits.InternalCogType):
         description = [
             f'```markdown\n{ctx.bot.command_prefix}{signature}\n```'
         ]
+
+        if cog:
+            pages[-1].add_field(
+                name='Module defined in',
+                value=string.pascal2title(cog))
 
         if not real_match:
             description.insert(0, f'Closest match for `{query}`')
@@ -298,7 +380,7 @@ class Builtins(extrabits.InternalCogType):
                     f'with a timeout of {timeout} '
                     f'second{"s" if timeout - 1 else ""}'))
 
-        pages[-1].set_thumbnail(url=ctx.bot.user.avatar_url)
+        # pages[-1].set_thumbnail(url=ctx.bot.user.avatar_url)
 
         if should_paginate_full_doc:
             # Generate pages using the Discord.py paginator.
@@ -427,7 +509,20 @@ class Builtins(extrabits.InternalCogType):
         """
         return frozenset([command for command in self.bot.walk_commands()])
 
-    @property
+    @classmethod
+    def gen_qual_names(cls, command: commands.Command):
+        aliases = [command.name, *command.aliases]
+
+        if command.parent:
+            parent_names = [*cls.gen_qual_names(command.parent)]
+
+            for parent_name in parent_names:
+                for alias in aliases:
+                    yield f'{parent_name} {alias}'
+        else:
+            yield from aliases
+
+    @cached_property
     def alias2command(self) -> typing.Dict:
         """
         Generates a mapping of all fully qualified command names and aliases
@@ -435,15 +530,9 @@ class Builtins(extrabits.InternalCogType):
         """
         mapping = {}
 
-        for command in self.all_commands:
-            for alias in (command.name, *command.aliases):
-                # Generate the name
-                partitions = []
-                if command.parent:
-                    partitions.append(command.full_parent_name)
-                partitions.append(alias)
-                mapping[' '.join(partitions)] = command
-
+        for command in self.bot.walk_commands():
+            for alias in self.gen_qual_names(command):
+                mapping[alias] = command
         return mapping
 
     async def get_best_match(self, string: str, context) \
@@ -516,8 +605,8 @@ class Builtins(extrabits.InternalCogType):
 
         return None
 
-    @staticmethod
-    async def get_commit():
+    @cached_property
+    async def get_commit(self):
         """
         Gets the most recent commit.
         :return:
@@ -593,7 +682,10 @@ class Builtins(extrabits.InternalCogType):
             url=repo)
 
         # Most recent changes
-        when, update, count = await self.get_commit()
+        # Must do in multiple stages to allow the cached property to do
+        # magic first.
+        commit = self.get_commit
+        when, update, count = await commit
 
         embed.add_field(name=f'Update #{count} ({when})',
                         value=update, inline=False)
@@ -634,6 +726,7 @@ class Builtins(extrabits.InternalCogType):
         # Recache LOC.
         if recache:
             self.bot.loop.create_task(self.run_in_io_executor(count_loc))
+        self.flush_command_cache()
         return ttr
 
     async def _unload_extension(self, namespace, recache=True) -> float:
@@ -659,6 +752,8 @@ class Builtins(extrabits.InternalCogType):
             # Recache LOC.
             if recache:
                 self.bot.loop.create_task(self.run_in_io_executor(count_loc))
+
+            self.flush_command_cache()
             return ttr
 
     @commands.is_owner()
@@ -819,6 +914,21 @@ class Builtins(extrabits.InternalCogType):
         else:
             await ctx.send(f'You {can_run and "can" or "cannot"} run this '
                            'command here.')
+
+    def flush_command_cache(self):
+        try:
+            del self.__dict__['alias2command']
+        except KeyError:
+            pass
+
+    async def on_connect(self):
+        """
+        Due to how this works, the cache will potentially get created
+        before the other cogs get loaded. We thus should remove the
+        command cache when we connect to prevent the help utility from
+        functioning incorrectly.
+        """
+        self.flush_command_cache()
 
 
 def setup(bot):

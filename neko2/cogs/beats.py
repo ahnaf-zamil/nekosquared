@@ -40,10 +40,10 @@ import datetime
 import os
 from typing import Dict, Union
 
-import discord
-import youtube_dl
 from async_timeout import timeout
 from dataclasses import dataclass
+import discord
+import youtube_dl
 
 from neko2.shared import commands, traits
 

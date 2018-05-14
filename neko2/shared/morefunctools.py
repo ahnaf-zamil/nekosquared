@@ -30,8 +30,8 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import asyncio
-import functools as _functools
 from functools import *
+import functools as _functools
 
 __all__ = (*dir(_functools), 'old_wraps')
 

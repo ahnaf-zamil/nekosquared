@@ -28,8 +28,11 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
+import re
 
-__all__ = ('remove_single_lines',)
+
+__all__ = ('remove_single_lines', 'trunc', 'plur_simple', 'plur_diff',
+           'yn', 'cap', 'pascal2title')
 
 
 def remove_single_lines(string: str) -> str:
@@ -105,6 +108,12 @@ def yn(boolean: bool) -> str:
     return 'Yes' if boolean else 'No'
 
 
-def cap(string):
-    """Capitalises stuff."""
+def cap(string: str):
+    """Capitalises the first letter of stuff.."""
     return string[0:1].upper() + string[1:]
+
+
+def pascal2title(string: str) -> str:
+    """Splits on whitespace between capital and lowercase letters."""
+    # https://stackoverflow.com/a/29922050
+    return ' '.join(re.findall(r'[A-Z](?:[a-z]+|[A-Z]*(?=[A-Z]|$))', string))

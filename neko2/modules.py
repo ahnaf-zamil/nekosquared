@@ -61,5 +61,5 @@ modules = frozenset({
     _('tldrlegal'),
     _('isdiscorddownstatus'),
     _('botutils'),
-    _('guildstuff'),
+    _('inspections'),
 })

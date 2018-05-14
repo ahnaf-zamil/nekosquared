@@ -116,6 +116,10 @@ def default_buttons() -> typing.List[Button]:
                          user: discord.User) -> None:
         from .userinput import get_user_input
 
+        # Don't allow multiple prompts.
+        if getattr(machine, '_is_showing_page_prompt', False):
+            return
+
         setattr(machine, '_is_showing_page_prompt', True)
 
         def predicate(message):
@@ -128,9 +132,10 @@ def default_buttons() -> typing.List[Button]:
                 return 1 < page <= len(machine.pages)
 
         prompt = await machine.channel.send('Enter a page number:')
-        msg = None
 
         async def later_callback():
+            msg = None
+
             try:
                 msg = await get_user_input((machine.channel, machine.client),
                                            only_if=predicate,
@@ -250,10 +255,6 @@ def default_buttons() -> typing.List[Button]:
     @go_forwards_10_pages.with_predicate
     def ten_or_more_pages(machine: 'AbstractBooklet') -> bool:
         return len(machine) > 10
-
-    @enter_page.with_predicate
-    def only_one_prompt_at_once(machine: 'AbstractBooklet') -> bool:
-        return not getattr(machine, '_is_showing_page_prompt', False)
 
     return buttons
 

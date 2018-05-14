@@ -32,8 +32,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 from typing import List, Tuple
 
 import bs4
-import discord
 from dataclasses import dataclass
+import discord
 
 from discomaton import option_picker
 from neko2.shared import alg, commands, string, traits

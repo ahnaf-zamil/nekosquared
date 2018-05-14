@@ -39,9 +39,9 @@ import random
 import threading
 import time
 
+from cached_property import threaded_cached_property
 import discord
 import requests
-from cached_property import threaded_cached_property
 
 from neko2.shared import commands, configfiles, fuzzy, morefunctools, scribe, \
     traits

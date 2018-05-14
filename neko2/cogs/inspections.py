@@ -28,13 +28,14 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-import urllib.parse
 from datetime import datetime  # Timestamp stuff
+from typing import Union
+import urllib.parse
 
 import discord
 
-from neko2.shared import alg, perms, scribe, string, \
-    traits  # Random colours; Permission help; Logging; String helpers; HTTPS
+# Random colours; Permission help; Logging; String helpers; HTTPS
+from neko2.shared import alg, collections, perms, scribe, string, traits
 from neko2.shared.mentionconverter import *  # Mentioning
 
 
@@ -51,9 +52,7 @@ class GuildStuffCog(traits.CogTraits, scribe.Scribe):
                     examples=['@User#1234', '#channel', '@Role Name'],
                     invoke_without_command=True,
                     aliases=['in'])
-    async def inspect_group(self,
-                            ctx,
-                            *,
+    async def inspect_group(self, ctx, *,
                             obj: MentionOrSnowflakeConverter):
         """
         Inspects something by passing a mention. This will not support
@@ -63,6 +62,8 @@ class GuildStuffCog(traits.CogTraits, scribe.Scribe):
         """
         if isinstance(obj, int):
             await self.inspect_snowflake.callback(self, ctx, obj)
+        elif isinstance(obj, discord.Member):
+            await self.inspect_member(self, ctx, member=obj)
         elif isinstance(obj, discord.Role):
             await self.inspect_role.callback(self, ctx, role=obj)
         elif isinstance(obj, discord.Emoji):
@@ -76,15 +77,25 @@ class GuildStuffCog(traits.CogTraits, scribe.Scribe):
     # noinspection PyUnresolvedReferences
     @inspect_group.command(name='avatar', brief='Shows the user\'s avatar.',
                            examples=['@user'], aliases=['a', 'av'])
-    async def inspect_avatar(self, ctx, *, user: discord.Member):
-        avatar_url = user.avatar_url
-        url_obj = urllib.parse.urlparse(avatar_url)
-        avatar_url = f'{url_obj[0]}://{url_obj[1]}{url_obj[2]}?size=2048'
-        embed = discord.Embed(
-            title=f'{user}\'s avatar',
-            colour=getattr(user, 'colour', 0))
-        embed.set_image(url=avatar_url)
-        await ctx.send(embed=embed)
+    async def inspect_avatar(self, ctx, *, user: discord.Member=None):
+        """
+        If no avatar is specified, then the guild avatar is captured
+        instead!
+        """
+        if user:
+            avatar_url = user.avatar_url
+            url_obj = urllib.parse.urlparse(avatar_url)
+            avatar_url = f'{url_obj[0]}://{url_obj[1]}{url_obj[2]}?size=2048'
+            embed = discord.Embed(
+                title=f'`@{user}`\'s avatar',
+                colour=getattr(user, 'colour', 0))
+            embed.set_image(url=avatar_url)
+            await ctx.send('Member avatar inspection', embed=embed)
+        else:
+            embed = discord.Embed(
+                colour=alg.rand_colour())
+            embed.set_image(url=ctx.guild.icon_url)
+            await ctx.send('Guild avatar inspection', embed=embed)
 
     @inspect_group.command(name='emoji', brief='Inspects an emoji.',
                            aliases=['e'])
@@ -119,20 +130,55 @@ class GuildStuffCog(traits.CogTraits, scribe.Scribe):
 
         await ctx.send(embed=embed)
 
+    @inspect_group.command(name='member', brief='Inspects a given member.',
+                           aliases=['user', 'u', 'm'])
+    async def inspect_member(self, ctx, *, member: discord.Member):
+        member: Union[discord.Member, discord.User]
+
+        embed = discord.Embed(title=f'`@{member}`', colour=member.colour)
+
+        desc = '\n'.join((
+            f'Display name: `{member.display_name}`',
+            f'Joined on: {member.joined_at.strftime("%c")}',
+            f'Top role: {member.top_role}',
+            f'Colour: `#{hex(member.colour.value)[2:]}`',
+        ))
+        embed.description = desc
+
+        embed.set_thumbnail(url=member.avatar_url)
+
+        embed.set_footer(text=str(member.id),
+                         icon_url=member.default_avatar_url)
+
+        embed.add_field(
+            name='Account type',
+            value=('Bot' if member.bot else 'User') + ' account')
+
+        if member.roles:
+            embed.add_field(
+                name='Roles',
+                value=string.trunc(
+                    ', '.join(map(str, reversed(member.roles))), 1024))
+
+        await ctx.send('Member inspection', embed=embed)
+
     @inspect_group.command(name='snowflake', brief='Deciphers a snowflake.',
                            examples=['439802699144232960'],
                            aliases=['s', 'sf'])
     async def inspect_snowflake(self, ctx, *snowflakes: int):
-        """
-        You can pass up to 10 snowflakes at once.
-        """
+        """You can pass up to 10 snowflakes at once."""
         if not len(snowflakes):
             return
+
+        # Filters out duplicates.
+        snowflakes = collections.OrderedSet(snowflakes)
 
         embed = discord.Embed(colour=alg.rand_colour())
 
         # Discord epoch from the Unix epoch in ms
-        epoch = 1420070400000
+        # Essentially the number of milliseconds since epoch
+        # at 1st January 2015
+        epoch = 1_420_070_400_000
         for s in snowflakes[:10]:
 
             timestamp = ((s >> 22) + epoch) / 1000
@@ -190,7 +236,7 @@ class GuildStuffCog(traits.CogTraits, scribe.Scribe):
 
             embed.add_field(name=str(s), value=string)
 
-        await ctx.send(embed=embed)
+        await ctx.send('Snowflake inspection', embed=embed)
 
     @inspect_group.command(name='role', brief='Inspects a given role.',
                            examples=['@Role Name'], aliases=['r'])
@@ -211,7 +257,8 @@ class GuildStuffCog(traits.CogTraits, scribe.Scribe):
                         value=string.yn(role.managed))
         embed.add_field(name='Created on',
                         value=role.created_at.strftime('%c'))
-        embed.add_field(name='Colour', value=f'`{hex(role.colour.value)}`')
+        embed.add_field(name='Colour',
+                        value=f'`#{hex(role.colour.value)[2:]}`')
         embed.add_field(name='Members with this role',
                         value=string.plur_simple(len(role.members), 'member'))
 
@@ -223,7 +270,7 @@ class GuildStuffCog(traits.CogTraits, scribe.Scribe):
         else:
             embed.add_field(name='Height', value='Bottom-most role.')
 
-        await ctx.send(embed=embed)
+        await ctx.send('Role inspection', embed=embed)
 
 
 def setup(bot):

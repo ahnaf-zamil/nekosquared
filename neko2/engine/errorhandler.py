@@ -34,8 +34,8 @@ import sys
 import traceback  # Traceback utils.
 
 import discord  # Embeds
-import discord.ext.commands.errors as dpyext_errors  # Errors for ext.
 from discord.ext.commands import Paginator
+import discord.ext.commands.errors as dpyext_errors  # Errors for ext.
 
 from neko2.shared import excuses, morefunctools, string
 from . import extrabits

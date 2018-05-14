@@ -30,8 +30,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import contextlib
 import io
-import xmlrpc.client as xmlrpcclient
 from urllib import parse
+import xmlrpc.client as xmlrpcclient
 
 import discord
 

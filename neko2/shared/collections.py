@@ -28,7 +28,8 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-import collections
+from collections import *
+
 import typing
 
 from cached_property import cached_property
@@ -38,7 +39,7 @@ __all__ = ('OrderedSet', 'MutableOrderedSet', 'Stack', 'TwoWayDict')
 SetType = typing.TypeVar('SetType')
 
 
-class OrderedSet(collections.Set, typing.Generic[SetType]):
+class OrderedSet(Set, typing.Generic[SetType]):
     """
     A set data-type that maintains insertion order. This implementation
     is immutable for the most part.
@@ -50,9 +51,9 @@ class OrderedSet(collections.Set, typing.Generic[SetType]):
         # This implementation is just a dictionary that only utilises the keys.
         # We use the OrderedDict implementation underneath.
         if iterable:
-            self._dict = collections.OrderedDict({k: None for k in iterable})
+            self._dict = OrderedDict({k: None for k in iterable})
         else:
-            self._dict = collections.OrderedDict()
+            self._dict = OrderedDict()
 
     def __contains__(self, x: SetType) -> bool:
         """Return true if the given object is present in the set."""
@@ -78,7 +79,7 @@ class OrderedSet(collections.Set, typing.Generic[SetType]):
 
 
 # noinspection PyProtectedMember
-class MutableOrderedSet(OrderedSet, collections.MutableSet):
+class MutableOrderedSet(OrderedSet, MutableSet):
     """An ordered set that allows mutation."""
 
     def add(self, x: SetType) -> None:
@@ -93,7 +94,7 @@ class MutableOrderedSet(OrderedSet, collections.MutableSet):
 FifoFiloType = typing.TypeVar('FifoFiloType')
 
 
-class _FifoFiloBase(collections.Sequence, typing.Generic[FifoFiloType]):
+class _FifoFiloBase(Sequence, typing.Generic[FifoFiloType]):
     """
     Underlying implementation of either a FIFO/LILO or FILO/LIFO datatype.
     This is exposed as a Queue or Stack subtype.
@@ -199,7 +200,7 @@ class Deque(Queue, Stack):
         return x
 
 
-class TwoWayDict(collections.OrderedDict):
+class TwoWayDict(OrderedDict):
     """
     A map that supports being reversed, and caches it's value to speed up
     reversal whilst maintaining some level of integrity.
@@ -212,7 +213,7 @@ class TwoWayDict(collections.OrderedDict):
 
     @cached_property
     def _reversed_representation(self) -> dict:
-        rev = collections.OrderedDict()
+        rev = OrderedDict()
 
         for k, v in self.items():
             if hasattr(v, '__iter__') and not isinstance(v, str):

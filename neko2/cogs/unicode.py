@@ -37,8 +37,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # appears to be incomplete. We only fall back to this therefore if we cannot
 # resolve a character normally.
 import re
-import unicodedata
 from typing import Optional, Union
+import unicodedata
 
 import bs4
 from dataclasses import dataclass
