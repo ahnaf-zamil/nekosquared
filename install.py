@@ -280,7 +280,7 @@ if not just_deps:
         enable_file.write(enable_script)
 
     with open('update.sh', 'w') as update_file:
-        print(f'Update script: {os.path.join(os.getcwd(), "update.sh")}')
+        print(f'Update script: ' + os.path.join(os.getcwd(), "update.sh"))
         print(update_script)
         update_file.write(update_script)
 
