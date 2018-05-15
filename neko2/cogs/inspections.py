@@ -145,7 +145,7 @@ class GuildStuffCog(traits.CogTraits, scribe.Scribe):
             f'Joined here on: {member.joined_at.strftime("%c")}',
             f'Joined Discord on: {member.created_at.strftime("%c")}',
             f'Top role: {member.top_role}',
-            f'Colour: `#{hex(member.colour.value)[2:]}`',
+            f'Colour: `#{hex(member.colour.value)[2:].zfill(6)}`',
             'Status: ' + {
                 discord.Status.online: 'Online',
                 discord.Status.idle: 'Away',
@@ -337,7 +337,7 @@ class GuildStuffCog(traits.CogTraits, scribe.Scribe):
         embed.add_field(name='Created on',
                         value=role.created_at.strftime('%c'))
         embed.add_field(name='Colour',
-                        value=f'`#{hex(role.colour.value)[2:]}`')
+                        value=f'`#{hex(role.colour.value)[2:].zfill(6)}`')
         embed.add_field(name='Members with this role',
                         value=string.plur_simple(len(role.members), 'member'))
 
