@@ -275,7 +275,7 @@ if not just_deps:
         service_file.write(service_script)
 
     with open('enable.sh', 'w') as enable_file:
-        print('Enable script: ' + os.path.join(os.getcwd(), "enable.sh")}')
+        print('Enable script: ' + os.path.join(os.getcwd(), "enable.sh"))
         print(enable_script)
         enable_file.write(enable_script)
 
