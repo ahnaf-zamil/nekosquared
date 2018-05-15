@@ -127,7 +127,7 @@ if not just_deps:
 
     i = 10
     while i >= 0:
-        print(f'You have {i}s to cancel the operation...', end='')
+        print('You have ' + str(i) + 's to cancel the operation...', end='')
         time.sleep(1)
         i -= 1
         print('\r', end='')
@@ -190,7 +190,7 @@ except AssertionError:
 # Generate a shell script to install the stuff we need in the venv.
 
 with open('temp-install-script.sh', 'w') as script_file:
-    script = f'''
+    script = '''
         #!/bin/bash
         function main() {{
             trap 'pkill python3.6; exit' INT
@@ -223,30 +223,31 @@ with open('temp-install-script.sh', 'w') as script_file:
     script_file.write(script)
     shell_do('chmod -v +x temp-install-script.sh')
 
-shell_do(f'./temp-install-script.sh && rm -v temp-install-script.sh')
+shell_do('./temp-install-script.sh && rm -v temp-install-script.sh')
 
 print('Completed.')
 
 if not just_deps:
     print('Generating run script and sample service script.')
 
-    run_script = inspect.cleandoc(f'''#!/bin/bash
+    run_script = inspect.cleandoc('''#!/bin/bash
     source venv/bin/activate
     eval 'find -name "__pycache__" -type d -exec rm {{}} -rf \;' > /dev/null 
     2>&1
     {python_command} -m neko2
     ''')
 
-    service_script = inspect.cleandoc(f'''[Unit]
+    service_script = inspect.cleandoc('''[Unit]
     Description=Nekozilla^2 generated systemd Service
     
     [Service]
     Type=simple
     PIDFile=/var/run/neko2.pid
-    ExecStart={os.path.join(os.getcwd(), "neko2.sh")}
+    ExecStart='''
+    + os.path.join(os.getcwd(), "neko2.sh") + '''
     Restart=always
-    User={getpass.getuser()}
-    WorkingDirectory={os.getcwd()}
+    User=''' + getpass.getuser() + '''
+    WorkingDirectory=''' + os.getcwd() + '''
     
     [Install]
     WantedBy=multi-user.target
@@ -265,17 +266,17 @@ if not just_deps:
     ''')
 
     with open('neko2.sh', 'w') as run_file:
-        print(f'Run script: {os.path.join(os.getcwd(), "neko2.sh")}')
+        print('Run script: ' + os.path.join(os.getcwd(), "neko2.sh"))
         print(run_script)
         run_file.write(run_script)
 
     with open('neko2.service', 'w') as service_file:
-        print(f'Sample service: {os.path.join(os.getcwd(), "neko2.service")}')
+        print('Sample service ' + os.path.join(os.getcwd(), "neko2.service"))
         print(service_script)
         service_file.write(service_script)
 
     with open('enable.sh', 'w') as enable_file:
-        print(f'Enable script: {os.path.join(os.getcwd(), "enable.sh")}')
+        print('Enable script: ' + os.path.join(os.getcwd(), "enable.sh")}')
         print(enable_script)
         enable_file.write(enable_script)
 
