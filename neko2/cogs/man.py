@@ -62,7 +62,6 @@ class ManCog:
            8   System administration commands (usually only for root)
            9   Kernel routines [Non standard]
         """
-        #
         if section and section != '*' and not section.isdigit():
             raise commands.BadArgument('Expected a * or integer for section.')
         else:

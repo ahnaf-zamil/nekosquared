@@ -126,27 +126,6 @@ class Builtins(extrabits.InternalCogType):
         return uptime
 
     @property
-    def uptime(self) -> str:
-        uptime = self.bot.uptime
-        if uptime >= 60 * 60 * 24:
-            uptime /= (60.0 * 60 * 24)
-            uptime = round(uptime, 1)
-            uptime = f'{uptime} day{"s" if uptime != 1 else ""}'
-        elif uptime >= 60 * 60:
-            uptime /= (60.0 * 60)
-            uptime = round(uptime, 1)
-            uptime = f'{uptime} hour{"s" if uptime != 1 else ""}'
-        elif uptime >= 60:
-            uptime /= 60.0
-            uptime = round(uptime, 1)
-            uptime = f'{uptime} minute{"s" if uptime != 1 else ""}'
-        else:
-            uptime = int(uptime)
-            uptime = f'{uptime} second{"s" if uptime != 1 else ""}'
-
-        return uptime
-
-    @property
     def lines_of_code(self):
         """Gets the #lines of code as a string description."""
         if lines_of_code is not None:
@@ -207,6 +186,7 @@ class Builtins(extrabits.InternalCogType):
             commands = []
 
             for potential_command in all_cmds:
+                # noinspection PyUnresolvedReferences
                 if await potential_command.can_run(ctx):
                     commands.append(potential_command)
 
@@ -232,6 +212,7 @@ class Builtins(extrabits.InternalCogType):
                 next_commands = commands[i:i+10]
 
                 for command in next_commands:
+                    # noinspection PyUnresolvedReferences
                     embed_page.add_field(
                         name=f'`{command.qualified_name}`',
                         value=command.brief or '\u200b',

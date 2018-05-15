@@ -29,13 +29,13 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from datetime import datetime  # Timestamp stuff
-from typing import Union
 import urllib.parse
 
 import discord
 
 # Random colours; Permission help; Logging; String helpers; HTTPS
-from neko2.shared import alg, collections, perms, scribe, string, traits
+from neko2.shared import alg, collections, scribe, string, traits
+from neko2.shared.perms import Permissions
 from neko2.shared.mentionconverter import *  # Mentioning
 
 
@@ -63,7 +63,7 @@ class GuildStuffCog(traits.CogTraits, scribe.Scribe):
         if isinstance(obj, int):
             await self.inspect_snowflake.callback(self, ctx, obj)
         elif isinstance(obj, discord.Member):
-            await self.inspect_member(self, ctx, member=obj)
+            await self.inspect_member.callback(self, ctx, member=obj)
         elif isinstance(obj, discord.Role):
             await self.inspect_role.callback(self, ctx, role=obj)
         elif isinstance(obj, discord.Emoji):
@@ -77,7 +77,7 @@ class GuildStuffCog(traits.CogTraits, scribe.Scribe):
     # noinspection PyUnresolvedReferences
     @inspect_group.command(name='avatar', brief='Shows the user\'s avatar.',
                            examples=['@user'], aliases=['a', 'av'])
-    async def inspect_avatar(self, ctx, *, user: discord.Member=None):
+    async def inspect_avatar(self, ctx, *, user: discord.Member = None):
         """
         If no avatar is specified, then the guild avatar is captured
         instead!
@@ -127,38 +127,117 @@ class GuildStuffCog(traits.CogTraits, scribe.Scribe):
 
         embed.set_author(name=f'Emoji in "{emoji.guild}"', icon_url=emoji.url)
         embed.set_footer(text=str(emoji.id), icon_url=emoji.url)
-
         await ctx.send(embed=embed)
 
     @inspect_group.command(name='member', brief='Inspects a given member.',
                            aliases=['user', 'u', 'm'])
-    async def inspect_member(self, ctx, *, member: discord.Member):
-        member: Union[discord.Member, discord.User]
+    async def inspect_member(self, ctx, *, member: discord.Member=None):
+        """
+        If no member is specified, then I will show your profile instead.
+        """
+        if member is None:
+            member = ctx.author
 
         embed = discord.Embed(title=f'`@{member}`', colour=member.colour)
 
         desc = '\n'.join((
             f'Display name: `{member.display_name}`',
-            f'Joined on: {member.joined_at.strftime("%c")}',
+            f'Joined here on: {member.joined_at.strftime("%c")}',
+            f'Joined Discord on: {member.created_at.strftime("%c")}',
             f'Top role: {member.top_role}',
             f'Colour: `#{hex(member.colour.value)[2:]}`',
+            'Status: ' + {
+                discord.Status.online: 'Online',
+                discord.Status.idle: 'Away',
+                discord.Status.dnd: 'Busy',
+                discord.Status.invisible: 'Offline'
+            }.get(member.status, 'On Mars'),
+            f'Account type: {member.bot and "Bot" or "Human"}'
         ))
         embed.description = desc
-
         embed.set_thumbnail(url=member.avatar_url)
-
         embed.set_footer(text=str(member.id),
                          icon_url=member.default_avatar_url)
-
-        embed.add_field(
-            name='Account type',
-            value=('Bot' if member.bot else 'User') + ' account')
 
         if member.roles:
             embed.add_field(
                 name='Roles',
                 value=string.trunc(
                     ', '.join(map(str, reversed(member.roles))), 1024))
+
+        role_perms = Permissions.from_discord_type(member.guild_permissions)
+        role_perms = {*role_perms.unmask()}
+
+        chn_perms = member.permissions_in(ctx.channel)
+        chn_perms = {*Permissions.from_discord_type(chn_perms).unmask()}
+
+        # Calculate any extra perms granted for this channel only.
+        chn_perms.difference_update(role_perms)
+
+        if role_perms:
+            role_perms = ', '.join(f'`{p}`' for p in role_perms)
+        else:
+            role_perms = 'No role permissions granted (somehow)'
+
+        embed.add_field(name='Role-granted permissions',
+                        value=role_perms)
+
+        if member.activity:
+            # This design is...not the best imho, but it is confusingly
+            # defined in the API:
+            # This attr can be a Game, Streaming or Activity, but Activity
+            # itself can have a `playing` type which denotes a game, so...
+            # how do we know which one to expect? Game is not a subtype
+            # of activity nor vice versa!
+            if isinstance(member.activity, discord.Activity):
+                a = member.activity
+
+                attrs = []
+                # Less verbose.
+                z = attrs.append
+
+                if a.start:
+                    z(f'Since: {a.start.strftime("%c")}')
+                if a.end:
+                    z(f'Until: {a.end.strftime("%c")}')
+
+                if a.details:
+                    z(f'Details: {a.details}')
+
+                if a.small_image_text:
+                    z(f'Small tooltip: {a.small_image_text}')
+                if a.large_image_text:
+                    z(f'Large tooltip: {a.large_image_text}')
+
+                if not attrs:
+                    z(a.name)
+                else:
+                    attrs.insert(0, f'Name: {a.name}')
+
+                t = a.type
+                t = 'Activity' \
+                    if t == discord.ActivityType.unknown \
+                    else t.name.title()
+
+                embed.add_field(
+                    name=t,
+                    value='\n'.join(attrs))
+            elif isinstance(member.activity, discord.Game):
+                embed.add_field(
+                    name='Playing',
+                    value=member.activity.name)
+
+            elif isinstance(member.activity, discord.Streaming):
+                a = member.activity
+                embed.add_field(
+                    name='Streaming',
+                    value=f'[{a.twitch_name or a.name}]({a.url})\n'
+                          f'{a.details or ""}')
+
+        if chn_perms:
+            chn_perms = ', '.join(f'`{p}`' for p in chn_perms)
+            embed.add_field(name='Additional permissions in this channel',
+                            value=chn_perms)
 
         await ctx.send('Member inspection', embed=embed)
 
@@ -241,7 +320,7 @@ class GuildStuffCog(traits.CogTraits, scribe.Scribe):
     @inspect_group.command(name='role', brief='Inspects a given role.',
                            examples=['@Role Name'], aliases=['r'])
     async def inspect_role(self, ctx, *, role: discord.Role):
-        permissions = perms.Permissions.from_discord_type(role.permissions)
+        permissions = Permissions.from_discord_type(role.permissions)
 
         permissions = sorted(f'`{name}`' for name in permissions.unmask())
 

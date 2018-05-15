@@ -99,9 +99,9 @@ class CompilerCog(traits.CogTraits):
                 output = await coliru_configs.targets[language](source)
         except KeyError:
             booklet = bookbinding.StringBookBinder(ctx)
-            booklet.add_line('That language ({language})is not yet supported '
-                             'by this toolchain. Feel free to edit this '
-                             'message if you wish to do something else.')
+            booklet.add_line(f'That language ({language}) is not yet supported'
+                             ' by this toolchain. Feel free to edit your'
+                             ' message if you wish to do something else.')
             booklet = booklet.build()
             booklet.start()
 
