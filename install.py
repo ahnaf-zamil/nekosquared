@@ -198,9 +198,8 @@ with open('temp-install-script.sh', 'w') as script_file:
             python3.6 -m pip install --upgrade pip
         '''.lstrip()
     for dep, pkg in dependencies.items():
-        script += f'''
-            if {python_command} -c "import {dep}" > /dev/null 2>&1; then
-        '''
+        script += f'if {python_command} -c "import {dep}" > /dev/null 2>&1; then'
+        
         if update_flag is not None:
             script += f'        python3.6 -m pip install {update_flag} {pkg}\n'
         else:
