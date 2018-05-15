@@ -34,42 +34,80 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from discord.ext import commands
 
+from neko2.shared import alg
+
 
 class MentionConverter(commands.Converter):
-    async def convert(self, ctx, argument: str):
-        if len(argument) < 4:
-            raise commands.BadArgument('Expected a mention here')
-
-        if not argument.startswith('<') and not argument.endswith('>'):
-            raise commands.BadArgument('Expected a mention here')
-
-        body = argument[1:-1]
+    async def convert(self, ctx, body: str):
+        if body.startswith('<') and body.endswith('>'):
+            body = body[1:-1]
 
         if body.startswith('@&'):
-            return await commands.RoleConverter().convert(ctx, argument)
+            return await commands.RoleConverter().convert(ctx, body)
         elif body.startswith('@') and body[1:2].isdigit() or body[1:2] == '!':
-            return await commands.MemberConverter().convert(ctx, argument)
+            return await commands.MemberConverter().convert(ctx, body)
         elif body.startswith('#'):
             return await commands.CategoryChannelConverter().convert(
-                ctx, argument)
+                ctx, body)
         else:
             try:
-                return await commands.EmojiConverter().convert(ctx, argument)
+                return await commands.EmojiConverter().convert(ctx, body)
             except:
                 pass
 
             try:
-                return await commands.PartialEmojiConverter() \
-                    .convert(ctx, argument)
+                return await commands.PartialEmojiConverter()\
+                    .convert(ctx, body)
             except:
                 pass
 
-            raise commands.BadArgument('Unrecognised mention type')
+        # Attempt to find in whatever we can look in. Don't bother looking
+        # outside this guild though, as I plan to keep data between guilds
+        # separate for privacy reasons.
+
+        if ctx.guild:
+            all_strings = [
+                *ctx.guild.members, *ctx.guild.channels, *ctx.guild.categories,
+                *ctx.guild.roles, *ctx.guild.emojis,
+            ]
+
+            def search(obj):
+                if getattr(obj, 'display_name', '') == body:
+                    return True
+                if str(obj) == body or obj.name == body:
+                    return True
+                return False
+
+            # Match case first, as a role and member, say, may share the same
+            # name barr the case difference, and this could lead to unwanted
+            # or unexpected results. The issue is this will get slower as a
+            # server gets larger, generally.
+            result = alg.find(search, all_strings)
+            if not result:
+                # Try again not matching case.
+
+                def search(obj):
+                    _body = body.lower()
+
+                    if getattr(obj, 'display_name', '').lower() == _body:
+                        return True
+                    if str(obj).lower() == _body:
+                        return True
+                    if obj.name.lower() == _body:
+                        return True
+                    return False
+
+                result = alg.find(search, all_strings)
+
+            if not result:
+                raise commands.BadArgument(f'Could not resolve `{body}`')
+            else:
+                return result
 
 
 class MentionOrSnowflakeConverter(MentionConverter):
-    async def convert(self, ctx, argument: str):
-        if argument.isdigit():
-            return int(argument)
+    async def convert(self, ctx, body: str):
+        if body.isdigit():
+            return int(body)
         else:
-            return await super().convert(ctx, argument)
+            return await super().convert(ctx, body)

@@ -34,7 +34,7 @@ import urllib.parse
 import discord
 
 # Random colours; Permission help; Logging; String helpers; HTTPS
-from neko2.shared import alg, collections, scribe, string, traits
+from neko2.shared import collections, scribe, string, traits
 from neko2.shared.perms import Permissions
 from neko2.shared.mentionconverter import *  # Mentioning
 
@@ -328,7 +328,7 @@ class GuildStuffCog(traits.CogTraits, scribe.Scribe):
                               description=', '.join(permissions),
                               colour=role.colour)
 
-        embed.add_field(name='Can mention?',
+        embed.add_field(name='Can be mentioned?',
                         value=string.yn(role.mentionable))
         embed.add_field(name='Will hoist?',
                         value=string.yn(role.hoist))
@@ -338,16 +338,21 @@ class GuildStuffCog(traits.CogTraits, scribe.Scribe):
                         value=role.created_at.strftime('%c'))
         embed.add_field(name='Colour',
                         value=f'`#{hex(role.colour.value)[2:].zfill(6)}`')
-        embed.add_field(name='Members with this role',
-                        value=string.plur_simple(len(role.members), 'member'))
-
-        if role.position:
-            embed.add_field(
-                name='Height',
-                value=f'{string.plur_simple(role.position, "role")}'
-                      ' from the bottom.')
+        if len(role.members) > 10:
+            embed.add_field(name='Members with this role',
+                            value=f'{len(role.members)} members')
+        elif role.members:
+            embed.add_field(name='Members with this role',
+                            value=', '.join(sorted(map(str, role.members))))
         else:
-            embed.add_field(name='Height', value='Bottom-most role.')
+            embed.add_field(name='Members with this role',
+                            value='No one has this role yet!')
+
+        embed.add_field(
+            name='Location in the hierarchy',
+            value=f'{string.plur_simple(role.position, "role")} from the '
+                  f'bottom; {len(ctx.guild.roles) - role.position} from '
+                  'the top.')
 
         await ctx.send('Role inspection', embed=embed)
 

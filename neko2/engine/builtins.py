@@ -669,7 +669,7 @@ class Builtins(extrabits.InternalCogType):
         when, update, count = await commit
 
         embed.add_field(name=f'Update #{count} ({when})',
-                        value=update, inline=False)
+                        value=string.trunc(update, 1024), inline=False)
 
         embed.set_author(name=author)
 
