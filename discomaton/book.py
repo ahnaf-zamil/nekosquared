@@ -100,9 +100,9 @@ def default_buttons() -> typing.List[Button]:
         # print('<-')
         await machine.move_forwards_by(-1)
 
-    #@_as_button(name='Let anyone control this',
+    # @_as_button(name='Let anyone control this',
     #            reaction='\N{LEFT LUGGAGE}')
-    #async def unlock(_unused_button: Button,
+    # async def unlock(_unused_button: Button,
     #                 machine: 'AbstractBooklet',
     #                 _unused_reaction: discord.Reaction,
     #                 _unused_user: discord.User) -> None:
@@ -148,13 +148,14 @@ def default_buttons() -> typing.List[Button]:
             finally:
                 await attempt_delete(*[prompt, msg] if msg else prompt)
                 setattr(machine, '_is_showing_page_prompt', False)
+                # noinspection PyProtectedMember
                 await machine._flush_reacts()
 
         return in_future(later_callback())
 
-    #@_as_button(name='Show help',
+    # @_as_button(name='Show help',
     #            reaction='\N{INFORMATION SOURCE}')
-    #async def show_help(_unused_button: Button,
+    # async def show_help(_unused_button: Button,
     #                    machine: 'AbstractBooklet',
     #                    _unused_reaction: discord.Reaction,
     #                    whom: discord.User) -> None:
@@ -215,9 +216,9 @@ def default_buttons() -> typing.List[Button]:
         # print('>>|')
         await machine.set_page_index(-1)
 
-    #@_as_button(name='Close pagination controls',
+    # @_as_button(name='Close pagination controls',
     #            reaction='\N{WHITE HEAVY CHECK MARK}')
-    #async def delete(_unused_button: Button,
+    # async def delete(_unused_button: Button,
     #                 _machine: 'AbstractBooklet',
     #                 _unused_reaction: discord.Reaction,
     #                 _unused_user: discord.User) -> None:
@@ -233,8 +234,8 @@ def default_buttons() -> typing.List[Button]:
         await machine.initial_message.delete()
         raise StopAsyncIteration
 
-    #@show_help.with_predicate
-    #def help_show_if(machine: 'AbstractBooklet') -> bool:
+    # @show_help.with_predicate
+    # def help_show_if(machine: 'AbstractBooklet') -> bool:
     #    return not hasattr(machine, '_help_shown')
 
     @go_to_start.with_predicate
@@ -247,8 +248,8 @@ def default_buttons() -> typing.List[Button]:
     def multiple_pages_only(machine: 'AbstractBooklet') -> bool:
         return len(machine) > 1
 
-    #@unlock.with_predicate
-    #def show_unlock_iff(machine: 'AbstractBooklet') -> bool:
+    # @unlock.with_predicate
+    # def show_unlock_iff(machine: 'AbstractBooklet') -> bool:
     #    return machine.only_author
 
     @go_back_10_pages.with_predicate
@@ -495,6 +496,22 @@ class AbstractBooklet(AbstractIterableMachine,
     def __index__(self):
         """Gets the current page index."""
         return self._page_index
+
+    def set_starting_page_index(self, index: int):
+        """
+        Sets the starting page. This is only safe to use if the book has yet
+        to be `start`ed.
+        """
+        self.__page_index = index
+
+    def set_starting_page_number(self, number: int):
+            """
+            Sets the starting page. This is only safe to use if the book has
+            yet
+            to be `start`ed.
+            """
+            self.__page_index = number - 1
+            self.__current_page = self.pages[self.__page_index]
 
     async def set_page_index(self, index: int) -> None:
         """

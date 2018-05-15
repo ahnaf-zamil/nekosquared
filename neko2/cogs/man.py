@@ -29,21 +29,26 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import asyncio
+import re
 
+from discomaton import button
 from discomaton.factories import bookbinding
 from neko2.shared import commands
 
 
 class ManCog:
     @commands.command(brief='Shows manpages.')
-    async def man(self, ctx, page, section: int = None):
+    async def man(self, ctx, page, section: str = None, *, grep=None):
         """
         Searches man pages for the given input.
 
         Usage:
 
-        - `man page` - gets the given page
+        - `man page` - gets the given page, from any section.
+        - `man page * ` - gets the given page, from any section.
         - `man page 2` - gets the given page from section 2.
+        - `man page * 'pattern'` - searches all pages for the
+            given pattern (Python regex).
 
         Sections:
            1   Executable programs or shell commands
@@ -57,6 +62,15 @@ class ManCog:
            8   System administration commands (usually only for root)
            9   Kernel routines [Non standard]
         """
+        #
+        if section and section != '*' and not section.isdigit():
+            raise commands.BadArgument('Expected a * or integer for section.')
+        else:
+            if section == '*':
+                section = None
+            if section is not None:
+                section = int(section)
+
         if section is not None and not (1 <= section <= 9):
             return await ctx.send('Section must be between 1 and 9.',
                                   delete_after=10)
@@ -90,6 +104,47 @@ class ManCog:
 
             for line in main_stream.splitlines():
                 book.add_line(line, dont_alter=True)
+
+            book = book.build()
+
+            # Find the results
+            if grep:
+                try:
+                    regex = re.compile(grep)
+                    matching_pages = []
+
+                    for i, page in enumerate(book.pages):
+                        if regex.search(page):
+                            matching_pages.append(i + 1)
+                            continue
+
+                    if len(matching_pages) >= 1:
+                        book.set_starting_page_number(matching_pages[0])
+
+                    if len(matching_pages) > 1:
+                        # Metadata to be used later by the regex button.
+                        setattr(book, '_regex_matches', matching_pages)
+                        # Index in the match list
+                        setattr(book, '_current_match', 0)
+
+                        # noinspection PyProtectedMember
+                        @button.as_button(name='Next match', reaction='⏯')
+                        async def next_match(_unused_btn,
+                                             machine,
+                                             _unused_react,
+                                             _unused_user_):
+                            cm = machine._current_match + 1
+                            cm %= len(machine._regex_matches)
+
+                            machine._current_match = cm
+
+                            page = machine._regex_matches[cm]
+                            await machine.set_page_number(page)
+
+                        book.buttons[next_match.reaction] = next_match
+
+                except Exception as ex:
+                    await ctx.send(ex, delete_after=10)
 
             book.start()
 
