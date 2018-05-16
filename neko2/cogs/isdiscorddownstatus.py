@@ -89,7 +89,7 @@ class IsDiscordDownStatus(traits.CogTraits):
                     await self.bot.change_presence(
                         activity=discord.Activity(
                             type=discord.ActivityType.watching,
-                            name=f'Discord: {name}'),
+                            name=name),
                         status=discord.Status.dnd)
                     self.discord_down = True
                 else:
