@@ -38,7 +38,7 @@ from neko2.shared import commands
 
 class ManCog:
     @commands.command(brief='Shows manpages.')
-    async def man(self, ctx, page, section: str = None, *, grep=None):
+    async def man(self, ctx, page, section: str=None, *, grep=None):
         """
         Searches man pages for the given input.
 
@@ -79,7 +79,7 @@ class ManCog:
         else:
             section = str(section) if section else None
 
-        common_args = [page] if not section else [section, page]
+        common_args = [page] if not section else [str(section), page]
 
         # Gets the full manpage content which will be huge.
         main_proc = await asyncio.create_subprocess_exec(
