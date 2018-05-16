@@ -150,8 +150,8 @@ class GuildStuffCog(traits.CogTraits, scribe.Scribe):
                 discord.Status.online: 'Online',
                 discord.Status.idle: 'Away',
                 discord.Status.dnd: 'Busy',
-                discord.Status.invisible: 'Hiding'
-                discord.Status.offline: 'Offline'
+                discord.Status.invisible: 'Hiding',
+                discord.Status.offline: 'Offline',
             }.get(member.status, 'On Mars'),
             f'Account type: {member.bot and "Bot" or "Human"}'
         ))
