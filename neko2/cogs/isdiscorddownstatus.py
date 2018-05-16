@@ -96,7 +96,7 @@ class IsDiscordDownStatus(traits.CogTraits):
                     # Only change presence if discord has just gone
                     # back up again. This way, we can allow other cogs
                     # to change the message if they fancy.
-                    if getattr(self, '_discord_down', False):
+                    if self.discord_down:
                         await self.bot.change_presence(
                             activity=discord.Activity(
                                 type=discord.ActivityType.watching,
