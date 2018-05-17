@@ -293,3 +293,55 @@ async def wait_for_edit(*,
     except asyncio.TimeoutError:
         # We timed out, so stop listening.
         return
+
+
+def probably_broken(command):
+    """
+    Decorate any commands that are still beta features. This will handle
+    any unhandled exceptions a bit better, and not spam the bot-owner's
+    inbox while applied to a command.
+    """
+    assert isinstance(command, discord_commands.Command), \
+        'Re-order your decorators, yo!'
+
+    old_callback = command.callback
+
+    async def new_callback(self, ctx: discord_commands.Context,
+                           *args, **kwargs):
+        try:
+            return await old_callback(self, ctx, *args, **kwargs)
+        except BaseException:
+            import traceback
+
+            p = discord_commands.Paginator()
+
+            p.add_line('Uh-oh. You broke it.')
+            p.add_line('This feature is still under development, so '
+                       'hiccups like this are bound to happen. Please let the '
+                       'bot owner know about this issue, giving the following '
+                       'details!')
+            p.close_page()
+
+            p.add_line('Command invocation:')
+            p.add_line(f'\t{ctx.message.clean_content}', empty=True)
+
+            p.add_line(f'Message snowflake: {ctx.message.id}')
+            p.add_line(f'Author: {ctx.author}')
+            p.add_line(f'Guild: {ctx.guild}')
+            p.add_line(f'Channel: {ctx.channel}')
+            p.add_line(f'Created on: {ctx.message.created_at}')
+            p.add_line(f'Edited on: {ctx.message.edited_at}')
+
+            p.close_page()
+
+            for line in traceback.format_exc().splitlines(keepends=False):
+                p.add_line(line)
+
+            for page in p.pages:
+                await ctx.send(page)
+
+    command.callback = new_callback
+
+    # Set a flag.
+    setattr(command.callback, '_probably_broken', True)
+    return command

@@ -1,7 +1,11 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
 """
-Callable asynchronous compilers.
+Callable asynchronous compilers provided by Coliru.
+
+Reverse engineered from: http://coliru.stacked-crooked.com/
+
+https://docs.google.com/document/d/18md3rLdgD9f5Wro3i7YYopJBFb_6MPCO8-0ihtxHoyM
 
 ===
 
@@ -28,11 +32,10 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-import asyncio
-import inspect
 
-from neko2.cogs.compiler.toolchains import coliru
+from .api import *
 from neko2.shared import traits
+
 
 # Maps human readable languages to their syntax highlighting strings.
 languages = {}
@@ -43,6 +46,8 @@ targets = {}
 
 
 def register(*names, language):
+    import inspect
+
     def decorator(coro):
         languages[language.lower()] = [coro.__name__]
 
@@ -87,7 +92,7 @@ async def c(source):
     else:
         script = 'gcc ' + script
 
-    cc = coliru.Coliru(script, coliru.SourceFile('main.c', source))
+    cc = Coliru(script, SourceFile('main.c', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
@@ -120,7 +125,7 @@ async def cpp(source):
     else:
         script = 'g++ ' + script
 
-    cc = coliru.Coliru(script, coliru.SourceFile('main.cpp', source))
+    cc = Coliru(script, SourceFile('main.cpp', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
@@ -136,7 +141,7 @@ async def python2(source):
     ```
     """
     script = 'python main.py'
-    cc = coliru.Coliru(script, coliru.SourceFile('main.py', source))
+    cc = Coliru(script, SourceFile('main.py', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
@@ -161,6 +166,8 @@ async def python(source):
     <https://github.com/asottile/tokenize-rt> for more details on
     how this works.
     """
+    import asyncio
+
     # Pull future_fstrings source from Github.
     sesh = await traits.CogTraits.acquire_http()
     ffstring_req = sesh.request('get', ffstring_url)
@@ -172,10 +179,10 @@ async def python(source):
         ffstring_req.text(),
         trt_req.text())
     script = 'python3.5 future_fstrings.py main.py | python3.5'
-    cc = coliru.Coliru(script,
-                       coliru.SourceFile('main.py', source),
-                       coliru.SourceFile('tokenize_rt.py', trt),
-                       coliru.SourceFile('future_fstrings.py', ffstring))
+    cc = Coliru(script,
+                SourceFile('main.py', source),
+                SourceFile('tokenize_rt.py', trt),
+                SourceFile('future_fstrings.py', ffstring))
 
     return await cc.execute(sesh)
 
@@ -198,8 +205,9 @@ async def perl(source):
     print "\n";
     ```
     """
+    sesh = await traits.CogTraits.acquire_http()
     script = 'perl main.pl'
-    cc = coliru.Coliru(script, coliru.SourceFile('main.pl', source))
+    cc = Coliru(script, SourceFile('main.pl', source))
     return await cc.execute(sesh)
 
 
@@ -232,7 +240,7 @@ async def ruby(source):
     ```
     """
     script = 'ruby main.rb'
-    cc = coliru.Coliru(script, coliru.SourceFile('main.rb', source))
+    cc = Coliru(script, SourceFile('main.rb', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
@@ -250,7 +258,7 @@ async def sh(source):
     ```
     """
     script = 'sh main.sh'
-    cc = coliru.Coliru(script, coliru.SourceFile('main.sh', source))
+    cc = Coliru(script, SourceFile('main.sh', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
@@ -266,7 +274,7 @@ async def bash(source):
     ```
     """
     script = 'bash main.sh'
-    cc = coliru.Coliru(script, coliru.SourceFile('main.sh', source))
+    cc = Coliru(script, SourceFile('main.sh', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
@@ -300,7 +308,7 @@ async def fortran(source):
     ```
     """
     script = 'gfortran main.f08'
-    cc = coliru.Coliru(script, coliru.SourceFile('main.f08', source))
+    cc = Coliru(script, SourceFile('main.f08', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
@@ -329,7 +337,7 @@ async def fortran90(source):
     ```
     """
     script = 'gfortran main.f90'
-    cc = coliru.Coliru(script, coliru.SourceFile('main.f90', source))
+    cc = Coliru(script, SourceFile('main.f90', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
@@ -358,7 +366,7 @@ async def fortran95(source):
     ```
     """
     script = 'gfortran main.f95'
-    cc = coliru.Coliru(script, coliru.SourceFile('main.f95', source))
+    cc = Coliru(script, SourceFile('main.f95', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
@@ -381,7 +389,7 @@ async def awk(source):
     ```
     """
     script = 'awk -f main.awk'
-    cc = coliru.Coliru(script, coliru.SourceFile('main.awk', source))
+    cc = Coliru(script, SourceFile('main.awk', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
@@ -407,7 +415,7 @@ async def lua(source):
     ```
     """
     script = 'lua main.lua'
-    cc = coliru.Coliru(script, coliru.SourceFile('main.lua', source))
+    cc = Coliru(script, SourceFile('main.lua', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
@@ -445,6 +453,6 @@ async def make(source):
     ```
     """
     script = 'make -f Makefile'
-    cc = coliru.Coliru(script, coliru.SourceFile('Makefile', source))
+    cc = Coliru(script, SourceFile('Makefile', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)

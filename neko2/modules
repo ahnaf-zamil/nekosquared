@@ -3,14 +3,13 @@
 *.iss
 *.mew
 *.units
-
 # File-style packages
 *.admin
 # Do not use. Broken.
-# *.beats
+#*.beats
 *.botupdate
 *.botutils
-*.cat
+#*.cat
 *.chatty
 *.cppref
 *.f
@@ -18,9 +17,9 @@
 *.inspections
 *.isdiscorddownstatus
 *.man
-*.mocksql
+#*.mocksql
 # Uncomment if you wish to prevent nicknames being set for the bot.
-# *.nonick
+#*.nonick
 *.py
 *.rpn
 *.steam

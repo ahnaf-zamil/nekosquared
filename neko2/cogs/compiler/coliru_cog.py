@@ -1,7 +1,7 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
 """
-Main cog for command implementations for this module.
+Cog providing Coliru commands.
 
 ===
 
@@ -28,42 +28,24 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-import asyncio
 import io
 
-import discord
-
 from discomaton.factories import bookbinding
-from neko2.cogs.compiler.toolchains import coliru, coliru_configs, r
-from neko2.shared import commands, traits
+
+from neko2.shared import commands
+from neko2.shared import traits
+
+
 from . import tools
-from .toolchains import latex
+from .toolchains import coliru
 
 
-class CompilerCog(traits.CogTraits):
-    @commands.command(
-        name='tex', aliases=['latex', 'texd', 'latexd'],
-        brief='Attempts to parse a given LaTeX string and display a preview.')
-    async def latex_cmd(self, ctx, *, content: str):
-        """
-        Add the `d` prefix to the command to delete your message before the
-        response is shown.
-        """
-        delete = ctx.invoked_with.endswith('d')
-
-        if delete:
-            await commands.try_delete(ctx)
-
-        async with ctx.typing():
-            msg = await latex.LatexCogHelper.get_send_image(ctx, content)
-
-        if not delete:
-            await commands.wait_for_edit(ctx=ctx, msg=msg, timeout=1800)
-
+class ColiruCog(traits.CogTraits):
     @commands.group(
         invoke_without_command=True,
-        name='cc', aliases=['coliru', 'code', 'run'],
-        brief='Attempts to execute the given code using Coliru.')
+        name='coliru', aliases=['cc'],
+        brief='Attempts to execute the given code using '
+              '[coliru](http://coliru.stacked-crooked.com).')
     async def coliru(self, ctx, *, arguments):
         """
         Attempts to execute some code by detecting the language in the
@@ -88,7 +70,7 @@ class CompilerCog(traits.CogTraits):
             booklet = booklet.build()
             booklet.start()
 
-            return await self._listen_to_edit(ctx, booklet)
+            return await tools.listen_to_edit(ctx, booklet)
 
         # Extract the code
         language, source = code_block.groups()
@@ -96,7 +78,7 @@ class CompilerCog(traits.CogTraits):
 
         try:
             with ctx.typing():
-                output = await coliru_configs.targets[language](source)
+                output = await coliru.targets[language](source)
         except KeyError:
             booklet = bookbinding.StringBookBinder(ctx)
             booklet.add_line(f'That language ({language}) is not yet supported'
@@ -105,12 +87,14 @@ class CompilerCog(traits.CogTraits):
             booklet = booklet.build()
             booklet.start()
 
-            await self._listen_to_edit(ctx, booklet)
+            await tools.listen_to_edit(ctx, booklet)
         else:
             binder = bookbinding.StringBookBinder(ctx,
                                                   prefix='```markdown',
                                                   suffix='```',
                                                   max_lines=25)
+
+            binder.add_line(f'Interpreting as {language!r} source.')
 
             for line in output.split('\n'):
                 binder.add_line(line, dont_alter=True)
@@ -125,7 +109,7 @@ class CompilerCog(traits.CogTraits):
             booklet = binder.build()
             booklet.start()
 
-            await self._listen_to_edit(ctx, booklet)
+            await tools.listen_to_edit(ctx, booklet)
 
     @coliru.command(brief='Shows help for supported languages.')
     async def help(self, ctx, *, language=None):
@@ -135,22 +119,22 @@ class CompilerCog(traits.CogTraits):
         """
         if not language:
             output = '**Supported languages**\n'
-            for lang in sorted(coliru_configs.languages):
+            for lang in sorted(coliru.languages):
                 output += (f'- {lang.title()} -- `{ctx.prefix}cc '
-                           f'ˋˋˋ{coliru_configs.languages[lang.lower()][0]} '
+                           f'ˋˋˋ{coliru.languages[lang.lower()][0]} '
                            f'...`\n')
             await ctx.send(output)
         else:
             try:
                 lang = language.lower()
 
-                help_text = coliru_configs.docs[language]
+                help_text = coliru.docs[language]
                 help_text += '\n\n'
                 help_text += (
                     'Invoke using syntax highlighted code blocks with '
                     'one of the following names:\n')
                 help_text += ', '.join(f'`{x}`'
-                                       for x in coliru_configs.languages[lang])
+                                       for x in coliru.languages[lang])
 
                 await ctx.send(help_text)
             except KeyError:
@@ -301,76 +285,9 @@ class CompilerCog(traits.CogTraits):
             booklet = binder.build()
             booklet.start()
 
-            await self._listen_to_edit(ctx, booklet)
+            await tools.listen_to_edit(ctx, booklet)
 
         except IndexError:
             return await ctx.send('Invalid input format.')
         except ValueError as ex:
             return await ctx.send(str(ex))
-
-    @commands.command(name='r', aliases=['cranr'],
-                      brief='Executes a given R-code block, showing the output'
-                            ' and any graphs that were plotted.')
-    async def _r(self, ctx, *, source):
-        """
-        Use the following to highlight your syntax:
-
-        n.r
-        ```r
-        t = (1:625) / 100
-        x <- cos(t)
-        y <- sin(t)
-        plot(x, y)
-        ```
-        """
-        code_block = tools.code_block_re.search(source)
-        if code_block:
-            source = code_block.group(2)
-
-        with ctx.typing():
-            result = await r.eval_r(await self.acquire_http(),
-                                    source)
-
-        binder = bookbinding.StringBookBinder(ctx,
-                                              prefix='```markdown',
-                                              suffix='```',
-                                              max_lines=40)
-
-        # Last line is some error about rm not working.
-        for line in result.output.split('\n'):
-            if line == 'sh: 1: rm: Permission denied':
-                continue
-            binder.add_line(line, dont_alter=True)
-
-        binder.add_line(f'RESULT: {result.result.title()}')
-        binder.add_line(f'STATE: {result.state.title()}')
-        if result.fail_reason:
-            binder.add_line(f'FAILURE REASON: {result.fail_reason}')
-
-        booklet = binder.build()
-
-        booklet.start()
-
-        additionals = []
-
-        for i in range(0, min(6, len(result.images))):
-            with io.BytesIO(result.images[i][0]) as bio:
-                f = discord.File(bio, f'output_{i+1}.png')
-                additionals.append(await ctx.send(file=f))
-
-        await self._listen_to_edit(ctx, booklet, *additionals)
-
-    @staticmethod
-    async def _listen_to_edit(ctx, booklet=None, *additional_messages):
-        # Lets the book start up first, otherwise we get an error. If
-        # we cant send, then just give up.
-        for _ in range(0, 60):
-            if booklet and not len(booklet.response_stk):
-                await asyncio.sleep(1)
-            else:
-                await commands.wait_for_edit(ctx=ctx,
-                                             msg=booklet.root_resp,
-                                             timeout=1800)
-                for message in additional_messages:
-                    ctx.bot.loop.create_task(message.delete())
-                break

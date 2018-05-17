@@ -363,6 +363,10 @@ class Builtins(extrabits.InternalCogType):
 
         # pages[-1].set_thumbnail(url=ctx.bot.user.avatar_url)
 
+        if hasattr(command.callback, '_probably_broken'):
+            pages[0].add_field(name='In active development',
+                               value='Expect voodoo-type shit behaviour!')
+
         if should_paginate_full_doc:
             # Generate pages using the Discord.py paginator.
             pag = discomaton.RapptzPaginator(

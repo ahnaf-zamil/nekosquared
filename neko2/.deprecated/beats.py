@@ -6,7 +6,7 @@ YouTube player instance.
 References:
     https://github.com/Rapptz/discord.py/blob/rewrite/examples/playlist.py
     
-Currently in a broken state, unfortunately.
+Deprecated: Currently in a broken state, unfortunately.
 
 ===
 

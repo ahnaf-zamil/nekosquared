@@ -1,8 +1,11 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
 """
-API to Coliru.
+Coliru API interface.
 
+Reverse engineered from: http://coliru.stacked-crooked.com/
+
+https://docs.google.com/document/d/18md3rLdgD9f5Wro3i7YYopJBFb_6MPCO8-0ihtxHoyM
 ===
 
 MIT License
@@ -31,10 +34,9 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 import asyncio
 import json
 from typing import Dict
-
 from dataclasses import dataclass
+from neko2.cogs.compiler import tools
 
-from .. import tools
 
 __all__ = ('HOST', 'SourceFile', 'Coliru')
 

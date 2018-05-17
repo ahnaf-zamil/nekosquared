@@ -40,15 +40,15 @@ from neko2.shared import alg
 class MentionConverter(commands.Converter):
     async def convert(self, ctx, body: str):
         if body.startswith('<') and body.endswith('>'):
-            body = body[1:-1]
+            tb = body[1:-1]
 
-        if body.startswith('@&'):
-            return await commands.RoleConverter().convert(ctx, body)
-        elif body.startswith('@') and body[1:2].isdigit() or body[1:2] == '!':
-            return await commands.MemberConverter().convert(ctx, body)
-        elif body.startswith('#'):
-            return await commands.CategoryChannelConverter().convert(
-                ctx, body)
+            if tb.startswith('@&'):
+                return await commands.RoleConverter().convert(ctx, body)
+            elif tb.startswith('@') and tb[1:2].isdigit() or tb[1:2] == '!':
+                return await commands.MemberConverter().convert(ctx, body)
+            elif tb.startswith('#'):
+                return await commands.CategoryChannelConverter().convert(
+                    ctx, body)
         else:
             try:
                 return await commands.EmojiConverter().convert(ctx, body)

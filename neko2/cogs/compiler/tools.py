@@ -28,7 +28,10 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
+import asyncio
 import re
+
+from neko2.shared import commands
 
 __inline_block = r'`([^\s`][^`]*?)`'
 
@@ -74,3 +77,21 @@ def fix_makefile(input_code: str) -> str:
             line = four_space_re.sub('\t', line)
         strings.append(line)
     return '\n'.join(strings)
+
+
+async def listen_to_edit(ctx, booklet=None, *additional_messages):
+    # Lets the book start up first, otherwise we get an error. If
+    # we cant send, then just give up.
+    for _ in range(0, 60):
+        if booklet and not len(booklet.response_stk):
+            await asyncio.sleep(1)
+        else:
+            async def custom_delete():
+                for message in additional_messages:
+                    await message.delete()
+                await booklet.root_resp.delete()
+
+            await commands.wait_for_edit(ctx=ctx,
+                                         msg=booklet.root_resp,
+                                         timeout=1800,
+                                         custom_delete=custom_delete)

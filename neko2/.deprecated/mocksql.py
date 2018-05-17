@@ -4,6 +4,8 @@
 Repeats whatever you say but in a condescending tone. It should work well with
 SQL so that the main code is edited, but comments and strings are not.
 
+Deprecated: wasn't really useful.
+
 ===
 
 MIT License

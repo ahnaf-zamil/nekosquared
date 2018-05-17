@@ -110,12 +110,14 @@ class TldrLegalCog(traits.CogTraits):
 
         return License(name, summary, can, cant, must, url)
 
+    @commands.probably_broken
     @commands.group(brief='Search for license info on tldrlegal.',
                     aliases=['license', 'licence'],
                     invoke_without_command=True)
     async def tldrlegal(self, ctx, *, search):
         await self.tldrlegal_logic(ctx, search, False)
 
+    @commands.probably_broken
     @tldrlegal.command(brief='Search for a license on tldrlegal, and give '
                              'more information in the results.')
     async def more(self, ctx, *, search):

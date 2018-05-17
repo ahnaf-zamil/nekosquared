@@ -70,8 +70,8 @@ class IsDiscordDownStatus(traits.CogTraits):
         bot will just say "watching for n.help".
         """
         await asyncio.sleep(5)
-        if bot.user.activity:
-            self.last_status = bot.user.activity.name
+        if self.bot.user.activity:
+            self.last_status = self.bot.user.activity.name
         while self.bot.is_ready():
             try:
                 conn = await self.acquire_http()

@@ -3,6 +3,13 @@
 """
 Various code-related compilation tools.
 
+A huge-ass module that consists almost purely of API interfaces I created
+from stuff I found online and reverse engineered.
+
+Note that it is only respectful to stop using this module if usage gets too
+high. It would be unfair to ruin the service for everyone else. However, for
+tens or hundreds of requests per day, this should be fine.
+
 ===
 
 MIT License
@@ -28,8 +35,14 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from neko2.cogs.compiler.cmds import CompilerCog
+from .coliru_cog import ColiruCog
+from .latex_cog import LaTeXCog
+from .r_cog import RCog
+from .rextester_cog import RextesterCog
 
 
 def setup(bot):
-    bot.add_cog(CompilerCog())
+    bot.add_cog(LaTeXCog())
+    bot.add_cog(ColiruCog())
+    bot.add_cog(RCog())
+    bot.add_cog(RextesterCog())
