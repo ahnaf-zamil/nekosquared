@@ -934,11 +934,10 @@ class EmbedBooklet(AbstractBooklet):
         simply changing out of the channel and changing back in.
 
     :param buttons: the buttons to show. There must be at least one.
-    :param ctx: the context to respond to. Pass a tuple of Message,
-    TextChannel,
-            and discord.Client or discord.ext.commands.Bot if for any reason
-            you cannot pass an actual Context object (e.g. are using this
-            in some event handler rather than a command).
+    :param ctx: the context to respond to. Pass a tuple of Message, 
+            TextChannel, and discord.Client or discord.ext.commands.Bot if 
+            for any reason you cannot pass an actual Context object (e.g. 
+            are using this in some event handler rather than a command).
     :param timeout: the timeout in seconds to wait for during inactivity before
             destroying the pagination. Defaults to 300s (5 mins).
     :param only_author: defaults to true. If true, then the pagination
