@@ -39,7 +39,8 @@ class IsDiscordDownStatus(traits.CogTraits):
     def __init__(self, bot):
         self.bot = bot
         self.last_status = None
-        self.discord_down = False
+        # Invoke first time
+        self.discord_down = True
         self.status_task = None
 
     async def on_ready(self):
