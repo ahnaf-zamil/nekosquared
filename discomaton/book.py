@@ -262,9 +262,9 @@ def default_buttons() -> typing.List[Button]:
 
 def default_formatter(self: 'AbstractBooklet') -> str:
     if len(self) > 1:
-           return f'**[{self.page_number:,}/{len(self):,}]**\n'
+       return f'**[{self.page_number:,}/{len(self):,}]**\n'
     else:
-           return ''
+       return ''
 
 
 class AbstractBooklet(AbstractIterableMachine,
@@ -508,13 +508,12 @@ class AbstractBooklet(AbstractIterableMachine,
         self.__page_index = index
 
     def set_starting_page_number(self, number: int):
-            """
-            Sets the starting page. This is only safe to use if the book has
-            yet
-            to be `start`ed.
-            """
-            self.__page_index = number - 1
-            self.__current_page = self.pages[self.__page_index]
+        """
+        Sets the starting page. This is only safe to use if the book has
+        yet to be `start`ed.
+        """
+        self.__page_index = number - 1
+        self.__current_page = self.pages[self.__page_index]
 
     async def set_page_index(self, index: int) -> None:
         """
@@ -654,6 +653,7 @@ class AbstractBooklet(AbstractIterableMachine,
             self.logger.debug(f'IGNORING API ERROR {type(ex).__name__}: {ex}')
 
     async def _maybe_clear_reactions(self) -> None:
+        """Only clears reactions if we are able to, else we ignore it."""
         try:
             msg = await self.channel.get_message(self.root_resp.id)
             if msg:
@@ -869,6 +869,7 @@ class StringBooklet(AbstractBooklet, typing.Generic[typing.AnyStr]):
                  start_page: int = 0,
                  only_author: bool = True,
                  formatter: FormatterType = default_formatter) -> None:
+        """Why are you still reading stuff this far in?! Mad fool!"""
         super().__init__(buttons=buttons,
                          pages=pages,
                          ctx=ctx,
