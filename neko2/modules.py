@@ -1,8 +1,7 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
 """
-Holds a list of modules to always load on startup.
-
+Reads the modules from file and stores them in memory
 ===
 
 MIT License
@@ -28,38 +27,14 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
+from neko2.shared import ioutil
 
 
-def _(module: str):
-    return f'neko2.cogs.{module}'
+with open(ioutil.in_here('modules')) as fp:
+    modules = list(filter(
+        lambda s: s.strip() and not s.startswith('#'), fp.readlines()))
+    for i in range(0, len(modules)):
+        modules[i] = modules[i].replace('*.', 'neko2.cogs.')
 
-
-modules = frozenset({
-    _('compiler'),
-    _('mew'),
-    _('admin'),
-    _('cat'),
-    _('cppref'),
-    _('botupdate'),
-    _('man'),
-    _('py'),
-    _('tldr'),
-    _('ud'),
-    _('googl'),
-    _('wordnik'),
-    _('tableflip'),
-    _('unicode'),
-    _('rpn'),
-    _('xkcd'),
-    _('units'),
-    _('f'),
-    _('chatty'),
-    _('steam'),
-    _('iss'),
-    _('mocksql'),
-    # _('nonick'),      # Uncomment to enforce nickname sanitation.
-    _('tldrlegal'),
-    _('isdiscorddownstatus'),
-    _('botutils'),
-    _('inspections'),
-})
+    modules = frozenset(map(str.strip, modules))
+del fp
