@@ -39,7 +39,7 @@ import neko2.shared
 __author__ = 'Neko404NotFound'
 __license__ = 'MIT License'
 __url__ = 'https://github.com/neko404notfound/nekosquared'
-__version__ = '1.11.1-BLEEDING'
+__version__ = '2.12.2-BLEEDING'
 __repository__ = __url__
 
 # Get commit number, if possible, and append to the version.
