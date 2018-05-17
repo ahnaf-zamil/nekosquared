@@ -119,18 +119,16 @@ def always_background(loop: asyncio.AbstractEventLoop = None):
 
     def decorator(coro):
         @wraps(coro)
-        def wrapper():
-            def callback(self, *args, **kwargs):
-                """Invokes as a task."""
-                nonlocal loop
+        def callback(self, *args, **kwargs):
+            """Invokes as a task."""
+            nonlocal loop
 
-                if loop is None:
-                    loop = asyncio.get_event_loop()
+            if loop is None:
+                loop = asyncio.get_event_loop()
 
-                task = loop.create_task(coro(*args, **kwargs))
+            task = loop.create_task(coro(*args, **kwargs))
 
-                # Enables awaiting, optionally.
-                return task
-            return callback
-        return wrapper
+            # Enables awaiting, optionally.
+            return task
+        return callback
     return decorator
