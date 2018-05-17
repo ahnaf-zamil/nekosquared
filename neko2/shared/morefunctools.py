@@ -119,10 +119,8 @@ def always_background(loop: asyncio.AbstractEventLoop = None):
 
     def decorator(coro):
         @wraps(coro)
-        class AlwaysInvokeAsTaskInBackground:
-            __slots__ = ()
-
-            def __call__(self, *args, **kwargs):
+        def wrapper():
+            def callback(self, *args, **kwargs):
                 """Invokes as a task."""
                 nonlocal loop
 
@@ -133,7 +131,6 @@ def always_background(loop: asyncio.AbstractEventLoop = None):
 
                 # Enables awaiting, optionally.
                 return task
-
-        return AlwaysInvokeAsTaskInBackground()
-
+            return callback
+        return wrapper
     return decorator
