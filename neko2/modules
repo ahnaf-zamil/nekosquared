@@ -15,7 +15,7 @@
 *.f
 *.googl
 *.inspections
-*.isdiscorddownstatus
+#*.isdiscorddownstatus
 *.man
 #*.mocksql
 # Uncomment if you wish to prevent nicknames being set for the bot.
