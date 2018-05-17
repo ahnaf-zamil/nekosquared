@@ -3,6 +3,8 @@
 """
 Updates the bot status if Discord goes down at all.
 
+Deprecated: does naff all.
+
 ===
 
 MIT License
