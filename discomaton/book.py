@@ -261,7 +261,10 @@ def default_buttons() -> typing.List[Button]:
 
 
 def default_formatter(self: 'AbstractBooklet') -> str:
-    return f'**[{self.page_number:,}/{len(self):,}]**\n'
+    if len(self) > 1:
+           return f'**[{self.page_number:,}/{len(self):,}]**\n'
+    else:
+           return ''
 
 
 class AbstractBooklet(AbstractIterableMachine,
