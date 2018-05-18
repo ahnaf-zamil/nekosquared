@@ -119,34 +119,35 @@ def always_background(loop: asyncio.AbstractEventLoop = None):
     """
 
     def decorator(coro):
-        if [*inspect.signature(coro).parameters.keys()][0] in ('mcs', 'cls',
-                                                               'self'):
-            @wraps(coro)
-            def callback(self, *args, **kwargs):
-                """Invokes as a task."""
-                nonlocal loop
+        if len(inspect.signature(coro).parameters) > 0:
+            if [*inspect.signature(coro).parameters.keys()][0] in ('mcs', 'cls',
+                                                                   'self'):
+                @wraps(coro)
+                def callback(self, *args, **kwargs):
+                    """Invokes as a task."""
+                    nonlocal loop
 
-                if loop is None:
-                    loop = asyncio.get_event_loop()
+                    if loop is None:
+                        loop = asyncio.get_event_loop()
 
-                task = loop.create_task(coro(self, *args, **kwargs))
+                    task = loop.create_task(coro(self, *args, **kwargs))
 
-                # Enables awaiting, optionally.
-                return task
-            return callback
-        else:
-            @wraps(coro)
-            def callback(*args, **kwargs):
-                """Invokes as a task."""
-                nonlocal loop
+                    # Enables awaiting, optionally.
+                    return task
+                return callback
 
-                if loop is None:
-                    loop = asyncio.get_event_loop()
+        @wraps(coro)
+        def callback(*args, **kwargs):
+            """Invokes as a task."""
+            nonlocal loop
 
-                task = loop.create_task(coro(*args, **kwargs))
+            if loop is None:
+                loop = asyncio.get_event_loop()
 
-                # Enables awaiting, optionally.
-                return task
+            task = loop.create_task(coro(*args, **kwargs))
 
-            return callback
+            # Enables awaiting, optionally.
+            return task
+
+        return callback
     return decorator

@@ -175,7 +175,7 @@ class GitCog(scribe.Scribe):
                 await asyncio.sleep(2)
                 await ctx.bot.logout()
             else:
-                await ctx.send('Completed.')
+                await ctx.send('Completed.', delete_after=10)
 
 
 def setup(bot):
