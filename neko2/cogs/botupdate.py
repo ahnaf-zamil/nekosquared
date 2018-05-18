@@ -57,9 +57,13 @@ class GitCog(scribe.Scribe):
         As of v1.3, the bot will not automatically restart. To force the bot
         to restart, provide the `--restart` or `-r` flag with the command
         invocation.
+
+        As of 2.13, run `--mute` or `-m` to not receive inbox spam.
         """
 
         should_restart = '--restart' in args or '-r' in args
+
+        should_mute = '--mute' in args or '-m' in args
 
         # Ensure git is installed first
         git_path = shutil.which('git')
@@ -148,12 +152,13 @@ class GitCog(scribe.Scribe):
                     for line in log.split('\n'):
                         p.add_line(line)
 
-                    await ctx.author.send(
-                        f'Will send {len(p.pages)} messages of output!')
+                    if not should_mute:
+                        await ctx.author.send(
+                            f'Will send {len(p.pages)} messages of output!')
 
-                    for page in p.pages:
-                        if page:
-                            await ctx.author.send(page)
+                        for page in p.pages:
+                            if page:
+                                await ctx.author.send(page)
 
         if did_fail:
             await ctx.author.send('The fix process failed at some point '
@@ -170,7 +175,7 @@ class GitCog(scribe.Scribe):
                 await asyncio.sleep(2)
                 await ctx.bot.logout()
             else:
-                await ctx.send('Completed. I sent the results to you via DMs.')
+                await ctx.send('Completed.')
 
 
 def setup(bot):

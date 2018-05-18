@@ -123,6 +123,19 @@ class Paginator:
         current_page = ''
         current_lines = 0
 
+        # Separate bits on spaces, keeping spaces.
+        bits = []
+
+        # This ensures that we are more likely to split on a space than we are
+        # mid word, if possible.
+        for bit in self._bits:
+            if not isinstance(bit, DontAlter):
+                while ' ' in bit:
+                    first_bit, space, rest = bit.partition(' ')
+                    bits.append(first_bit + space)
+                    bit = rest
+            bits.append(bit)
+
         def finish_page():
             """Finalises the current page, moves onto the next."""
             nonlocal current_page, current_lines
@@ -132,7 +145,7 @@ class Paginator:
                 current_page = ''
                 current_lines = 0
 
-        for bit, strbit in map(lambda b: (b, str(b)), self._bits):
+        for bit, strbit in map(lambda b: (b, str(b)), bits):
             # We must not alter this section by splitting it.
             if isinstance(bit, DontAlter):
                 no_chars = len(strbit)
