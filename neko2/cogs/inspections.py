@@ -129,6 +129,11 @@ class GuildStuffCog(traits.CogTraits, scribe.Scribe):
         embed.set_footer(text=str(emoji.id), icon_url=emoji.url)
         await ctx.send(embed=embed)
 
+    @inspect_group.command(name='channel', brief='Inspects a given channel.',
+                           aliases=['ch', 'c'])
+    async def inspect_channel(self, ctx, *, channel: discord.abc.GuildChannel):
+        pass
+
     @inspect_group.command(name='member', brief='Inspects a given member.',
                            aliases=['user', 'u', 'm'])
     async def inspect_member(self, ctx, *, member: discord.Member=None):

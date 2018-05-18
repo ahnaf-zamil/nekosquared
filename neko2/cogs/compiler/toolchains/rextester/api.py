@@ -71,7 +71,7 @@ class Language(enum.IntEnum):
     lua = 14
     assembly = 15
     sqlserver = 16
-    javascript = 17
+    clientside_javascript = 17
     commonlisp = 18
     prolog = 19
     go = 20
@@ -105,6 +105,9 @@ class Language(enum.IntEnum):
     cpp = gcccpp
     c = gccc
     python = python3
+    js = nodejs
+    javascript = nodejs
+    clientside_js = clientside_javascript
 
 
 
