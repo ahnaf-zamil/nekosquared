@@ -256,7 +256,7 @@ class Paginator:
                 self.add(line, to_start=True)
         else:
             for line in str(obj).splitlines(keepends=True):
-                self.add_line(line)
+                self.add(line)
             self.add('\n')
 
     def add_break(self, *,

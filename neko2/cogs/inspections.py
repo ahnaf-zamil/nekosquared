@@ -29,7 +29,6 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from datetime import datetime  # Timestamp stuff
-from typing import Union
 import urllib.parse
 
 import discord
@@ -81,7 +80,8 @@ class GuildStuffCog(traits.CogTraits, scribe.Scribe):
                                  'with this bot.')
     async def inspect_allperms(self, ctx):
         await ctx.send('**Permissions that this bot understands:**\n\n' +
-            ', '.join(f'`{p}`' for p in sorted(Permissions.__members__)))
+                       ', '.join(f'`{p}`'
+                                 for p in sorted(Permissions.__members__)))
 
     # noinspection PyUnresolvedReferences
     @inspect_group.command(name='avatar', brief='Shows the user\'s avatar.',
@@ -241,9 +241,79 @@ class GuildStuffCog(traits.CogTraits, scribe.Scribe):
                     f'User limit: {channel.user_limit or None}'
                 ]))
 
+            if len(channel.members) == len(ctx.guild.members):
+                embed.add_field(name='Members in this VC',
+                                value='All ' +
+                                      string.plur_simple(len(channel.members),
+                                                         'member'))
+            elif len(channel.members) > 10:
+                embed.add_field(name='Members in this VC',
+                                value=f'{len(channel.members)} members')
+            elif channel.members:
+                embed.add_field(name='Members in this VC',
+                                value=', '.join(
+                                    sorted(map(str, channel.members))))
+            else:
+                embed.add_field(name='Members in this VC',
+                                value='No one is in this VC yet!')
+
         embed.set_author(name=f'Channel #{channel.position + 1}')
         embed.set_footer(text=str(channel.id))
-        await ctx.send(embed=embed)
+        await ctx.send('Channel inspection', embed=embed)
+
+    @inspect_group.command(name='category', brief='Inspects a given category.',
+                           aliases=['ca', 'cat'])
+    async def inspect_category(self, ctx, *,
+                               category: LowercaseCategoryConverter=None):
+        """
+        If no category is provided, and we are in a valid category, we will
+        inspect that, otherwise, you need to provide me with a valid category
+        snowflake or name.
+        """
+        if category is None:
+            if ctx.channel.category is None:
+                raise commands.MissingRequiredArgument('category')
+            else:
+                category = ctx.channel.category
+
+        embed = discord.Embed(
+            title=f'`{category.name.upper()}`',
+            colour=alg.rand_colour(),
+            description='\n'.join([
+                f'Created on: {category.created_at.strftime("%c")}',
+                f'NSFW: {string.yn(category.is_nsfw()).lower()}',
+            ]))
+
+        if category.changed_roles:
+            embed.add_field(
+                name='Roles with custom permissions',
+                value=', '.join(str(c) for c in
+                                sorted(category.changed_roles, key=str)))
+
+        channels = sorted(map(lambda c: c.name, category.channels))
+
+        if channels:
+            c_string = ''
+            for channel in channels:
+                if c_string:
+                    next_substring = f', `{channel}`'
+                else:
+                    next_substring = f'`{channel}`'
+
+                if len(c_string + next_substring) < 1020:
+                    c_string += next_substring
+                else:
+                    c_string += '...'
+
+            embed.add_field(name='Channels',
+                            value=c_string)
+        else:
+            embed.add_field(name='Channels',
+                            value='No channels yet!')
+
+        embed.set_author(name=f'Category #{category.position + 1}')
+        embed.set_footer(text=str(category.id))
+        await ctx.send('Category inspection', embed=embed)
 
     @inspect_group.command(name='member', brief='Inspects a given member.',
                            aliases=['user', 'u', 'm'])

@@ -292,12 +292,15 @@ class Bot(commands.Bot, scribe.Scribe):
 
     # noinspection PyBroadException
     def run(self):
+        """Do not allow."""
         raise NotImplementedError
 
     async def on_connect(self):
+        """Sets the presence to idle while loading."""
         await self.change_presence(status=discord.Status.idle)
 
     async def on_ready(self):
+        """Set the presence to ready once...well...ready."""
         # noinspection PyTypeChecker
         prefix = await self.get_prefix(None)
 

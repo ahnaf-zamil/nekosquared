@@ -51,6 +51,25 @@ class GuildChannelConverter(commands.Converter):
         raise commands.BadArgument(f'No channel matching `{body}` was found.')
 
 
+class LowercaseCategoryConverter(commands.Converter):
+    """
+    Gets a category case insensitive. Discord doesn't show the name in the
+    case the name is stored in; instead, it is transformed to uppercase. This
+    makes this whole thing kind of useless to the user unless they can guess
+    the correct permutation of character cases that was used.
+    """
+
+    async def convert(self, ctx, argument):
+        argument = argument.lower()
+
+        for category in ctx.guild.categories:
+            if category.name.lower() == argument:
+                return category
+
+        raise commands.BadArgument(f'Category matching `{argument}` was not '
+                                   'found.')
+
+
 class GuildChannelCategoryConverter(commands.Converter):
     """
     Gets a guild channel or category.

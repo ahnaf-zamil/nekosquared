@@ -345,3 +345,12 @@ def probably_broken(command):
     # Set a flag.
     setattr(command.callback, '_probably_broken', True)
     return command
+
+
+def not_bot():
+    """Only allows the command to invoke if the author is not a bot."""
+    def decorator(command):
+        def bot_check(ctx):
+            return not ctx.message.author.bot
+        return check(bot_check)(command)
+    return decorator

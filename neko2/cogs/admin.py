@@ -394,6 +394,11 @@ class NonAdminCog:
         except Exception as ex:
             await ctx.send(f'{type(ex).__qualname__}: {ex}')
 
+    @commands.command(brief='Sends an invite to let you add the bot to your '
+                            'server.')
+    async def invite(self, ctx):
+        await ctx.send(f'{ctx.author.mention}: {ctx.bot.invite}')
+
 
 def setup(bot):
     bot.add_cog(AdminCog(bot))
