@@ -102,95 +102,77 @@ class Paginator:
         # Holds the bits of string to put together when we generate pages.
         self._bits = []
         self._max_chars = max_chars
-        self._max_lines = max_lines
+        self._max_lines = max_lines if max_lines is not None else max_chars -1
         self._prefix = prefix
         self._suffix = suffix
 
     @cached_property.cached_property
     def pages(self) -> typing.Tuple[str]:
-        pages = ['']
+        pages = []
 
-        max_l = self._max_chars - len(self._prefix) - len(self._suffix) - 2
+        max_len = self._max_chars - len(self._prefix) - len(self._suffix) - 2
+        max_lns = self._max_lines - (
+                self._prefix + self._suffix).count('\n') + 1
 
-        if max_l <= 0:
+        if max_len <= 0:
             raise ValueError(f'The max character count ({self._max_chars}) is '
                              'too short to produce pages with the given '
                              'suffix and prefix. Please choose a larger '
                              'value.')
 
-        for bit in self._bits:
-            if bit is self._page_break:
-                pages.append('')
-                continue
+        current_page = ''
+        current_lines = 0
 
-            bit = str(bit)
+        def finish_page():
+            """Finalises the current page, moves onto the next."""
+            nonlocal current_page, current_lines
 
-            if len(pages[-1]) >= max_l:
-                page = pages.pop()
-                for i in range(0, len(page), max_l):
-                    pages.append(page[i:i + max_l])
+            if current_page:
+                pages.append(current_page)
+                current_page = ''
+                current_lines = 0
 
-            if not isinstance(bit, DontAlter) and len(bit) >= max_l:
-                if ' ' in bit:
-                    for new_bit in re.split(r'\b ', bit):
+        for bit, strbit in map(lambda b: (b, str(b)), self._bits):
+            # We must not alter this section by splitting it.
+            if isinstance(bit, DontAlter):
+                no_chars = len(strbit)
+                no_lines = strbit.count('\n')
 
-                        if new_bit == new_bit.strip() and new_bit:
-                            next_bit = new_bit + ' '
-                        else:
-                            next_bit = new_bit
-                        if len(pages[-1] + next_bit) < max_l:
-                            pages[-1] += next_bit
-                        else:
-                            for i in range(0, len(next_bit), max_l):
-                                pages.append(next_bit[i:i + max_l])
+                if no_chars > max_len:
+                    raise RuntimeError(f'Cannot fit `{strbit}` onto one page, '
+                                       'and it is marked as DontAlter. '
+                                       'TOO MANY CHARACTERS')
+                elif no_lines > max_lns:
+                    raise RuntimeError(f'Cannot fit `{strbit}` onto one page, '
+                                       'and it is marked as DontAlter. '
+                                       'TOO MANY LINES')
 
-                else:
-                    for i in range(0, len(bit), max_l):
-                        pages.append(bit[i:i + max_l])
-                continue
-            elif isinstance(bit, DontAlter):
-                if len(pages[-1]) + len(bit) >= self._max_chars:
-                    for i in range(0, len(bit), max_l):
-                        pages.append(bit[i:i + max_l])
-                else:
-                    pages[-1] += bit
-                continue
+                new_len = no_chars + len(current_page)
+                new_lns = no_lines + current_lines
 
-            prev = pages[-1]
-            if not any(prev.endswith(c) for c in '-\r\t\n ') and prev.lstrip():
-                prev += ' '
+                if new_len > max_len:
+                    finish_page()
+                elif 0 < max_lns < new_lns:
+                    finish_page()
 
-            if len(prev) + len(bit) >= max_l:
-                pages.append(str(bit))
-            else:
-                pages[-1] = prev + str(bit)
+            for char in strbit:
+                if char == '\n' and current_lines == max_lns:
+                    finish_page()
 
-        if self._max_lines:
-            final_pages = []
-            for page in pages:
-                new_page = ''
+                    # We cant safely add this character ever without
+                    # hitting an infinite loop.
+                    if max_lns <= 0:
+                        continue
 
-                lines = page.splitlines(keepends=True)
+                elif len(current_page) == max_len:
+                    finish_page()
 
-                line_count = 0
-                for line in lines:
-                    if line_count >= self._max_lines:
-                        final_pages.append(new_page)
-                        line_count = 0
-                        new_page = ''
-                    new_page += line
-                    line_count += 1
+                current_page += char
 
-                if new_page:
-                    final_pages.append(new_page)
-            pages = final_pages
+        finish_page()
 
-        # Finally add our prefix and suffix.
-        pages = tuple(
-            '\n'.join(
-                [self._prefix, p, self._suffix]
-            ) for p in pages if p.strip())
-        return pages
+        pages = map(lambda p: f'{self._prefix}\n{p}\n{self._suffix}', pages)
+        return tuple(pages)
 
     def _invalidate(self) -> None:
         """Invalidates the pages cache if any exists."""
@@ -247,10 +229,17 @@ class Paginator:
 
     def add_line(self, obj: typing.Any, *,
                  to_start: bool = False,
-                 dont_alter: bool = False) -> None:
+                 _unused_dont_alter: bool = False) -> None:
         """Adds a string, and a new line."""
-        self.add(str(obj) + '\n',
-                 to_start=to_start, dont_alter=dont_alter)
+        if to_start:
+            self.add('\n', to_start=True)
+
+            for line in reversed(str(obj).splitlines(keepends=True)):
+                self.add(line, to_start=True)
+        else:
+            for line in str(obj).splitlines(keepends=True):
+                self.add_line(line)
+            self.add('\n')
 
     def add_break(self, *,
                   to_start: bool = False) -> None:
