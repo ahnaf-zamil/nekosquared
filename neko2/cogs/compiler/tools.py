@@ -83,15 +83,14 @@ async def listen_to_edit(ctx, booklet=None, *additional_messages):
     # Lets the book start up first, otherwise we get an error. If
     # we cant send, then just give up.
     for _ in range(0, 60):
-        if booklet and not len(booklet.response_stk):
-            await asyncio.sleep(1)
-        else:
-            async def custom_delete():
-                for message in additional_messages:
-                    await message.delete()
-                await booklet.root_resp.delete()
+        await asyncio.sleep(1)
 
-            await commands.wait_for_edit(ctx=ctx,
-                                         msg=booklet.root_resp,
-                                         timeout=1800,
-                                         custom_delete=custom_delete)
+        async def custom_delete():
+            for message in additional_messages:
+                await message.delete()
+            await booklet.root_resp.delete()
+
+        await commands.wait_for_edit(ctx=ctx,
+                                     msg=booklet.root_resp,
+                                     timeout=1800,
+                                     custom_delete=custom_delete)

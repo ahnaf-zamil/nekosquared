@@ -111,7 +111,9 @@ class RextesterCog(traits.CogTraits):
             booklet.add_line(f'- {len(response.files)} file(s) included. Bug '
                              'Esp to implement this properly!')
 
+        booklet = booklet.build()
         booklet.start()
+        await tools.listen_to_edit(ctx, booklet)
 
     @rextester_group.command(brief='Shows help for supported languages.')
     async def help(self, ctx, *, language=None):
