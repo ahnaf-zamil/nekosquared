@@ -76,6 +76,13 @@ class GuildStuffCog(traits.CogTraits, scribe.Scribe):
         else:
             raise NotImplementedError
 
+    @inspect_group.command(name='allperms',
+                           brief='Shows a list of all permission names usable '
+                                 'with this bot.')
+    async def inspect_allperms(self, ctx):
+        await ctx.send('**Permissions that this bot understands:**\n\n' +
+            ', '.join(f'`{p}`' for p in sorted(Permissions.__members__)))
+
     # noinspection PyUnresolvedReferences
     @inspect_group.command(name='avatar', brief='Shows the user\'s avatar.',
                            examples=['@user'], aliases=['a', 'av'])
@@ -156,13 +163,29 @@ class GuildStuffCog(traits.CogTraits, scribe.Scribe):
 
     @inspect_group.command(name='channel', brief='Inspects a given channel.',
                            aliases=['ch', 'c'])
-    async def inspect_channel(self, ctx, *, channel: GuildChannelConverter):
-        # My type hints <3
-        if isinstance(channel, discord.TextChannel):
-            channel: discord.TextChannel = channel
+    async def inspect_channel(self, ctx, *,
+                              channel: GuildChannelConverter = None):
+        """
+        Inspects a channel in this guild. If no channel is given, we check
+        the current channel.
+        """
+        channel = channel or ctx.channel
 
-            category = channel.category
-            category = category and category.name.upper() or None
+        category = channel.category
+        category = category and category.name.upper() or None
+
+        if isinstance(channel, discord.TextChannel):
+            try:
+                wh_count = len(await channel.webhooks())
+            except discord.Forbidden:
+                wh_count = 'I need `MANAGE_WEBHOOKS` first!'
+
+            pin_count = len(await channel.pins())
+
+            try:
+                invite_count = len(await channel.invites())
+            except discord.Forbidden:
+                invite_count = 'I need `MANAGE_CHANNELS` first!'
 
             embed = discord.Embed(
                 title=f'`#{channel.name}`',
@@ -171,30 +194,55 @@ class GuildStuffCog(traits.CogTraits, scribe.Scribe):
                     f'Type: Text channel',
                     f'Created on: {channel.created_at.strftime("%c")}',
                     f'Category: `{category}`',
+                    f'NSFW: {string.yn(channel.is_nsfw()).lower()}',
+                    f'Pin count: {pin_count}',
+                    f'Webhook count: {wh_count}',
+                    f'Invitations here: {invite_count}'
                 ]))
 
+            if channel.topic:
+                embed.add_field(name='Topic',
+                                value=string.trunc(channel.topic, 1024),
+                                inline=False)
+
             if len(channel.members) == len(ctx.guild.members):
-                embed.add_field(name='Members who have access',
+                embed.add_field(name='Accessible by',
                                 value='All ' +
                                       string.plur_simple(len(channel.members),
                                                          'member'))
             elif len(channel.members) > 10:
-                embed.add_field(name='Members who have access',
+                embed.add_field(name='Accessible by',
                                 value=f'{len(channel.members)} members')
             elif channel.members:
-                embed.add_field(name='Members who have access',
+                embed.add_field(name='Accessible by',
                                 value=', '.join(
                                     sorted(map(str, channel.members))))
             else:
-                embed.add_field(name='Members who have access',
+                embed.add_field(name='Accessible by',
                                 value='No one has this role yet!')
 
-            embed.set_author(name=f'Channel #{channel.position + 1}')
+            if channel.changed_roles:
+                embed.add_field(
+                    name='Roles with custom permissions',
+                    value=', '.join(str(c) for c in
+                                    sorted(channel.changed_roles, key=str)))
 
         else:
             channel: discord.VoiceChannel = channel
-            raise NotImplementedError
 
+            embed = discord.Embed(
+                title=f'`#{channel.name}`',
+                colour=alg.rand_colour(),
+                description='\n'.join([
+                    f'Type: Text channel',
+                    f'Created on: {channel.created_at.strftime("%c")}',
+                    f'Category: `{category}`',
+                    f'Bitrate: {channel.bitrate / 1000:,.2f}kbps',
+                    f'User limit: {channel.user_limit or None}'
+                ]))
+
+        embed.set_author(name=f'Channel #{channel.position + 1}')
+        embed.set_footer(text=str(channel.id))
         await ctx.send(embed=embed)
 
     @inspect_group.command(name='member', brief='Inspects a given member.',

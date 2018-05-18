@@ -129,7 +129,8 @@ class Paginator:
         # This ensures that we are more likely to split on a space than we are
         # mid word, if possible.
         for bit in self._bits:
-            if not isinstance(bit, DontAlter):
+            if not isinstance(bit, DontAlter) and bit is not self._page_break:
+                bit = str(bit)
                 while ' ' in bit:
                     first_bit, space, rest = bit.partition(' ')
                     bits.append(first_bit + space)
@@ -146,6 +147,10 @@ class Paginator:
                 current_lines = 0
 
         for bit, strbit in map(lambda b: (b, str(b)), bits):
+            if bit is self._page_break:
+                finish_page()
+                continue
+
             # We must not alter this section by splitting it.
             if isinstance(bit, DontAlter):
                 no_chars = len(strbit)
@@ -251,7 +256,7 @@ class Paginator:
                 self.add(line, to_start=True)
         else:
             for line in str(obj).splitlines(keepends=True):
-                self.add(line)
+                self.add_line(line)
             self.add('\n')
 
     def add_break(self, *,

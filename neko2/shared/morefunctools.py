@@ -120,7 +120,8 @@ def always_background(loop: asyncio.AbstractEventLoop = None):
 
     def decorator(coro):
         if len(inspect.signature(coro).parameters) > 0:
-            if [*inspect.signature(coro).parameters.keys()][0] in ('mcs', 'cls',
+            if [*inspect.signature(coro).parameters.keys()][0] in ('mcs',
+                                                                   'cls',
                                                                    'self'):
                 @wraps(coro)
                 def callback(self, *args, **kwargs):
