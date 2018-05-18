@@ -33,11 +33,63 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from discord.ext import commands
-
 from neko2.shared import alg
 
 
+class GuildChannelConverter(commands.Converter):
+    """
+    Gets a guild channel
+    """
+    async def convert(self, ctx, body: str):
+        for t in (commands.TextChannelConverter,
+                  commands.VoiceChannelConverter):
+            try:
+                return await t().convert(ctx, body)
+            except:
+                pass
+
+        raise commands.BadArgument(f'No channel matching `{body}` was found.')
+
+
+class GuildChannelCategoryConverter(commands.Converter):
+    """
+    Gets a guild channel or category.
+    """
+    async def convert(self, ctx, body: str):
+        # If the input is in the format <#123> then it is a text channel.
+        if body.startswith('<#') and body.endswith('>'):
+            sf_str = body[2:-1]
+            if sf_str.isdigit():
+                sf = int(sf_str)
+                channel = alg.find(lambda c: c.id == sf, ctx.guild.channels)
+
+                if channel:
+                    return channel
+
+            raise commands.BadArgument('Unable to access that channel. Make '
+                                       'sure that it exists, and that I have '
+                                       'access to it, and try again.')
+
+        # Otherwise, it could be a text channel, a category or a voice channel.
+        # We need to hunt for it manually.
+        else:
+            to_search = {*ctx.guild.channels, *ctx.guild.categories}
+            channel = alg.find(lambda c: c.name == body, to_search)
+            if channel:
+                return channel
+
+            # Attempt case insensitive searching
+            body = body.lower()
+            channel = alg.find(lambda c: c.name.lower() == body, to_search)
+            if channel:
+                return channel
+            raise commands.BadArgument('No channel matching input was found.')
+
+
 class MentionConverter(commands.Converter):
+    """
+    A converter that takes generic types of mentions.
+    """
     async def convert(self, ctx, body: str):
         if body.startswith('<') and body.endswith('>'):
             tb = body[1:-1]
@@ -47,11 +99,16 @@ class MentionConverter(commands.Converter):
             elif tb.startswith('@') and tb[1:2].isdigit() or tb[1:2] == '!':
                 return await commands.MemberConverter().convert(ctx, body)
             elif tb.startswith('#'):
-                return await commands.CategoryChannelConverter().convert(
+                return await commands.TextChannelConverter().convert(
                     ctx, body)
         else:
             try:
                 return await commands.EmojiConverter().convert(ctx, body)
+            except:
+                pass
+
+            try:
+                return await GuildChannelCategoryConverter().convert(ctx, body)
             except:
                 pass
 
@@ -106,6 +163,10 @@ class MentionConverter(commands.Converter):
 
 
 class MentionOrSnowflakeConverter(MentionConverter):
+    """
+    A specialisation of MentionConverter that ensures that raw snowflakes can
+    also be input.
+    """
     async def convert(self, ctx, body: str):
         if body.isdigit():
             return int(body)

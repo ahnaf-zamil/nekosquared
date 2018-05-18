@@ -110,7 +110,6 @@ class Language(enum.IntEnum):
     clientside_js = clientside_javascript
 
 
-
 @dataclass(repr=True)
 class RextesterResponse:
     warnings: str

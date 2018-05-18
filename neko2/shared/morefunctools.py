@@ -32,6 +32,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 import asyncio
 from functools import *
 import functools as _functools
+import inspect
 
 __all__ = (*dir(_functools), 'old_wraps')
 
@@ -118,17 +119,34 @@ def always_background(loop: asyncio.AbstractEventLoop = None):
     """
 
     def decorator(coro):
-        @wraps(coro)
-        def callback(self, *args, **kwargs):
-            """Invokes as a task."""
-            nonlocal loop
+        if [*inspect.signature(coro).parameters.keys()][0] in ('mcs', 'cls',
+                                                               'self'):
+            @wraps(coro)
+            def callback(self, *args, **kwargs):
+                """Invokes as a task."""
+                nonlocal loop
 
-            if loop is None:
-                loop = asyncio.get_event_loop()
+                if loop is None:
+                    loop = asyncio.get_event_loop()
 
-            task = loop.create_task(coro(*args, **kwargs))
+                task = loop.create_task(coro(self, *args, **kwargs))
 
-            # Enables awaiting, optionally.
-            return task
-        return callback
+                # Enables awaiting, optionally.
+                return task
+            return callback
+        else:
+            @wraps(coro)
+            def callback(*args, **kwargs):
+                """Invokes as a task."""
+                nonlocal loop
+
+                if loop is None:
+                    loop = asyncio.get_event_loop()
+
+                task = loop.create_task(coro(*args, **kwargs))
+
+                # Enables awaiting, optionally.
+                return task
+
+            return callback
     return decorator

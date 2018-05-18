@@ -29,14 +29,16 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from datetime import datetime  # Timestamp stuff
+from typing import Union
 import urllib.parse
 
 import discord
 
 # Random colours; Permission help; Logging; String helpers; HTTPS
+from discomaton.factories import bookbinding
 from neko2.shared import collections, scribe, string, traits
 from neko2.shared.perms import Permissions
-from neko2.shared.mentionconverter import *  # Mentioning
+from neko2.shared.converters import *  # Mentioning
 
 
 class GuildStuffCog(traits.CogTraits, scribe.Scribe):
@@ -99,40 +101,101 @@ class GuildStuffCog(traits.CogTraits, scribe.Scribe):
 
     @inspect_group.command(name='emoji', brief='Inspects an emoji.',
                            aliases=['e'])
-    async def inspect_emoji(self, ctx, *, emoji: discord.Emoji):
-        """Note that this will only work for custom emojis."""
-        desc = f'Created on {emoji.created_at.strftime("%c")}\n\n'
+    async def inspect_emoji(self, ctx, *, emoji: discord.Emoji=None):
+        """
+        Note that this will only work for custom emojis.
+        If no emoji name is provided, we list all emojis available in this
+        guild.
+        """
+        if emoji:
 
-        if emoji.animated:
-            desc += 'Animated emoji\n'
-        if emoji.require_colons:
-            desc += 'Must be wrapped in colons\n'
-        if emoji.managed:
-            desc += 'Managed as part of a Twitch integration\n'
-        if not emoji.roles:
-            desc += 'Emoji is usable by everyone here\n'
+            desc = f'Created on {emoji.created_at.strftime("%c")}\n\n'
 
-        embed = discord.Embed(
-            title=emoji.require_colons and f'`:{emoji.name}:`' or f'`{emoji}`',
-            description=desc,
-            url=emoji.url,
-            colour=0xab19cf or emoji.animated and 0xd1851b)
+            if emoji.animated:
+                desc += 'Animated emoji\n'
+            if emoji.require_colons:
+                desc += 'Must be wrapped in colons\n'
+            if emoji.managed:
+                desc += 'Managed as part of a Twitch integration\n'
+            if not emoji.roles:
+                desc += 'Emoji is usable by everyone here\n'
 
-        if emoji.roles:
-            embed.add_field(
-                name='Usable by',
-                value=string.trunc(', '.join(map(str, emoji.roles)), 1024))
+            rc = emoji.require_colons
 
-        embed.set_thumbnail(url=emoji.url)
+            embed = discord.Embed(
+                title=rc and f'`:{emoji.name}:`' or f'`{emoji}`',
+                description=desc,
+                url=emoji.url,
+                colour=0xab19cf or emoji.animated and 0xd1851b)
 
-        embed.set_author(name=f'Emoji in "{emoji.guild}"', icon_url=emoji.url)
-        embed.set_footer(text=str(emoji.id), icon_url=emoji.url)
-        await ctx.send(embed=embed)
+            if emoji.roles:
+                embed.add_field(
+                    name='Usable by',
+                    value=string.trunc(', '.join(map(str, emoji.roles)), 1024))
+
+            embed.set_thumbnail(url=emoji.url)
+
+            embed.set_author(name=f'Emoji in "{emoji.guild}"',
+                             icon_url=emoji.url)
+            embed.set_footer(text=str(emoji.id),
+                             icon_url=emoji.url)
+            await ctx.send(embed=embed)
+        elif len(ctx.guild.emojis) == 0:
+            await ctx.send('This server has no emojis yet...',
+                           delete_after=10)
+        else:
+            binder = bookbinding.StringBookBinder(ctx, max_lines=None)
+
+            def key(e):
+                return e.name
+
+            for i, e in enumerate(sorted(ctx.guild.emojis, key=key)):
+                binder.add_line(f'`{i + 1:03}`\t{e} \t `{e}`')
+
+            binder.start()
 
     @inspect_group.command(name='channel', brief='Inspects a given channel.',
                            aliases=['ch', 'c'])
-    async def inspect_channel(self, ctx, *, channel: discord.abc.GuildChannel):
-        pass
+    async def inspect_channel(self, ctx, *, channel: GuildChannelConverter):
+        # My type hints <3
+        if isinstance(channel, discord.TextChannel):
+            channel: discord.TextChannel = channel
+
+            category = channel.category
+            category = category and category.name.upper() or None
+
+            embed = discord.Embed(
+                title=f'`#{channel.name}`',
+                colour=alg.rand_colour(),
+                description='\n'.join([
+                    f'Type: Text channel',
+                    f'Created on: {channel.created_at.strftime("%c")}',
+                    f'Category: `{category}`',
+                ]))
+
+            if len(channel.members) == len(ctx.guild.members):
+                embed.add_field(name='Members who have access',
+                                value='All ' +
+                                      string.plur_simple(len(channel.members),
+                                                         'member'))
+            elif len(channel.members) > 10:
+                embed.add_field(name='Members who have access',
+                                value=f'{len(channel.members)} members')
+            elif channel.members:
+                embed.add_field(name='Members who have access',
+                                value=', '.join(
+                                    sorted(map(str, channel.members))))
+            else:
+                embed.add_field(name='Members who have access',
+                                value='No one has this role yet!')
+
+            embed.set_author(name=f'Channel #{channel.position + 1}')
+
+        else:
+            channel: discord.VoiceChannel = channel
+            raise NotImplementedError
+
+        await ctx.send(embed=embed)
 
     @inspect_group.command(name='member', brief='Inspects a given member.',
                            aliases=['user', 'u', 'm'])
@@ -247,6 +310,51 @@ class GuildStuffCog(traits.CogTraits, scribe.Scribe):
 
         await ctx.send('Member inspection', embed=embed)
 
+    @inspect_group.command(name='role', brief='Inspects a given role.',
+                           examples=['@Role Name'], aliases=['r'])
+    async def inspect_role(self, ctx, *, role: discord.Role):
+        permissions = Permissions.from_discord_type(role.permissions)
+
+        permissions = sorted(f'`{name}`' for name in permissions.unmask())
+
+        embed = discord.Embed(title=role.name,
+                              description=', '.join(permissions),
+                              colour=role.colour)
+
+        embed.add_field(name='Can be mentioned?',
+                        value=string.yn(role.mentionable))
+        embed.add_field(name='Will hoist?',
+                        value=string.yn(role.hoist))
+        embed.add_field(name='Externally managed?',
+                        value=string.yn(role.managed))
+        embed.add_field(name='Created on',
+                        value=role.created_at.strftime('%c'))
+        embed.add_field(name='Colour',
+                        value=f'`#{hex(role.colour.value)[2:].zfill(6)}`')
+
+        if len(role.members) == len(ctx.guild.members):
+            embed.add_field(name='Members with this role',
+                            value='All ' +
+                                  string.plur_simple(len(role.members),
+                                                     'member'))
+        elif len(role.members) > 10:
+            embed.add_field(name='Members with this role',
+                            value=f'{len(role.members)} members')
+        elif role.members:
+            embed.add_field(name='Members with this role',
+                            value=', '.join(sorted(map(str, role.members))))
+        else:
+            embed.add_field(name='Members with this role',
+                            value='No one has this role yet!')
+
+        embed.add_field(
+            name='Location in the hierarchy',
+            value=f'{string.plur_simple(role.position, "role")} from the '
+                  f'bottom; {len(ctx.guild.roles) - role.position} from '
+                  'the top.')
+
+        await ctx.send('Role inspection', embed=embed)
+
     @inspect_group.command(name='snowflake', brief='Deciphers a snowflake.',
                            examples=['439802699144232960'],
                            aliases=['s', 'sf'])
@@ -263,7 +371,8 @@ class GuildStuffCog(traits.CogTraits, scribe.Scribe):
         # Discord epoch from the Unix epoch in ms
         # Essentially the number of milliseconds since epoch
         # at 1st January 2015
-        epoch = 1_420_070_400_000
+        # epoch = 1_420_070_400_000
+        epoch = discord.utils.DISCORD_EPOCH
         for s in snowflakes[:10]:
 
             timestamp = ((s >> 22) + epoch) / 1000
@@ -322,45 +431,6 @@ class GuildStuffCog(traits.CogTraits, scribe.Scribe):
             embed.add_field(name=str(s), value=string)
 
         await ctx.send('Snowflake inspection', embed=embed)
-
-    @inspect_group.command(name='role', brief='Inspects a given role.',
-                           examples=['@Role Name'], aliases=['r'])
-    async def inspect_role(self, ctx, *, role: discord.Role):
-        permissions = Permissions.from_discord_type(role.permissions)
-
-        permissions = sorted(f'`{name}`' for name in permissions.unmask())
-
-        embed = discord.Embed(title=role.name,
-                              description=', '.join(permissions),
-                              colour=role.colour)
-
-        embed.add_field(name='Can be mentioned?',
-                        value=string.yn(role.mentionable))
-        embed.add_field(name='Will hoist?',
-                        value=string.yn(role.hoist))
-        embed.add_field(name='Externally managed?',
-                        value=string.yn(role.managed))
-        embed.add_field(name='Created on',
-                        value=role.created_at.strftime('%c'))
-        embed.add_field(name='Colour',
-                        value=f'`#{hex(role.colour.value)[2:].zfill(6)}`')
-        if len(role.members) > 10:
-            embed.add_field(name='Members with this role',
-                            value=f'{len(role.members)} members')
-        elif role.members:
-            embed.add_field(name='Members with this role',
-                            value=', '.join(sorted(map(str, role.members))))
-        else:
-            embed.add_field(name='Members with this role',
-                            value='No one has this role yet!')
-
-        embed.add_field(
-            name='Location in the hierarchy',
-            value=f'{string.plur_simple(role.position, "role")} from the '
-                  f'bottom; {len(ctx.guild.roles) - role.position} from '
-                  'the top.')
-
-        await ctx.send('Role inspection', embed=embed)
 
 
 def setup(bot):
