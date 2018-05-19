@@ -36,11 +36,14 @@ from neko2.shared import commands, perms
 
 class BotUtils:
     @commands.group(name='botdev', brief='A collection of useful tools for '
-                                         'bot developers.')
-    async def botutils_group(self, ctx, *_):
-        pass
+                                         'bot developers.',
+                    invoke_without_command=True)
+    async def botdev_group(self, ctx, *_):
+        ctx.message.content = f'{ctx.bot.command_prefix}help botdev'
+        ctx = await ctx.bot.get_context(ctx.message)
+        await ctx.bot.invoke(ctx)
 
-    @botutils_group.command(
+    @botdev_group.command(
         name='invite',
         brief='Generates an OAuth invite URL from a given snowflake client ID',
         help='Valid options: ```' +
