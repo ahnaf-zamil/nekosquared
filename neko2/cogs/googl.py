@@ -74,7 +74,7 @@ class UrlShortenerCog(traits.CogTraits):
 
         return (await res.json())['id']
 
-    @commands.command(brief='Shortens the given URL', aliases=['goo.gl'])
+    @commands.command(brief='Shortens the given URL.', aliases=['goo.gl'])
     async def shorten(self, ctx, url: str, *,
                       optional_description: str = None):
         """
@@ -97,7 +97,8 @@ class UrlShortenerCog(traits.CogTraits):
                 f'{ctx.author.mention} {optional_description}: '
                 f'{url}')
 
-    async def smoke_a_pipe(self, content, guild_members=None):
+    @staticmethod
+    async def smoke_a_pipe(content, guild_members=None):
         """
         Takes some input string. If the string ends in `| [discord mention]`,
         we return the left hand side of the pipe, and the user, as a

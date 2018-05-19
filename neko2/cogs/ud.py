@@ -89,7 +89,7 @@ class UrbanDictionaryCog(traits.CogTraits):
         return embed
 
     @commands.command(
-        brief='Looks up a definition on Urban Dictionary',
+        brief='Looks up a definition on Urban Dictionary.',
         examples=['java', ''], aliases=['ud', 'udd', 'urband'])
     async def urban(self, ctx: commands.Context, *, phrase: str = None):
         """If no phrase is given, we pick some random ones to show."""

@@ -33,6 +33,7 @@ import logging
 import sys
 import traceback  # Traceback utils.
 
+import aiohttp
 import discord  # Embeds
 from discord.ext.commands import Paginator
 import discord.ext.commands.errors as dpyext_errors  # Errors for ext.
@@ -57,6 +58,7 @@ handled_errors = {
     dpyext_errors.MissingPermissions,
     dpyext_errors.NoPrivateMessage,
     dpyext_errors.TooManyArguments,
+    aiohttp.ClientError
 }
 
 

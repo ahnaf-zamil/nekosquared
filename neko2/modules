@@ -8,7 +8,7 @@
 # Do not use. Broken.
 #*.beats
 *.botupdate
-*.botutils
+*.botdev
 #*.cat
 *.chatty
 *.cppref
@@ -31,3 +31,4 @@
 *.wordnik
 *.xkcd
 *.bangbang
+*.abbrev

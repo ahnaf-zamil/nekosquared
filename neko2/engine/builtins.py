@@ -145,13 +145,13 @@ class Builtins(extrabits.InternalCogType):
 
     @commands.command(brief='Links to the GitHub repository.',
                       aliases=['github', 'repo', 'bitbucket', 'svn'])
-    async def git(self, ctx, who: discord.Member=None):
+    async def git(self, ctx, who: discord.Member = None):
         """Gets the repository that the bot's source code is hosted in."""
         who = who or ctx.author
         await ctx.send(f'{who.mention}: <{neko2.__repository__}>')
-    
+
     @commands.command(brief='Links to the Trello page.')
-    async def trello(self, ctx, who: discord.Member=None):
+    async def trello(self, ctx, who: discord.Member = None):
         """Gets the Trello page for the bot development."""
         who = who or ctx.author
         await ctx.send(f'{who.mention}: <{neko2.__trello__}>')
@@ -163,14 +163,13 @@ class Builtins(extrabits.InternalCogType):
         display info on how to use it. Otherwise, if nothing is provided, then
         a list of available commands is output instead.
 
-        Provide the `--all` flag for the given query to view all aliases.
-
-        Provide the `--cogs` flag to view command categories.
+        Provide the `--compact` or `-c` flag to view a compact list of commands
+        and aliases to run. This is the original help dialog.
         """
-        if not query or query.lower() == '--all':
+        if not query:
+            await self._new_dialog(ctx)
+        elif query.lower() in ('-c', '--compact'):
             await self._summary_screen(ctx, bool(query))
-        elif query.lower().startswith('--cog'):
-            await self._by_cogs(ctx)
         else:
             result = await self.get_best_match(query, ctx)
             if result:
@@ -181,78 +180,41 @@ class Builtins(extrabits.InternalCogType):
                 await ctx.send(f'No command found that matches `{query}`',
                                delete_after=15)
 
+    # noinspection PyUnresolvedReferences
     @staticmethod
-    async def _by_cogs(ctx):
+    async def _new_dialog(ctx):
         embeds = []
-        page2cog = {}
-        for name in sorted(ctx.bot.cogs):
-            # Includes those that cannot be run.
-            all_cmds = list(sorted(ctx.bot.get_cog_commands(name), key=str))
+        # Includes those that cannot be run.
+        all_cmds = list(sorted(ctx.bot.commands, key=str))
 
-            commands = []
+        commands = []
 
-            for potential_command in all_cmds:
-                # noinspection PyUnresolvedReferences
-                if await potential_command.can_run(ctx):
-                    commands.append(potential_command)
+        for potential_command in all_cmds:
+            # noinspection PyUnresolvedReferences
+            if await potential_command.can_run(ctx):
+                commands.append(potential_command)
 
-            if not commands:
-                continue
+        # We only show 10 commands per page.
+        for i in range(0, len(commands), 12):
+            embed_page = discord.Embed(
+                title='Neko² commands',
+                colour=alg.rand_colour())
+            # embed_page.set_thumbnail(url=ctx.bot.user.avatar_url)
 
-            # We only show 10 commands per page.
-            page_count = (len(commands) // 10) + 1
+            next_commands = commands[i:i + 12]
 
-            title = string.pascal2title(name)
+            for command in next_commands:
+                # Special space char
+                name = command.name
 
-            page2cog[len(embeds) + 1] = title
+                embed_page.add_field(
+                    name=name,
+                    # If we put a zero space char first, and follow with an
+                    # EM QUAD, it won't strip the space.
+                    value='\u200e\u2001' + (command.brief or '—'),
+                    inline=False)
 
-            for i in range(0, len(commands), 10):
-                embed_page = discord.Embed(
-                    title=title,
-                    colour=alg.rand_colour())
-                # embed_page.set_thumbnail(url=ctx.bot.user.avatar_url)
-
-                if page_count - 1:
-                    embed_page.set_footer(text=f'Page {i+1} of {page_count}')
-
-                next_commands = commands[i:i+10]
-
-                for command in next_commands:
-                    # noinspection PyUnresolvedReferences
-                    embed_page.add_field(
-                        name=f'`{command.qualified_name}`',
-                        value=command.brief or '\u200b',
-                        inline=False)
-
-                embeds.append(embed_page)
-
-        title_pages = []
-        expected_title_pages = (len(page2cog) // 20) + 1
-
-        indexes = list(page2cog.keys())
-
-        # Title page
-        for i in range(0, len(page2cog), 20):
-            mappings = {idx: page2cog[idx] for idx in indexes[i:i+20]}
-
-            title_embed = discord.Embed(
-                title='Command categories - Table of contents',
-                description='\n'.join(f'{pn + expected_title_pages} - {cog}'
-                                      for pn, cog in mappings.items()),
-                colour=alg.rand_colour()
-            )
-
-            title_embed.set_thumbnail(url=ctx.bot.user.avatar_url)
-
-            if expected_title_pages - 1:
-                title_embed.set_footer(
-                    text=f'Page {len(title_pages) + 1} '
-                         f'of {expected_title_pages}')
-
-            title_pages.append(title_embed)
-
-        for title_page in reversed(title_pages):
-            embeds.insert(0, title_page)
+            embeds.append(embed_page)
 
         discomaton.EmbedBooklet(pages=embeds, ctx=ctx).start()
 
@@ -652,7 +614,6 @@ class Builtins(extrabits.InternalCogType):
         licence = neko2.__license__
         repo = neko2.__repository__
         version = neko2.__version__
-        trello = neko2.__trello__
         uptime = self.uptime
         docstring = inspect.getdoc(neko2)
         if docstring:
@@ -671,7 +632,7 @@ class Builtins(extrabits.InternalCogType):
             title=f'Neko² v{version}',
             colour=0xc70025,
             description='\n\n'.join(docstring),
-            url=repo)                    
+            url=repo)
 
         # Most recent changes
         # Must do in multiple stages to allow the cached property to do

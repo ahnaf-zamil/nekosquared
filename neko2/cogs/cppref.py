@@ -182,7 +182,7 @@ class CppCog(traits.CogTraits):
         return url, h1, tasters, header, description
 
     @commands.command(
-        brief='Searches en.cppreference.com for the given criteria',
+        brief='Searches en.cppreference.com for the given criteria.',
         aliases=['cref', 'cpp'],
         examples=['std::string', 'stringstream'])
     async def cppref(self, ctx, *terms):

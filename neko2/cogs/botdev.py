@@ -38,7 +38,7 @@ class BotUtils:
     @commands.group(name='botdev', brief='A collection of useful tools for '
                                          'bot developers.',
                     invoke_without_command=True)
-    async def botdev_group(self, ctx, *_):
+    async def botdev_group(self, ctx, *, child):
         ctx.message.content = f'{ctx.bot.command_prefix}help botdev'
         ctx = await ctx.bot.get_context(ctx.message)
         await ctx.bot.invoke(ctx)

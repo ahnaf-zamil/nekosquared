@@ -186,7 +186,7 @@ class AdminCog(traits.CogTraits):
                     out_stream.write(
                         '# Returned '
                         f'{process.returncode if process.returncode else 0}')
-                    binder.add(out_stream.getvalue())
+                    binder.add(out_stream.getvalue().replace('`', 'ˋ'))
         except:
             binder.add(traceback.format_exc())
         finally:
@@ -359,6 +359,23 @@ class NonAdminCog:
                     return
 
         later()
+
+    @commands.command(brief='Shows you what OS I am running.')
+    async def os(self, ctx):
+        modenv = os.environ
+        modenv = dict(modenv)
+        modenv['USER'] = modenv['USERNAME'] = 'Neko²'
+
+        process = await asyncio.create_subprocess_shell(
+            'screenfetch -N -p -d "-shell"',
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            # Fool screenfetch into outputting false values for these options.
+            env=modenv)
+
+        stdout = (await process.stdout.read()).decode().replace('`', 'ˋ')
+        stdout = f'```brainfuck\n{stdout}\n```'
+        await ctx.send(stdout)
 
     @commands.command(brief='Times the execution of another command.')
     async def timeit(self, ctx, *, content):
