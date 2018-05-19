@@ -181,6 +181,8 @@ class Paginator:
                     # hitting an infinite loop.
                     if max_lns <= 0:
                         continue
+                elif char == '\n':
+                    current_lines += 1
 
                 elif len(current_page) == max_len:
                     finish_page()
