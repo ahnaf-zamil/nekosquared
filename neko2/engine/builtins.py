@@ -145,10 +145,16 @@ class Builtins(extrabits.InternalCogType):
 
     @commands.command(brief='Links to the GitHub repository.',
                       aliases=['github', 'repo', 'bitbucket', 'svn'])
-    async def git(self, ctx, who: discord.Member = None):
+    async def git(self, ctx, who: discord.Member=None):
         """Gets the repository that the bot's source code is hosted in."""
         who = who or ctx.author
         await ctx.send(f'{who.mention}: <{neko2.__repository__}>')
+    
+    @commands.command(brief='Links to the Trello page.')
+    async def trello(self, ctx, who: discord.Member=None):
+        """Gets the Trello page for the bot development."""
+        who = who or ctx.author
+        await ctx.send(f'{who.mention}: <{neko2.__trello__}>')
 
     @commands.command(brief='Gets usage information for commands.')
     async def help(self, ctx, *, query: str = None):
@@ -646,6 +652,7 @@ class Builtins(extrabits.InternalCogType):
         licence = neko2.__license__
         repo = neko2.__repository__
         version = neko2.__version__
+        trello = neko2.__trello__
         uptime = self.uptime
         docstring = inspect.getdoc(neko2)
         if docstring:
@@ -664,7 +671,7 @@ class Builtins(extrabits.InternalCogType):
             title=f'Neko² v{version}',
             colour=0xc70025,
             description='\n\n'.join(docstring),
-            url=repo)
+            url=repo)                    
 
         # Most recent changes
         # Must do in multiple stages to allow the cached property to do
@@ -680,7 +687,7 @@ class Builtins(extrabits.InternalCogType):
         embed.set_footer(text=f'Uptime: {uptime}')
         embed.set_thumbnail(url=ctx.bot.user.avatar_url)
 
-        embed.add_field(name='Current high score', value=self.lines_of_code)
+        embed.add_field(name='Developer EXP', value=self.lines_of_code)
         await ctx.send(embed=embed)
 
     @commands.command(brief='Shows the current latencies for the me.')
