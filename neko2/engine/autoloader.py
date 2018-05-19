@@ -70,4 +70,6 @@ def auto_load_modules(bot) \
                 errors.append((ex, module))
             else:
                 logger.info(f'Loaded module {module} in {time * 1000:,.2f}ms')
+        logger.warning(f'Loaded {len(modules) - len(errors)}/{len(modules)} '
+                       'modules successfully. Will now start bot.')
     return errors

@@ -30,6 +30,8 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import asyncio
+from datetime import datetime
+import logging
 import sys
 import traceback
 
@@ -48,6 +50,36 @@ class NekoSquaredBotProcess(scribe.Scribe):
         :param args: command line args to process.
         """
         self.args = args
+
+        # Initialise file-based logging to prevent spamming the
+        # journal.
+        logging.captureWarnings(True)
+        neko2logs = logging.getLogger('neko2')
+        timestamp = str(datetime.utcnow())
+        fh = logging.FileHandler(f'/tmp/neko2_{timestamp}.log')
+        fh.setLevel('DEBUG')
+        sh = logging.StreamHandler()
+        sh.setLevel('WARNING')
+        logging.basicConfig(level='INFO', handlers=[fh, sh])
+
+        # Add an on-error hook
+        def my_excepthook(exc_type, exc_value, traceback, logger=neko2logs):
+            logger.error("Logging an uncaught exception",
+                         exc_info=(exc_type, exc_value, traceback))
+
+        # Intercept calls to traceback
+        _unused_old_exc = traceback.print_exc
+
+        def new_exc(limit=None, file=None, chain=True):
+            """Intercepts the printing of tracebacks and logs them."""
+            traceback.print_exception(*sys.exc_info(),
+                                      limit=limit,
+                                      file=file,
+                                      chain=chain)
+            neko2logs.error('Traceback dumped on request',
+                            exc_info=sys.exc_info())
+
+        traceback.print_exc = new_exc
 
         if len(self.args) > 1:
             config_path = self.args[1]

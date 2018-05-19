@@ -3,6 +3,8 @@
 """
 Discomaton: finite state machines for Discord.py's rewrite.
 
+Here be dragons. You have been warned!
+
 ===
 
 MIT License
