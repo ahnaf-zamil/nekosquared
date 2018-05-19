@@ -15,8 +15,7 @@ Oh, and I cannot evaluate the price of lime.
 
 If you want to be nosey, you can also [check out the source code on GitHub](
 https://github.com/neko404notfound/nekosquared). Bugs and general development
-progress will begin to be documented on [Trello]
-(https://trello.com/b/gKTl1rMO/nekozilla).
+progress will begin to be documented on [Trello](https://goo.gl/NfKvDs).
 
 ===
 
