@@ -145,8 +145,6 @@ class Coliru:
         script_lines.append(self.shell_script)
         script_lines.append('set +x')
 
-        script_lines.append('echo "# Returned ${?}"')
-
         return '\n'.join(script_lines)
 
     async def execute(self,

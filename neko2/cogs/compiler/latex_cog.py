@@ -32,7 +32,7 @@ from neko2.shared import commands, traits
 from .toolchains import latex
 
 
-class LaTeXCog(traits.CogTraits):
+class LatexCog(traits.CogTraits):
     @commands.command(
         name='tex', aliases=['latex', 'texd', 'latexd'],
         brief='Attempts to parse a given LaTeX string and display a preview.')

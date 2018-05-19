@@ -82,7 +82,7 @@ async def c(source):
     """
     script = (
         '-Wall -Wextra -pedantic -O0 -lm -lpthread -std=c11 -o a.out '
-        'main.c && ./a.out')
+        'main.c && ./a.out; echo "Returned $?"')
 
     if source.startswith('//clang'):
         # Concat extra \n at start to enable line numbers in errors
@@ -115,7 +115,7 @@ async def cpp(source):
     """
     script = (
         '-Wall -Wextra -std=c++17 -pedantic -O0 -lm -lstdc++fs -lpthread '
-        '-o a.out main.cpp && ./a.out')
+        '-o a.out main.cpp && ./a.out; echo "Returned $?"')
 
     if source.startswith('//clang++'):
         # Concat extra \n at start to enable line numbers in errors
@@ -140,7 +140,7 @@ async def python2(source):
     print 'Hello, World'
     ```
     """
-    script = 'python main.py'
+    script = 'python main.py; echo "Returned $?"'
     cc = Coliru(script, SourceFile('main.py', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
@@ -178,7 +178,8 @@ async def python(source):
     ffstring, trt = await asyncio.gather(
         ffstring_req.text(),
         trt_req.text())
-    script = 'python3.5 future_fstrings.py main.py | python3.5'
+    script = 'python3.5 future_fstrings.py main.py | python3.5; ' \
+             'echo "Returned $?"'
     cc = Coliru(script,
                 SourceFile('main.py', source),
                 SourceFile('tokenize_rt.py', trt),
@@ -257,7 +258,7 @@ async def sh(source):
     yes but bash is still better imo
     ```
     """
-    script = 'sh main.sh'
+    script = 'sh main.sh; echo "Returned $?"'
     cc = Coliru(script, SourceFile('main.sh', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
@@ -273,7 +274,7 @@ async def bash(source):
     yes i like bash ok
     ```
     """
-    script = 'bash main.sh'
+    script = 'bash main.sh; echo "Returned $?"'
     cc = Coliru(script, SourceFile('main.sh', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
@@ -307,7 +308,7 @@ async def fortran(source):
     END PROGRAM Fibonacci
     ```
     """
-    script = 'gfortran main.f08'
+    script = 'gfortran main.f08; echo "Returned $?"'
     cc = Coliru(script, SourceFile('main.f08', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
@@ -336,7 +337,7 @@ async def fortran90(source):
     END PROGRAM Fibonacci
     ```
     """
-    script = 'gfortran main.f90'
+    script = 'gfortran main.f90; echo "Returned $?"'
     cc = Coliru(script, SourceFile('main.f90', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
@@ -365,7 +366,7 @@ async def fortran95(source):
     END PROGRAM Fibonacci
     ```
     """
-    script = 'gfortran main.f95'
+    script = 'gfortran main.f95; echo "Returned $?"'
     cc = Coliru(script, SourceFile('main.f95', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
@@ -388,7 +389,7 @@ async def awk(source):
     BEGIN { for (i=1; i<20; i++) print i, factorial(i) }
     ```
     """
-    script = 'awk -f main.awk'
+    script = 'awk -f main.awk; echo "Returned $?"'
     cc = Coliru(script, SourceFile('main.awk', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
@@ -414,7 +415,7 @@ async def lua(source):
     end
     ```
     """
-    script = 'lua main.lua'
+    script = 'lua main.lua; echo "Returned $?"'
     cc = Coliru(script, SourceFile('main.lua', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
@@ -452,7 +453,7 @@ async def make(source):
     .PHONY: all clean rebuild
     ```
     """
-    script = 'make -f Makefile'
+    script = 'make -f Makefile; echo "Returned $?"'
     cc = Coliru(script, SourceFile('Makefile', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)

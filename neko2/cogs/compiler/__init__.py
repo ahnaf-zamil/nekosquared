@@ -36,13 +36,13 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from .coliru_cog import ColiruCog
-from .latex_cog import LaTeXCog
+from .latex_cog import LatexCog
 from .r_cog import RCog
 from .rextester_cog import RextesterCog
 
 
 def setup(bot):
-    bot.add_cog(LaTeXCog())
+    bot.add_cog(LatexCog())
     bot.add_cog(ColiruCog())
     bot.add_cog(RCog())
     bot.add_cog(RextesterCog())
