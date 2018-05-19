@@ -25,7 +25,7 @@ Feel free to contribute. Just remember the following when writing code:
     
     __all__ = ('SomeClass', 'some_function')
     ```
-5. Refer to [the Google Python style guide](https://google.github.io/styleguide/pyguide.html)
+5. Refer to [the Google Python style guide](https://google.github.io/styleguide/pyguide.html).
 6. Config files should be referred to without an extension. This allows the user
     to use the serialization format they are most comfortable with.
 7. Detailed commit messages please!
