@@ -626,8 +626,6 @@ class AbstractBooklet(AbstractIterableMachine,
 
     async def __aenter__(self):
         """Initialises the message."""
-        response = await self.channel.send(self.loading_message)
-        self.response_stk.push(response)
         await self.sync()
         return await super().__aenter__()
 
@@ -761,6 +759,9 @@ class AbstractBooklet(AbstractIterableMachine,
         """
 
         async def runner():
+            root = await self.channel.send(self.loading_message)
+            self.response_stk.push(root)
+
             async with self:
                 async for _ in self:
                     pass
