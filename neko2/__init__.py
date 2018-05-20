@@ -5,8 +5,11 @@ I am a slightly weird bot that does a variety of things. Functionality is
 mostly geared towards various development tools, such as interpreters
 and compilers for over 45 different programming languages. Various tools
 for accessing documentation also exist. Functions to provide an easier way
-to manage Discord guilds are also being implemented, and are a work-in-
-progress.
+to manage Discord guilds are also being implemented, and are a 
+work-in-progress.
+
+[View progress on VERSION 3 of Neko!](
+https://github.com/neko404notfound/n3)
 
 Eventually, more random bits and pieces aimed towards general day-to-day
 use will also start to appear.
