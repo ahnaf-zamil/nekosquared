@@ -10,7 +10,7 @@
 *.botupdate
 *.botdev
 #*.cat
-*.chatty
+#*.chatty
 *.cppref
 *.f
 *.googl
@@ -31,4 +31,5 @@
 *.wordnik
 *.xkcd
 *.bangbang
-*.abbrev
+#*.abbrev
+*.trans
