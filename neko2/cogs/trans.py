@@ -28,7 +28,7 @@ class TransCog(traits.CogTraits):
         """
         if source_lang in ('*', '.'):
             source_lang = 'auto'
-        if dest_lang == ('*', '.'):
+        if dest_lang in ('*', '.'):
             dest_lang = 'en'
 
         def fuzzy_wuzzy_match(input_name):
@@ -38,12 +38,8 @@ class TransCog(traits.CogTraits):
             else:
                 return googletrans.LANGCODES[match[0]]
 
-        def pool():
-            return googletrans.Translator().translate(
-                phrase, dest_lang, source_lang)
-
         try:
-            acceptable_langs = (*googletrans.LANGUAGES, 'auto')
+            acceptable_langs = (*googletrans.LANGUAGES.keys(), 'auto')
 
             source_lang = source_lang.lower()
             dest_lang = dest_lang.lower()
@@ -51,6 +47,10 @@ class TransCog(traits.CogTraits):
                 source_lang = fuzzy_wuzzy_match(source_lang)
             if dest_lang not in acceptable_langs:
                 dest_lang = fuzzy_wuzzy_match(dest_lang)
+
+            def pool():
+                return googletrans.Translator().translate(
+                    phrase, dest_lang, source_lang)
 
             result = await self.run_in_io_executor(pool)
 
