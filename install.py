@@ -67,6 +67,9 @@ dependencies = {
     # PILLOW image manip lib
     'PIL': 'pillow',
 
+    # Google translate.
+    'googletrans': 'googletrans',
+    
     # Faster event loop implementation.
     'uvloop': 'uvloop',
 
