@@ -71,10 +71,10 @@ class PyCog(traits.CogTraits):
                     brief='Searches PyPI for the given package name.')
     async def pypi(self, ctx, package):
         """
-        Input must be three or more characters wide.
+        Input must be two or more characters wide.
         """
-        if len(package) <= 2:
-            return await ctx.send('Please provide at least three characters.',
+        if len(package) < 2:
+            return await ctx.send('Please provide at least two characters.',
                                   delete_after=10)
 
         def executor():
