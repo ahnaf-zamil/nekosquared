@@ -9,7 +9,7 @@ from neko2.shared import commands
 
 class Bin2AsciiCog:
     @commands.command(brief='Converts the binary string to ASCII.')
-    async def bin2ascii(ctx, *, string):
+    async def bin2ascii(self, ctx, *, string):
         string = ''.join(c for c in string if c not in ' \t\r\n')
         if not all(c in '01' for c in string):
             return await ctx.send('Not binary input...', delete_after=10)
@@ -25,7 +25,7 @@ class Bin2AsciiCog:
         await ctx.send(text)
     
     @commands.command(brief='Converts the ASCII string to binary.')
-    async def ascii2bin(ctx, *, string):
+    async def ascii2bin(self, ctx, *, string):
         """
         Any UTF-8 characters are removed.
         """
