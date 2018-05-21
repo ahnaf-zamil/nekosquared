@@ -29,7 +29,7 @@ class Bin2AsciiCog:
         """
         Any UTF-8 characters are removed.
         """
-        string = ''.join(c for c in string if 0 <= ord(c) < 128)
+        string = ''.join(c for c in string if 0 <= ord(c) < 0xFFFF)
         
         if not string:
             return await ctx.send('No valid ASCII characters given.',
