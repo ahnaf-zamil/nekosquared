@@ -35,7 +35,7 @@ class Bin2AsciiCog:
             return await ctx.send('No valid ASCII characters given.',
                                   delete_after=10)
 
-        binaries = [bin(ord(c))[2:10].rjust(0) for c in string]
+        binaries = [bin(ord(c))[2:11].rjust(0) for c in string]
         
         await ctx.send(' '.join(binaries))
 
