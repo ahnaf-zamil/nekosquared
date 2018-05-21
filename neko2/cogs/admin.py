@@ -346,7 +346,8 @@ class NonAdminCog:
                                        timeout=300,
                                        check=lambda r, u:
                                        r.emoji == em and not u.bot
-                                       and r.message.id == message.id)
+                                       and r.message.id == message.id
+                                       and r.message.author.id == ctx.message.author.id)
             except asyncio.TimeoutError:
                 try:
                     await message.clear_reactions()
