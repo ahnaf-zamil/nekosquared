@@ -33,3 +33,4 @@
 *.bangbang
 #*.abbrev
 *.trans
+*.bin2ascii
