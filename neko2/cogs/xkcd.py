@@ -88,11 +88,10 @@ class XkcdCache(threading.Thread,
 
     @threaded_cached_property
     def cached_metadata(self):
+        data = []
         if os.path.exists(CACHE_FILE):
             with open(CACHE_FILE) as fp:
                 data = json.load(fp)
-        else:
-            data = []
         return data
 
     def run(self):
