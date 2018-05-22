@@ -352,6 +352,10 @@ class AbstractBooklet(AbstractIterableMachine,
             self.buttons[button.reaction] = button
 
         self.response_stk: Stack[discord.Message] = Stack()
+           
+    async def set_starting_page_number(self, number):
+        self._page_number = number
+        self.__current_page = pages[number]
 
     @property
     def loading_message(self) -> str:
@@ -564,8 +568,6 @@ class AbstractBooklet(AbstractIterableMachine,
 
     async def __aenter__(self):
         """Initialises the message."""
-        response = await self.channel.send(self.loading_message)
-        self.response_stk.push(response)
         await self.sync()
         return await super().__aenter__()
 
@@ -698,6 +700,8 @@ class AbstractBooklet(AbstractIterableMachine,
         """
 
         async def runner():
+            response = await self.channel.send(self.loading_message)
+            self.response_stk.push(response)
             async with self:
                 async for _ in self:
                     pass
