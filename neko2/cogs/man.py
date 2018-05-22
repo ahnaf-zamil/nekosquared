@@ -143,6 +143,8 @@ class ManCog:
                         book.buttons[next_match.reaction] = next_match
 
                 except Exception as ex:
+                    import traceback
+                    traceback.print_exc()
                     await ctx.send(ex, delete_after=10)
 
             book.start()
