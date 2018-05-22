@@ -91,7 +91,7 @@ class XkcdCache(threading.Thread,
         data = []
         if os.path.exists(CACHE_FILE):
             with open(CACHE_FILE) as fp:
-                data = json.load(fp)
+                data = json.load(fp) or []
         return data
 
     def run(self):
@@ -135,9 +135,9 @@ class XkcdCache(threading.Thread,
                     })
 
             with open(CACHE_FILE, 'w') as fp:
-                data = data.sort(key=lambda c: c['num'])
+                data = data
                 json.dump(data, fp, indent='  ')
-                del self.__dict__['cached_metadata']
+            del self.__dict__['cached_metadata']
 
             self.logger.info('XKCD recache completed. Going to sleep.')
             time.sleep(SLEEP_FOR)
