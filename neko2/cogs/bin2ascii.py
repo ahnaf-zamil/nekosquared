@@ -16,12 +16,12 @@ aliases = {
 }
 
 
-def to_base(n, base):
+def to_base_str(n, base):
    convert_string = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
    if n < base:
        return convert_string[n]
    else:
-       return to_base(n // base, base) + convert_string[n % base]
+       return to_base_str(n // base, base) + convert_string[n % base]
         
 
 
@@ -59,7 +59,7 @@ class Bin2AsciiCog:
         except ValueError as ex:
             return await ctx.send(f'Error: {ex}.')
         
-        await ctx.send(to_base(value, to_base) or '0')
+        await ctx.send(to_base_str(value, to_base) or '0')
 
     @commands.command(brief='Converts the binary string to ASCII.')
     async def bin2ascii(self, ctx, *, string):
