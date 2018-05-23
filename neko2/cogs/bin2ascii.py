@@ -28,7 +28,7 @@ def to_base(n, base):
 class Bin2AsciiCog:
     @commands.command(name='base', 
                       brief='Converts between bases and also to/from ASCII.')
-    async def base_group(self, ctx, query): 
+    async def base_group(self, ctx, *, query): 
         values = query.replace(',', '').replace(' to', '').split(' ')
         
         if len(values) < 3 or len(values) > 3:
