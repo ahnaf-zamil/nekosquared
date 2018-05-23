@@ -191,8 +191,12 @@ class Builtins(extrabits.InternalCogType):
 
         for potential_command in all_cmds:
             # noinspection PyUnresolvedReferences
-            if await potential_command.can_run(ctx):
-                commands.append(potential_command)
+            try:
+                if await potential_command.can_run(ctx):
+                    commands.append(potential_command)
+            except:
+                # E.g. NotOwner is raised.
+                continue
 
         # We only show 10 commands per page.
         for i in range(0, len(commands), 12):
