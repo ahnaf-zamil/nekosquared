@@ -48,7 +48,7 @@ class Bin2AsciiCog:
             else:
                 to_base = int(to_base)            
                 
-            if not all(0 < x <= 36 for x in from_base, to_base):
+            if not all(0 < x <= 36 for x in (from_base, to_base)):
                 return await ctx.send(
                     'Bases must be greater than zero and less or equal to 36.')
         except KeyError as ex:
