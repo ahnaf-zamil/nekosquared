@@ -27,8 +27,13 @@ def to_base_str(n, base):
 
 class Bin2AsciiCog:
     @commands.command(name='base', 
-                      brief='Converts between bases and also to/from ASCII.')
+                      brief='Converts between bases and also to/from ASCII.',
+                      usage='<from base> <to base> <value>')
     async def base_group(self, ctx, *, query): 
+        """
+        Expects the input base as the first argument, the output base as the second
+        argument, and the value to convert as the third. Only supports upto base 36.
+        """
         values = query.replace(',', '').replace(' to', '').split(' ')
         
         if len(values) < 3 or len(values) > 3:
