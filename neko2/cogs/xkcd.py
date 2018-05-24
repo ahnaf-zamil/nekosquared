@@ -232,7 +232,8 @@ class XkcdCog(traits.CogTraits):
             # 24th May 2018: Discord seems to be ignoring this.
             # embed.set_image(url=page['img'])
                 
-            async with conn.get(page['img']) as resp:
+            
+            async with conn.get(page['img']) as resp, ctx.typing():
                 resp.raise_for_status()
                 bio = io.BytesIO(await resp.read())
             
