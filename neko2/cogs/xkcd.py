@@ -33,6 +33,7 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
+import io
 import json
 import os
 import random
@@ -160,12 +161,11 @@ class XkcdCog(traits.CogTraits):
         If you provide a string, then that is used as search criteria across
         all xkcd titles. This may take a few seconds to complete, so be patient
         """
+        conn = await self.acquire_http()
         try:
             if not query:
                 # Get the most recent comic first and inspect the entry number
                 # (our cache can be up to 12 hours out of date).
-                conn = await self.acquire_http()
-
                 resp = await conn.get(most_recent_xkcd())
                 data = await resp.json()
                 num = data['num']
@@ -229,11 +229,17 @@ class XkcdCog(traits.CogTraits):
             embed.set_footer(
                 text=f'#{page["num"]} - '
                      f'{page["day"]}/{page["month"]}/{page["year"]}')
-            embed.set_image(url=page['img'])
+            # 24th May 2018: Discord seems to be ignoring this.
+            # embed.set_image(url=page['img'])
+                
+            async with http.get(page['img']) as resp:
+                resp.raise_for_status()
+                bio = io.BytesIO(await resp.read())
+            
+            bio.seek(0)                
+            await ctx.send(embed=embed, file=discord.File(bio, 'xkcd.png'))
 
-            await ctx.send(embed=embed)
-
-
+                
 def setup(bot):
     if not hasattr(bot, '__xkcd_cacher_thread'):
         XkcdCache(bot)
