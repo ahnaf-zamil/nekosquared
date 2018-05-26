@@ -98,9 +98,10 @@ class Builtins(traits.CogTraits):
             bot.remove_command('help')
         except:
             pass
+        
+        self.bot = bot
 
     # Prevents webhook exploits spamming the hell out of this.
-
     async def __global_check(self, ctx):
         """
         Prevents us, while not in debug mode, from responding to other
