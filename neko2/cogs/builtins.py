@@ -45,6 +45,7 @@ import typing  # Type checking bits and pieces.
 import async_timeout
 from cached_property import cached_property
 import discord
+from discord.ext import commands as dpycmds
 from discord import embeds  # Embeds.
 
 import discomaton  # Finite state machines.
@@ -1243,7 +1244,7 @@ class Builtins(extrabits.CogTraits):
                         f'{ctx.author} Invoked destructive update from '
                         f'{ctx.guild}@#{ctx.channel}\n{log}')
 
-                    p = discomaton.util.pag.Paginator()
+                    p = dpycmds.Paginator()
 
                     for line in log.split('\n'):
                         p.add_line(line)
