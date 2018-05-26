@@ -792,9 +792,19 @@ class Builtins(extrabits.InternalCogType):
             start_time = time.monotonic()
             with ctx.typing():
                 log.append(f'Unloading `discomaton` cached module data.')
-                del sys.modules['discomaton']
+
+                try:
+                    del sys.modules['discomaton']
+                except:
+                    pass
+
                 log.append(f'Unloading `neko2` cached module data.')
-                del sys.modules['neko2']
+
+                try:
+                    del sys.modules['neko2']
+                except:
+                    pass
+
                 log.append('\n' + '-' * 50 + '\n')
 
                 unloaded_extensions = []
