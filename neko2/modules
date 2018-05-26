@@ -7,7 +7,6 @@
 *.admin
 # Do not use. Broken.
 #*.beats
-*.botupdate
 *.botdev
 #*.cat
 #*.chatty
