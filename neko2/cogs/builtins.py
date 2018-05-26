@@ -91,7 +91,7 @@ def count_loc():
 count_loc()
 
 
-class Builtins(extrabits.CogTraits):
+class Builtins(traits.CogTraits):
     def __init__(self, bot):
         """Init the cog."""
         try:
