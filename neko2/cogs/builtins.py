@@ -909,9 +909,9 @@ class Builtins(traits.CogTraits):
         """
         self.flush_command_cache()
 
-    @staticmethod
-    async def __local_check(ctx):
-        return await ctx.bot.is_owner(ctx.author)
+    # @staticmethod
+    # async def __local_check(ctx):
+    #     return await ctx.bot.is_owner(ctx.author)
 
     @commands.is_owner()
     @commands.command(aliases=['stop', 'die'])
