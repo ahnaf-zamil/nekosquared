@@ -39,6 +39,8 @@ from neko2.shared import alg, commands, scribe  # Scribe
 
 
 class GitCog(scribe.Scribe):
+    def __init__(self, bot):
+        self.bot = bot
 
     @commands.is_owner()
     @commands.command()
@@ -200,4 +202,4 @@ class GitCog(scribe.Scribe):
 
 
 def setup(bot):
-    bot.add_cog(GitCog())
+    bot.add_cog(GitCog(bot))
