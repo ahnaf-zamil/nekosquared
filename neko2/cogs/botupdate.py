@@ -48,15 +48,15 @@ class GitCog(scribe.Scribe):
         otherwise the modules just get reloaded instead.
         """
         if should_restart:
-            return await self.update.callback(ctx, '--mute', '--restart')
+            return await self.update.callback(self, ctx, '--mute', '--restart')
         else:
-            await self.update.callback(ctx, '--mute')
+            await self.update.callback(self, ctx, '--mute')
 
             # Find the reload command and call it if it exists
             cmd = alg.find(lambda c: c.name == 'reload', ctx.bot.commands)
 
             if cmd:
-                await cmd.callback(ctx)
+                await cmd.callback(self, ctx)
             else:
                 await ctx.send('No reload command found.')
 
