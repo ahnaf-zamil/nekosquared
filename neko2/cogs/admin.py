@@ -282,7 +282,9 @@ class NonAdminCog:
         start_ack = monotonic()
         future = ctx.bot.loop.create_task(ctx.send('Getting ping!'))
         future.add_done_callback(callback)
+
         message = await future
+
         event_loop_latency = monotonic() - start_ack
         ack_time -= start_ack
         event_loop_latency -= ack_time
@@ -347,7 +349,7 @@ class NonAdminCog:
                                        check=lambda r, u:
                                        r.emoji == em and not u.bot
                                        and r.message.id == message.id
-                                       and r.message.author.id == ctx.message.author.id)
+                                       and u.id == ctx.message.author.id)
             except asyncio.TimeoutError:
                 try:
                     await message.clear_reactions()
@@ -355,10 +357,10 @@ class NonAdminCog:
                     return
             else:
                 try:
-                    await message.delete()
+                    await commands.try_delete(message)
+                    await commands.try_delete(ctx)
                 finally:
                     return
-
         later()
 
     @commands.command(brief='Shows you what OS I am running.')

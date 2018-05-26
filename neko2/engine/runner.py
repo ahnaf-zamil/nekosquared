@@ -30,7 +30,6 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import asyncio
-from datetime import datetime
 import logging
 import sys
 import traceback
@@ -86,6 +85,8 @@ class NekoSquaredBotProcess(scribe.Scribe):
         
         """
         logging.basicConfig(level='INFO')
+        # Stops rate limiting spam from books.
+        logging.getLogger('discord.http').setLevel('WARNING')
 
         if len(self.args) > 1:
             config_path = self.args[1]

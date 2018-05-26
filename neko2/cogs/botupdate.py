@@ -35,10 +35,31 @@ import shutil  # which (find in $PATH env-var)
 import traceback  # Traceback utils
 
 from discomaton.util import pag
-from neko2.shared import commands, scribe  # Scribe
+from neko2.shared import alg, commands, scribe  # Scribe
 
 
 class GitCog(scribe.Scribe):
+
+    @commands.is_owner()
+    @commands.command()
+    async def redeploy(self, ctx, should_restart=None):
+        """
+        Redeploys Neko code. Provide '--rs' as an argument to restart the bot,
+        otherwise the modules just get reloaded instead.
+        """
+        if should_restart:
+            return await self.update.callback(ctx, '--mute', '--restart')
+        else:
+            await self.update.callback(ctx, '--mute')
+
+            # Find the reload command and call it if it exists
+            cmd = alg.find(lambda c: c.name == 'reload', ctx.bot.commands)
+
+            if cmd:
+                await cmd.callback(ctx)
+            else:
+                await ctx.send('No reload command found.')
+
     @commands.is_owner()
     @commands.command(
         brief='Clears the stash, and ensures we are up to date with master, '

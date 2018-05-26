@@ -163,12 +163,22 @@ class ErrorHandler(extrabits.InternalCogType):
                                              ctx.message,
                                              ignored_errors[type(cause)])
         else:
-            reply = '\N{SQUARED SOS} Something serious went wrong... '
+            reply = (
+                '\N{SQUARED SOS} Something serious went wrong... '
+                'note that Neko³ is currently being written to address any '
+                'issues and to perform much more smoothly. Please be patient, '
+                'and sorry for any inconvenience caused!\nIf it keeps '
+                'happening, please either notify the bot owner, or '
+                '**add an issue** on GitHub. Run `n.git` for a link! '
+                '\n\n**Error**: '
+            )
+
             reply += excuses.get_excuse()
+            reply += '\n-----------------------------------------------------'
 
             if bot.debug:
                 reply += (
-                    '\n\nThe following is included while debug mode is '
+                    '\nThe following is included while debug mode is '
                     'on. As a result, I won\'t bother DMing '
                     f'<@{ctx.bot.owner_id}> about it.\n\n ')
                 reply += ''.join(traceback.format_exception(

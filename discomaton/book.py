@@ -19,7 +19,6 @@ from .button import Button, as_button
 from .util import validate
 from .util.helpers import attempt_delete
 from .util.stack import Stack
-from .version_info import __version__, __author__, __repository__
 
 __all__ = ('default_buttons', 'default_formatter', 'AbstractBooklet',
            'StringBooklet', 'EmbedBooklet', 'FormatterType')
@@ -74,14 +73,16 @@ def default_buttons() -> typing.List[Button]:
         # print('<-')
         await machine.move_forwards_by(-1)
 
+    """
     @_as_button(name='Let anyone control this', reaction='🔓')
     async def unlock(_unused_button: Button,
                      machine: 'AbstractBooklet',
                      _unused_reaction: discord.Reaction,
                      _unused_user: discord.User) -> None:
         machine.only_author = False
+    """
 
-    @_as_button(name='Enter a page number', reaction='💯')
+    @_as_button(name='Enter a page number', reaction='🔢')
     async def enter_page(_unused_button: Button,
                          machine: 'AbstractBooklet',
                          _usused_reaction: discord.Reaction,
@@ -102,7 +103,9 @@ def default_buttons() -> typing.List[Button]:
         prompt = await machine.channel.send('Enter a page number:')
         msg = None
 
+        # noinspection PyProtectedMember
         async def later_callback():
+            nonlocal msg
             try:
                 msg = await get_user_input((machine.channel, machine.client),
                                            only_if=predicate,
@@ -119,6 +122,7 @@ def default_buttons() -> typing.List[Button]:
 
         return in_future(later_callback())
 
+    """
     @_as_button(name='Show help', reaction='❓')
     async def show_help(_unused_button: Button,
                         machine: 'AbstractBooklet',
@@ -145,14 +149,16 @@ def default_buttons() -> typing.List[Button]:
             text='At the time of showing this help message, '
                  f'{"only the author" if machine.only_author else "anyone"} '
                  'is allowed control the book above by using reactions.')
+        root_resp = await machine.root_resp
 
-        if machine.root_resp.embeds:
-            m = await machine.root_resp.channel.send(embed=help_embed)
+        if root_resp.embeds:
+            m = await root_resp.channel.send(embed=help_embed)
             machine.response_stk.push(m)
         else:
-            await machine.root_resp.edit(embed=help_embed)
+            await root_resp.edit(embed=help_embed)
 
         setattr(machine, '_help_shown', True)
+    """
 
     @_as_button(name='Next page', reaction='▶')
     async def next_page(_unused_button: Button,
@@ -189,9 +195,11 @@ def default_buttons() -> typing.List[Button]:
         await machine.initial_message.delete()
         raise StopAsyncIteration
 
+    """
     @show_help.with_predicate
     def help_show_if(machine: 'AbstractBooklet') -> bool:
         return not hasattr(machine, '_help_shown')
+    """
 
     @go_to_start.with_predicate
     @previous_page.with_predicate
@@ -203,14 +211,16 @@ def default_buttons() -> typing.List[Button]:
     def multiple_pages_only(machine: 'AbstractBooklet') -> bool:
         return len(machine) > 1
 
+    """
     @unlock.with_predicate
     def show_unlock_iff(machine: 'AbstractBooklet') -> bool:
         return machine.only_author
+    """
 
     @go_back_10_pages.with_predicate
     @go_forwards_10_pages.with_predicate
     def ten_or_more_pages(machine: 'AbstractBooklet') -> bool:
-        return len(machine) > 10
+        return len(machine) >= 30
 
     @enter_page.with_predicate
     def only_one_prompt_at_once(machine: 'AbstractBooklet') -> bool:
@@ -355,7 +365,7 @@ class AbstractBooklet(AbstractIterableMachine,
            
     async def set_starting_page_number(self, number):
         self._page_number = number
-        self.__current_page = pages[number]
+        self.__current_page = self.pages[number]
 
     @property
     def loading_message(self) -> str:
@@ -412,7 +422,7 @@ class AbstractBooklet(AbstractIterableMachine,
         self.__current_page = self.pages[index]
 
     @property
-    def root_resp(self) -> discord.Message:
+    async def root_resp(self) -> discord.Message:
         """
         The root response is the Message we send to Discord that buttons are
         applied to.
@@ -423,13 +433,18 @@ class AbstractBooklet(AbstractIterableMachine,
         """
         try:
             return self.response_stk[0]
-        except IndexError as ex:
-            self.logger.debug(f'IGNORING INDEX ERROR {ex}')
-            raise StopAsyncIteration
+        except IndexError:
+            # We lost the reference to the original message, sadly.
+            msg = await self.channel.send(self.loading_message)
+            self.root_resp = msg
+            return msg
 
     @root_resp.setter
     def root_resp(self, value: discord.Message) -> None:
-        self.response_stk[0] = value
+        if self.response_stk:
+            self.response_stk[0] = value
+        else:
+            self.response_stk.push(value)
 
     @property
     def _page_number(self) -> int:
@@ -557,14 +572,14 @@ class AbstractBooklet(AbstractIterableMachine,
         """Gets a more up to date copy of the root message metadata."""
 
         async def up():
-            self.root_resp = await self.channel.get_message(self.root_resp.id)
+            self.root_resp = await self.channel.get_message((await self.root_resp).id)
 
         self.client.loop.create_task(up())
 
     async def __initialise_reacts(self):
         """Initialises the reacts, and awaits them to be present."""
         for react in self.buttons:
-            await self.root_resp.add_reaction(react)
+            await (await self.root_resp).add_reaction(react)
 
     async def __aenter__(self):
         """Initialises the message."""
@@ -585,7 +600,7 @@ class AbstractBooklet(AbstractIterableMachine,
     async def _maybe_add_reaction(self, reaction) -> None:
         """Only adds the reaction if we are able to. Otherwise, we ignore."""
         try:
-            root = self.root_resp
+            root = await self.root_resp
             # In this case, it is easier to ask for forgiveness than
             # permission.
             await root.add_reaction(reaction)
@@ -594,7 +609,7 @@ class AbstractBooklet(AbstractIterableMachine,
 
     async def _maybe_clear_reactions(self) -> None:
         try:
-            msg = await self.channel.get_message(self.root_resp.id)
+            msg = await self.channel.get_message((await self.root_resp).id)
             if msg:
                 await msg.clear_reactions()
         except BaseException as ex:
@@ -615,7 +630,7 @@ class AbstractBooklet(AbstractIterableMachine,
             self.__update_root()
         )
 
-        root = self.root_resp
+        root = await self.root_resp
 
         # Actual reacts that exist on Discord
         curr_reacts = root.reactions
@@ -671,7 +686,7 @@ class AbstractBooklet(AbstractIterableMachine,
                 timeout=self.timeout)
 
             await flush_future
-            await self.root_resp.remove_reaction(reaction, user)
+            await (await self.root_resp).remove_reaction(reaction, user)
             await self.buttons[reaction.emoji](self, reaction, user)
 
         except asyncio.TimeoutError:
@@ -700,8 +715,8 @@ class AbstractBooklet(AbstractIterableMachine,
         """
 
         async def runner():
-            response = await self.channel.send(self.loading_message)
-            self.response_stk.push(response)
+            # Invoke initial sending
+            await self.root_resp
             async with self:
                 async for _ in self:
                     pass
@@ -855,7 +870,7 @@ class StringBooklet(AbstractBooklet, typing.Generic[typing.AnyStr]):
 
         validate.validate_message(current_page)
 
-        root = self.root_resp
+        root = await self.root_resp
         in_future(root.edit(content=current_page))
 
 
@@ -1015,5 +1030,5 @@ class EmbedBooklet(AbstractBooklet):
         page_indicator = self.formatter(self)
 
         validate.validate_embed(current_page)
-        root = self.root_resp
+        root = await self.root_resp
         in_future(root.edit(content=page_indicator, embed=current_page))

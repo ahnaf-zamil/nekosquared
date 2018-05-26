@@ -119,11 +119,13 @@ class TldrCog(traits.CogTraits):
         pages = []
         for page in paginator.pages:
             page = scrub_tags(page)
-            pages.append(discord.Embed(
-                title=title,
-                description=page,
-                colour=alg.rand_colour()
-            ))
+
+            if page.strip():
+                pages.append(discord.Embed(
+                    title=title,
+                    description=page,
+                    colour=alg.rand_colour()
+                ))
 
         booklet = book.EmbedBooklet(ctx=ctx, pages=pages)
         await booklet.start()
