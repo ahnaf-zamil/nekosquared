@@ -52,7 +52,7 @@ import discomaton.util.pag
 from discomaton.factories import bookbinding
 import neko2  # n2 versioning
 from neko2 import modules  # Loadable modules
-from neko2.shared import commands, fuzzy, string, collections, alg
+from neko2.shared import commands, fuzzy, string, collections, alg, traits
 import neko2.shared.morefunctools
 from neko2.engine import extrabits  # Internal cog type
 
@@ -90,11 +90,9 @@ def count_loc():
 count_loc()
 
 
-class Builtins(extrabits.InternalCogType):
+class Builtins(extrabits.CogTraits):
     def __init__(self, bot):
         """Init the cog."""
-        super().__init__(bot)
-
         try:
             bot.remove_command('help')
         except:
