@@ -88,7 +88,7 @@ async def listen_to_edit(ctx, booklet=None, *additional_messages):
         async def custom_delete():
             for message in additional_messages:
                 await message.delete()
-            await booklet.root_resp.delete()
+            await (await booklet.root_resp).delete()
 
         await commands.wait_for_edit(ctx=ctx,
                                      msg=booklet.root_resp,
