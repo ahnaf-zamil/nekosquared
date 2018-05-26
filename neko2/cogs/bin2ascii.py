@@ -7,7 +7,65 @@ import math
 from neko2.shared import commands
 
 
+aliases = {
+    'bin': 2, 'binary': 2, '2s': 2, 'twos': 2,
+    'tri': 3,
+    'oct': 8, 'octal': 8, 'eight': 8,
+    'denary': 10, 'dec': 10, 'decimal': 10, 'ten': 10,
+    'hex': 16, 'hexadecimal': 16, 'sixteen': 16
+}
+
+
+def to_base_str(n, base):
+   convert_string = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+   if n < base:
+       return convert_string[n]
+   else:
+       return to_base_str(n // base, base) + convert_string[n % base]
+        
+
+
 class Bin2AsciiCog:
+    @commands.command(name='base', 
+                      brief='Converts between bases and also to/from ASCII.',
+                      usage='<from base> <to base> <value>')
+    async def base_group(self, ctx, *, query): 
+        """
+        Expects the input base as the first argument, the output base as the second
+        argument, and the value to convert as the third. Only supports upto base 36.
+        """
+        values = query.replace(',', '').replace(' to', '').split(' ')
+        
+        if len(values) < 3 or len(values) > 3:
+            return await ctx.send('Expected exactly three arguments.',
+                                  delete_after=10)
+        
+        from_base, to_base, value = values[0], values[1], values[2]
+        
+        try:
+            if not from_base.isdigit():
+                from_base = aliases[from_base.lower()]
+            else:
+                from_base = int(from_base)
+                
+            if not to_base.isdigit():
+                to_base = aliases[to_base.lower()]
+            else:
+                to_base = int(to_base)            
+                
+            if not all(0 < x <= 36 for x in (from_base, to_base)):
+                return await ctx.send(
+                    'Bases must be greater than zero and less or equal to 36.')
+        except KeyError as ex:
+            return await ctx.send(f'I didn\'t recognise the base {str(ex)!r}...')
+        
+        try:
+            value = abs(int(value, from_base))
+        except ValueError as ex:
+            return await ctx.send(f'Error: {ex}.')
+        
+        await ctx.send(to_base_str(value, to_base) or '0')
+
     @commands.command(brief='Converts the binary string to ASCII.')
     async def bin2ascii(self, ctx, *, string):
         string = ''.join(c for c in string if c not in ' \t\r\n')
