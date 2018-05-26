@@ -259,7 +259,7 @@ class AdminCog(traits.CogTraits):
 
     @commands.is_owner()
     @commands.command()
-    async def redeploy(self, ctx, should_restart=None):
+    async def redeploy(self, ctx: commands.Context, should_restart=None):
         """
         Redeploys Neko code. Provide '--rs' as an argument to restart the bot,
         otherwise the modules just get reloaded instead.
@@ -273,6 +273,7 @@ class AdminCog(traits.CogTraits):
             cmd = alg.find(lambda c: c.name == 'reload', ctx.bot.commands)
 
             if cmd:
+                ctx.command.instance = ctx.bot.cogs['Builtins']
                 await cmd.callback(self, ctx)
             else:
                 await ctx.send('No reload command found.')
