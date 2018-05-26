@@ -4,7 +4,6 @@
 *.mew
 *.units
 # File-style packages
-*.admin
 # Do not use. Broken.
 #*.beats
 *.botdev
@@ -33,3 +32,4 @@
 #*.abbrev
 *.trans
 *.bin2ascii
+*.builtins

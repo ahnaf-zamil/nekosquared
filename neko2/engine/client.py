@@ -131,7 +131,6 @@ class Bot(commands.Bot, scribe.Scribe):
         self._on_exit_funcs = []
         self._on_exit_coros = []
 
-        self.load_extension('neko2.engine.builtins')
         self.add_cog(errorhandler.ErrorHandler(True, self))
 
     def on_exit(self, func):
