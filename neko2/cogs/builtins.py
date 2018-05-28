@@ -1,8 +1,27 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
 """
-Builtin extension that is loaded to implement a custom help method, ping
-
+Builtin extension that is loaded to implement commands for: 
+- help
+- ping
+- uptime
+- load [extension]
+- unload [extension]
+- reload [all extensions]
+- update [via git]
+- redeploy [via git]
+- version info
+- bot stats
+- event loop health
+- system health
+- lines of code count 
+- github link
+- trello link
+- bot source code license
+- canirun [determines if the user can run a command here]
+- invite [generates an invite URL]
+- timeit [times the execution of another command]
+- logout [used to restart if running as a system service]
 ===
 
 MIT License
