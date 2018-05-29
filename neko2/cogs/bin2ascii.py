@@ -27,7 +27,7 @@ def to_base_str(n, base):
 
 class Bin2AsciiCog:
     @commands.command(name='base', 
-                      brief='Converts between bases and also to/from ASCII.',
+                      brief='Converts between bases.',
                       usage='<from base> <to base> <value>')
     async def base_group(self, ctx, *, query): 
         """
