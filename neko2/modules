@@ -8,7 +8,7 @@
 #*.beats
 *.botdev
 #*.cat
-#*.chatty
+*.chatty
 *.cppref
 *.f
 *.googl
