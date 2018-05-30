@@ -107,10 +107,13 @@ async def c(source):
 @register('c++', 'cc', language='C++')
 async def cpp(source):
     """
-    LLVM Clang C++ compiler
+    GNU C++ compiler
 
     Note that this will compile with the `-Wall`, `-Wextra`, `-Wpedantic`,
     `-std=c++17`, `-O0`, `-lm`, `-lstdc++fs`, and `-lpthread` flags.
+    
+    Why do we not use clang here? The answer is: the clang compiler
+    on Coliru for C++ does not support C++17 yet.
 
     Example:
     ```cpp
@@ -118,8 +121,6 @@ async def cpp(source):
 
     int main() { std::cout << "Hello, World!" << std::endl; }
     ```
-    Set the first line to `#pragma neko g++` or `#pragma neko gcc`
-    to use GCC, otherwise, Clang is used.
     """
     script = '-Wall -Wextra -std=c++17 -Wno-unknown-pragmas -pedantic -g -O0 -lm -lstdc++fs -lpthread -o a.out main.cpp '
     
@@ -130,12 +131,7 @@ async def cpp(source):
     else:
         script += ' && (./a.out; echo "Returned $?")'
 
-    if not source.startswith('#pragma gcc') and not source.startswith('#pragma g++'):
-        if not source.endswith('\n'):
-            source += '\n'
-        script = 'clang++ -gdwarf-2 ' + script
-    else:
-        script = 'g++ ' + script
+    script = 'g++ ' + script
 
     cc = Coliru(script, SourceFile('main.cpp', source))
     sesh = await traits.CogTraits.acquire_http()
