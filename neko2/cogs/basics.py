@@ -1317,9 +1317,8 @@ class BasicsCog(traits.CogTraits):
 
         stats = collections.OrderedDict({
             'Users': f'{users:,}',
-            'Guilds/channels': f'{len(ctx.bot.guilds):,}\n'
+            'Guilds/channels': f'{len(ctx.bot.guilds):,}/'
                                f'{len(list(ctx.bot.get_all_channels())):,}',
-            'Shards': f'{ctx.bot.shard_count or 1:,}',
             'Commands/aliases': f'{len(frozenset(ctx.bot.walk_commands())):,}'
                                 f'/{len(ctx.bot.all_commands):,}',
             'Cogs/extensions': f'{len(ctx.bot.cogs):,}/{len(ctx.bot.extensions):,}',
@@ -1327,10 +1326,9 @@ class BasicsCog(traits.CogTraits):
             'Bot uptime': str(timedelta(seconds=ctx.bot.uptime)),
             'System uptime': str(timedelta(seconds=monotonic())),
             'Lines of code': f'{int(lines_of_code or 0):,}',
-            'Heartbeat lat\'': f'∼{ctx.bot.latency * 1000:,.2f}ms',
-            '`ACK` lat\'': f'∼{ack_time * 1000:,.2f}ms',
-            'Days since last accident': random.randrange(0, 100),
-            'Event loop lat\'': f'{event_loop_latency * 1e6:,.2f}µs',
+            'Heartbeat latency': f'∼{ctx.bot.latency * 1000:,.2f}ms',
+            '`ACK` latency': f'∼{ack_time * 1000:,.2f}ms',
+            'Event loop latency'': f'{event_loop_latency * 1e6:,.2f}µs',
             'Affinity/nice': f'{", ".join(map(str, os.sched_getaffinity(0)))}/'
                              f'{priority}',
             'Architecture': f'{platform.machine()} '
@@ -1343,7 +1341,11 @@ class BasicsCog(traits.CogTraits):
             'Frameworks': f'discord.py v{discord.__version__}\n'
                           f'aiohttp v{aiohttp.__version__}\n'
                           f'websockets v{websockets.__version__}',
+            'Days since last accident': random.randrange(0, 2372),
         })
+                          
+        if ctx.bot.shard_count and ctx.bot_shard_count > 1:
+            stats['Shards'] = f'{ctx.bot.shard_count}'
 
         embed = discord.Embed(title='Statistics and specs for nerds',
                               colour=alg.rand_colour())
