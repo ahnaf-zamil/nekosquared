@@ -1320,7 +1320,7 @@ class BasicsCog(traits.CogTraits):
             'Shards': f'{ctx.bot.shard_count or 1:,}',
             'Commands/aliases': f'{len(frozenset(ctx.bot.walk_commands())):,}'
                                 f'/{len(ctx.bot.all_commands):,}',
-            'Cogs/extensions': f'{len(ctx.bot.cogs):,}'/{len(ctx.bot.extensions):,}',
+            'Cogs/extensions': f'{len(ctx.bot.cogs):,}/{len(ctx.bot.extensions):,}',
             'Futures/threads': f'{tasks:,}/{threading.active_count():,}',
             'Bot uptime': str(timedelta(seconds=ctx.bot.uptime)),
             'System uptime': str(timedelta(seconds=monotonic())),
