@@ -76,6 +76,7 @@ import neko2  # n2 versioning
 from neko2 import modules  # Loadable modules
 from neko2.shared import commands, fuzzy, string, collections, alg, traits
 import neko2.shared.morefunctools
+from neko2.engine import extrabits
 
 lines_of_code = None
 
