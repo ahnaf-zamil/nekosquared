@@ -1,7 +1,7 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
 """
-Builtin extension that is loaded to implement commands for: 
+Basic utilities and stuff that implement commands for: 
 - help
 - ping
 - uptime
@@ -74,7 +74,6 @@ import neko2  # n2 versioning
 from neko2 import modules  # Loadable modules
 from neko2.shared import commands, fuzzy, string, collections, alg, traits
 import neko2.shared.morefunctools
-from neko2.engine import extrabits  # Internal cog type
 
 lines_of_code = None
 
@@ -110,7 +109,7 @@ def count_loc():
 count_loc()
 
 
-class Builtins(traits.CogTraits):
+class BasicsCog(traits.CogTraits):
     def __init__(self, bot):
         """Init the cog."""
         try:
@@ -695,8 +694,8 @@ class Builtins(traits.CogTraits):
         message = await ctx.send(f'Pong!')
         rtt = (time.monotonic() - start) * 1000
         await message.edit(
-            content=f'Pong! (Latency: ~{ctx.bot.latency * 1000:,.2f}ms | '
-                    f'`ACK` time: ~{rtt:,.2f}ms | '
+            content=f'Pong! (Latency: ∼{ctx.bot.latency * 1000:,.2f}ms | '
+                    f'`ACK` time: ∼{rtt:,.2f}ms | '
                     f'System local time: `{time.asctime()}`)')
 
     async def _load_extension(self, namespace, recache=True) -> float:
@@ -1315,36 +1314,33 @@ class Builtins(traits.CogTraits):
         tasks = len(asyncio.Task.all_tasks(loop=asyncio.get_event_loop()))
 
         stats = collections.OrderedDict({
-            # 'Users': f'{users:,}',
-            'Guilds': f'{len(ctx.bot.guilds):,}',
-            # 'Channels': f'{len(list(ctx.bot.get_all_channels())):,}',
-            # 'Private channels': f'{len(ctx.bot.private_channels):,}',
+            'Users': f'{users:,}',
+            'Guilds/channels': f'{len(ctx.bot.guilds):,}\n'
+                               f'{len(list(ctx.bot.get_all_channels())):,}',
             'Shards': f'{ctx.bot.shard_count or 1:,}',
-            'Commands': f'{len(frozenset(ctx.bot.walk_commands())):,}',
-            'Aliases': f'{len(ctx.bot.all_commands):,}',
-            'Cogs': f'{len(ctx.bot.cogs):,}',
-            'Extensions': f'{len(ctx.bot.extensions):,}',
-            'Futures': f'{tasks:,}',
-            'Threads': f'{threading.active_count():,}',
-            'Uptime': str(timedelta(seconds=ctx.bot.uptime)),
+            'Commands/aliases': f'{len(frozenset(ctx.bot.walk_commands())):,}'
+                                f'/{len(ctx.bot.all_commands):,}',
+            'Cogs/extensions': f'{len(ctx.bot.cogs):,}'/{len(ctx.bot.extensions):,}',
+            'Futures/threads': f'{tasks:,}/{threading.active_count():,}',
+            'Bot uptime': str(timedelta(seconds=ctx.bot.uptime)),
             'System uptime': str(timedelta(seconds=monotonic())),
-            'L.O.C.': f'{int(lines_of_code or 0):,}',
-            'Latency': f'{ctx.bot.latency * 1000:,.2f}ms; '
-                       f'`ACK`: {ack_time * 1000:,.2f}ms',
-            # 'Days since last accident': random.randrange(0, 100),
-            'Loop latency': f'{event_loop_latency * 1e6:,.2f}µs',
-            'Affinity': f'{", ".join(map(str, os.sched_getaffinity(0)))}',
-            # 'Scheduling nice': f'{priority}',
+            'Lines of code': f'{int(lines_of_code or 0):,}',
+            'Heartbeat lat\'': f'∼{ctx.bot.latency * 1000:,.2f}ms',
+            '`ACK` lat\'': f'∼{ack_time * 1000:,.2f}ms',
+            'Days since last accident': random.randrange(0, 100),
+            'Event loop lat\'': f'{event_loop_latency * 1e6:,.2f}µs',
+            'Affinity/nice': f'{", ".join(map(str, os.sched_getaffinity(0)))}/'
+                             f'{priority}',
             'Architecture': f'{platform.machine()} '
                             f'{" ".join(platform.architecture())}',
-            # 'discord.py': f'v{discord.__version__}',
-            # 'aiohttp': f'v{aiohttp.__version__}',
-            # 'websockets': f'v{websockets.__version__}',
             'Python':
                 f'{platform.python_implementation()} '
                 f'{platform.python_version()}\n'
                 f'{" ".join(platform.python_build()).title()}\n'
-                f'{platform.python_compiler()}'
+                f'{platform.python_compiler()}',
+            'Frameworks': f'discord.py v{discord.__version__}\n'
+                          f'aiohttp v{aiohttp.__version__}\n'
+                          f'websockets v{websockets.__version__}',
         })
 
         embed = discord.Embed(title='Statistics and specs for nerds',
