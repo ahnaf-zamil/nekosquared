@@ -67,7 +67,7 @@ def register(*names, language):
 @register(language='C')
 async def c(source):
     """
-    GNU C Compiler
+    LLVM Clang C compiler
 
     Note that this will compile with the `-Wall`, `-Wextra`, `-Wpedantic`,
     `-std=c11`, `-O0`, `-lm`, and `-lpthread` flags.
@@ -78,16 +78,15 @@ async def c(source):
 
     int main(void) { printf("Hello, World!\n"); }
     ```
-    Set the first line to `//clang` to use Clang. Otherwise, GCC is used.
+    Set the first line to `#pragma gcc` to use GCC. Otherwise, Clang is used.
     """
     script = (
         '-Wall -Wextra -pedantic -O0 -lm -lpthread -std=c11 -o a.out '
         'main.c && ./a.out; echo "Returned $?"')
 
-    if source.startswith('//clang'):
-        # Concat extra \n at start to enable line numbers in errors
-        # still add up.
-        source = '\n' + '\n'.join(source.split('\n')[1:])
+    if not source.startswith('#pragma gcc') and not source.startswith('#pragma g++'):
+        if not script.endswith('\n'):
+            script += '\n'
         script = 'clang ' + script
     else:
         script = 'gcc ' + script
@@ -100,7 +99,7 @@ async def c(source):
 @register('c++', 'cc', language='C++')
 async def cpp(source):
     """
-    GNU C++ Compiler
+    LLVM Clang C++ compiler
 
     Note that this will compile with the `-Wall`, `-Wextra`, `-Wpedantic`,
     `-std=c++17`, `-O0`, `-lm`, `-lstdc++fs`, and `-lpthread` flags.
@@ -111,16 +110,16 @@ async def cpp(source):
 
     int main() { std::cout << "Hello, World!" << std::endl; }
     ```
-    Set the first line to `//clang++` to use Clang. Otherwise, GCC is used.
+    Set the first line to `#pragma g++` or `#pragma gcc`
+    to use GCC, otherwise, Clang is used.
     """
     script = (
         '-Wall -Wextra -std=c++17 -pedantic -O0 -lm -lstdc++fs -lpthread '
         '-o a.out main.cpp && ./a.out; echo "Returned $?"')
 
-    if source.startswith('//clang++'):
-        # Concat extra \n at start to enable line numbers in errors
-        # still add up.
-        source = '\n' + '\n'.join(source.split('\n')[1:])
+    if not source.startswith('#pragma gcc') and not source.startswith('#pragma g++'):
+        if not script.endswith('\n'):
+            script += '\n'
         script = 'clang++ ' + script
     else:
         script = 'g++ ' + script
