@@ -72,7 +72,7 @@ class RCog(traits.CogTraits):
         for line in result.output.split('\n'):
             if line == 'sh: 1: rm: Permission denied':
                 continue
-            binder.add_line(line, dont_alter=True)
+            binder.add_line(line)
 
         binder.add_line(f'RESULT: {result.result.title()}')
         binder.add_line(f'STATE: {result.state.title()}')
