@@ -16,7 +16,7 @@ class MiscCog:
     async def nintendoswitch(self, ctx):
         await ctx.send('SW-5006-9390-0438')
 
-    @commands.command(brief='Suggest a new feature for Neko3')
+    @commands.command(brief='Suggest a new feature for Neko3', aliases=['suggestion', 'suggestions'])
     async def suggest(self, ctx, member: discord.Member=None):
         member = member or ctx.author
         await ctx.send(f'{member.mention} https://goo.gl/forms/nscqZkCQ423A1iuZ2')
