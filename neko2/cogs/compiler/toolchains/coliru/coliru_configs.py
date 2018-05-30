@@ -87,7 +87,7 @@ async def c(source):
     lines = source.split('\n')
     
     if '#pragma neko asm' in lines:
-        script += '-S -Wa,-adhln && cat -n a.out'
+        script += '-S -Wa,-ashl && cat -n a.out'
     else:
         script += ' && (./a.out; echo "Returned $?")'
 
@@ -124,7 +124,7 @@ async def cpp(source):
     script = '-Wall -Wextra -std=c++17 -Wno-unknown-pragmas -pedantic -g -O0 -lm -lstdc++fs -lpthread -o a.out main.cpp '
     
     if '#pragma neko asm' in lines:
-        script += '-S -Wa,-adhln && cat -n a.out'
+        script += '-S -Wa,-ashl && cat -n a.out'
     else:
         script += ' && (./a.out; echo "Returned $?")'
 
