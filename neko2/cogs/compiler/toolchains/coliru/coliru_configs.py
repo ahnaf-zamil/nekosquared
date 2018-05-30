@@ -82,7 +82,7 @@ async def c(source):
     
     Use `#pragma neko asm` to get assembly output instead.
     """
-    script = '-Wall -Wextra -pedantic -O0 -lm -lpthread -std=c11 -o a.out main.c '
+    script = '-Wall -Wextra -Wno-unknown-pragmas -pedantic -O0 -lm -lpthread -std=c11 -o a.out main.c '
     
     lines = source.split('\n')
     
@@ -121,7 +121,7 @@ async def cpp(source):
     Set the first line to `#pragma neko g++` or `#pragma neko gcc`
     to use GCC, otherwise, Clang is used.
     """
-    script = '-Wall -Wextra -std=c++17 -pedantic -O0 -lm -lstdc++fs -lpthread -o a.out main.cpp '
+    script = '-Wall -Wextra -std=c++17 -Wno-unknown-pragmas -pedantic -O0 -lm -lstdc++fs -lpthread -o a.out main.cpp '
     
     if '#pragma neko asm' in lines:
         script += '-S -Wa,-adhln && cat -n a.out'
