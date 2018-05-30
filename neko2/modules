@@ -1,23 +1,19 @@
-# Directory-style packages
 *.compiler
 *.iss
 *.mew
 *.units
-# File-style packages
-# Do not use. Broken.
-#*.beats
+########## *.beats
 *.botdev
-#*.cat
+########## *.cat
 *.chatty
 *.cppref
 *.f
 *.googl
 *.inspections
-#*.isdiscorddownstatus
+########## *.isdiscorddownstatus
 *.man
-#*.mocksql
-# Uncomment if you wish to prevent nicknames being set for the bot.
-#*.nonick
+########## *.mocksql
+########## *.nonick
 *.py
 *.rpn
 *.steam
@@ -29,7 +25,8 @@
 *.wordnik
 *.xkcd
 *.bangbang
-#*.abbrev
+########## *.abbrev
 *.trans
 *.bin2ascii
 *.builtins
+*.other
