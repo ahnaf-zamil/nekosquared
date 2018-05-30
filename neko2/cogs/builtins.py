@@ -823,19 +823,6 @@ class Builtins(traits.CogTraits):
             start_time = time.monotonic()
             with ctx.typing():
                 log.append(f'Unloading `discomaton` cached module data.')
-
-                try:
-                    del sys.modules['discomaton']
-                except:
-                    pass
-
-                log.append(f'Unloading `neko2` cached module data.')
-
-                try:
-                    del sys.modules['neko2']
-                except:
-                    pass
-
                 log.append('\n' + '-' * 50 + '\n')
 
                 unloaded_extensions = []
@@ -872,7 +859,7 @@ class Builtins(traits.CogTraits):
 
             time_taken = time.monotonic() - start_time
 
-            book = bookbinding.StringBookBinder(ctx, max_lines=None,
+            book = bookbinding.StringBookBinder(ctx, max_lines=5,
                                                 timeout=30)
 
             book.add_line('Completed operation in approximately '
