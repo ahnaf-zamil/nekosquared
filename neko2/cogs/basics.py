@@ -1333,6 +1333,7 @@ class BasicsCog(traits.CogTraits):
                              f'{priority}',
             'Architecture': f'{platform.machine()} '
                             f'{" ".join(platform.architecture())}',
+            'Days since last accident': random.randrange(0, 2372),
             'Python':
                 f'{platform.python_implementation()} '
                 f'{platform.python_version()}\n'
@@ -1341,7 +1342,6 @@ class BasicsCog(traits.CogTraits):
             'Frameworks': f'discord.py v{discord.__version__}\n'
                           f'aiohttp v{aiohttp.__version__}\n'
                           f'websockets v{websockets.__version__}',
-            'Days since last accident': random.randrange(0, 2372),
         })
                           
         if ctx.bot.shard_count and ctx.bot_shard_count > 1:
@@ -1355,7 +1355,8 @@ class BasicsCog(traits.CogTraits):
         embed.set_footer(text=platform.platform())
 
         for name, value in stats.items():
-            embed.add_field(name=name, value=value)
+            embed.add_field(name=name, value=value, 
+                            inline='\n' not in str(value))
 
         await message.edit(content='', embed=embed)
 
