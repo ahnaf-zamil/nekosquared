@@ -1328,7 +1328,7 @@ class BasicsCog(traits.CogTraits):
             'Lines of code': f'{int(lines_of_code or 0):,}',
             'Heartbeat latency': f'∼{ctx.bot.latency * 1000:,.2f}ms',
             '`ACK` latency': f'∼{ack_time * 1000:,.2f}ms',
-            'Event loop latency'': f'{event_loop_latency * 1e6:,.2f}µs',
+            'Event loop latency': f'{event_loop_latency * 1e6:,.2f}µs',
             'Affinity/nice': f'{", ".join(map(str, os.sched_getaffinity(0)))}/'
                              f'{priority}',
             'Architecture': f'{platform.machine()} '
