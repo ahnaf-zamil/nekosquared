@@ -1,6 +1,8 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
 """
+[**Taking suggestions for Neko3 here**](https://goo.gl/forms/nscqZkCQ423A1iuZ2)
+
 I am a slightly weird bot that does a variety of things. Functionality is 
 mostly geared towards various development tools, such as interpreters
 and compilers for over 45 different programming languages. Various tools
