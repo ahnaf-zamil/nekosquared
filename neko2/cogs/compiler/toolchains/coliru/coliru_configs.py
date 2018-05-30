@@ -123,6 +123,8 @@ async def cpp(source):
     """
     script = '-Wall -Wextra -std=c++17 -Wno-unknown-pragmas -pedantic -g -O0 -lm -lstdc++fs -lpthread -o a.out main.cpp '
     
+    lines = source.split('\n')
+    
     if '#pragma neko asm' in lines:
         script += '-S -Wa,-ashl && cat -n a.out'
     else:
