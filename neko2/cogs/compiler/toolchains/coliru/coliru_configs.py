@@ -78,16 +78,24 @@ async def c(source):
 
     int main(void) { printf("Hello, World!\n"); }
     ```
-    Set the first line to `#pragma gcc` to use GCC. Otherwise, Clang is used.
+    Set the first line to `#pragma neko gcc` to use GCC. Otherwise, Clang is used.
+    
+    Use `#pragma neko asm` to get assembly output instead.
     """
-    script = (
-        '-Wall -Wextra -pedantic -O0 -lm -lpthread -std=c11 -o a.out '
-        'main.c && ./a.out; echo "Returned $?"')
+    script = '-Wall -Wextra -pedantic -O0 -lm -lpthread -std=c11 -o a.out main.c '
+    
+    lines = source.split('\n')
+    
+    if '#pragma neko asm' in lines:
+        script += '-S -Wa,-adhln && cat -n a.out'
+    else:
+        script += ' && (./a.out; echo "Returned $?")'
 
-    if not source.startswith('#pragma gcc') and not source.startswith('#pragma g++'):
-        if not script.endswith('\n'):
-            script += '\n'
+    if '#pragma neko gcc' not in lines:
+        if not source.endswith('\n'):
+            source += '\n'
         script = 'clang ' + script
+        
     else:
         script = 'gcc ' + script
 
@@ -110,16 +118,19 @@ async def cpp(source):
 
     int main() { std::cout << "Hello, World!" << std::endl; }
     ```
-    Set the first line to `#pragma g++` or `#pragma gcc`
+    Set the first line to `#pragma neko g++` or `#pragma neko gcc`
     to use GCC, otherwise, Clang is used.
     """
-    script = (
-        '-Wall -Wextra -std=c++17 -pedantic -O0 -lm -lstdc++fs -lpthread '
-        '-o a.out main.cpp && ./a.out; echo "Returned $?"')
+    script = '-Wall -Wextra -std=c++17 -pedantic -O0 -lm -lstdc++fs -lpthread -o a.out main.cpp '
+    
+    if '#pragma neko asm' in lines:
+        script += '-S -Wa,-adhln && cat -n a.out'
+    else:
+        script += ' && (./a.out; echo "Returned $?")'
 
     if not source.startswith('#pragma gcc') and not source.startswith('#pragma g++'):
-        if not script.endswith('\n'):
-            script += '\n'
+        if not source.endswith('\n'):
+            source += '\n'
         script = 'clang++ ' + script
     else:
         script = 'g++ ' + script
