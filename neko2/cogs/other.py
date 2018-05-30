@@ -3,6 +3,7 @@
 """
 Other random stuff I like.
 """
+import discord
 from neko2.shared import alg
 from neko2.shared import commands
 
@@ -15,6 +16,10 @@ class MiscCog:
     async def nintendoswitch(self, ctx):
         await ctx.send('SW-5006-9390-0438')
 
+    @commands.command(brief='Suggest a new feature for Neko3')
+    async def suggest(self, ctx, member: discord.Member=None):
+        member = member or ctx.author
+        await ctx.send(f'{member.mention} https://goo.gl/forms/nscqZkCQ423A1iuZ2')
 
 def setup(bot):
     bot.add_cog(MiscCog())
