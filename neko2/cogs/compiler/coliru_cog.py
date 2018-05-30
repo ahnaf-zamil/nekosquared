@@ -97,7 +97,7 @@ class ColiruCog(traits.CogTraits):
             binder.add_line(f'Interpreting as {language!r} source.')
 
             for line in output.split('\n'):
-                binder.add_line(line, dont_alter=True)
+                binder.add_line(line)
 
             if ctx.invoked_with in ('ccd', 'colirud'):
                 await commands.try_delete(ctx)
@@ -273,7 +273,7 @@ class ColiruCog(traits.CogTraits):
                                                   max_lines=25)
 
             for line in output.split('\n'):
-                binder.add_line(line, dont_alter=True)
+                binder.add_line(line)
 
             if ctx.invoked_with in ('ccd', 'colirud'):
                 await commands.try_delete(ctx)
