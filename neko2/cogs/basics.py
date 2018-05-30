@@ -62,10 +62,12 @@ import traceback  # Error stuff
 import typing  # Type checking bits and pieces.
 
 import async_timeout
+import aiohttp
 from cached_property import cached_property
 import discord
 from discord.ext import commands as dpycmds
 from discord import embeds  # Embeds.
+import websockets
 
 import discomaton  # Finite state machines.
 import discomaton.util.pag
