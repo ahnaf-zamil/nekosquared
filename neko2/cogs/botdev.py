@@ -64,7 +64,7 @@ class BotUtils:
                 permissions=perm_bits if hasattr(perm_bits, 'value') else None,
                 guild=ctx.guild
             ))    
-    @botdev_group.command(name='getid', aliases=['getsf', 'getsnowflake'],
+    @botdev_group.command(aliases=['getid', 'snowflake', 'getsf', 'getsnowflake'],
                           description='Gets the given object\'s snowflake. If no '
                                       'object is given, then I will output your '
                                       'snowflake.')
