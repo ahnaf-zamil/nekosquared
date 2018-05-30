@@ -1439,4 +1439,4 @@ class BasicsCog(traits.CogTraits):
 
 
 def setup(bot):
-    bot.add_cog(Basics(bot))
+    bot.add_cog(BasicsCog(bot))
