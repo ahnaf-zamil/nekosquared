@@ -9,7 +9,7 @@ from neko2.shared import commands
 
 class MiscCog:
     # Only work for Guilds that I am actually in.
-    @commands.check(lambda c: alg.find(lambda m: m.id == 351216213327609858, 
+    @commands.check(lambda c: alg.find(lambda m: m.id == c.bot.owner_id, 
                                        c.guild.members))
     @commands.command(brief='Gets Esp\'s Nintendo Switch code.', aliases=['sw', 'switch'])
     async def nintendoswitch(self, ctx):
