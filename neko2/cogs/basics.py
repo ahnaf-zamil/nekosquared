@@ -1308,9 +1308,9 @@ class BasicsCog(traits.CogTraits):
         event_loop_latency = monotonic() - start_ack
         ack_time -= start_ack
         event_loop_latency -= ack_time
-        # priority = os.getpriority(os.PRIO_PROCESS, os.getpid())
+        priority = os.getpriority(os.PRIO_PROCESS, os.getpid())
 
-        # users = max(len(ctx.bot.users), len(list(ctx.bot.get_all_members())))
+        users = max(len(ctx.bot.users), len(list(ctx.bot.get_all_members())))
         tasks = len(asyncio.Task.all_tasks(loop=asyncio.get_event_loop()))
 
         stats = collections.OrderedDict({
