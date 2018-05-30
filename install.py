@@ -1,5 +1,4 @@
 #!/usr/bin/env python3.6
-# !/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
 """
 Got sick and tired of trying to get stuff to work with pip automatically, and
