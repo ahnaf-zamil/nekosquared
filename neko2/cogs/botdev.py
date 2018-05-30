@@ -29,14 +29,14 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-from discord import utils
+from discord import utils, Embed
 
-from neko2.shared import commands, perms
+from neko2.shared import alg, commands, converters, perms
 
 
 class BotUtils:
-    @commands.group(name='botdev', brief='A collection of useful tools for '
-                                         'bot developers.',
+    @commands.group(name='dev', brief='A collection of useful tools for '
+                                      'bot developers.',
                     invoke_without_command=True)
     async def botdev_group(self, ctx, *, child):
         ctx.message.content = f'{ctx.bot.command_prefix}help botdev'
@@ -63,7 +63,17 @@ class BotUtils:
                 client_id,
                 permissions=perm_bits if hasattr(perm_bits, 'value') else None,
                 guild=ctx.guild
-            ))
+            ))    
+    @botdev_group.command(name='getid', aliases=['getsf', 'getsnowflake'],
+                          description='Gets the given object\'s snowflake. If no '
+                                      'object is given, then I will output your '
+                                      'snowflake.')
+    async def id(self, ctx, object: converters.MentionConverter=None):
+        if object is None:
+            object = ctx.author
+        await ctx.message.delete()
+        await ctx.send(object.id, embed=Embed(title=f'{object} ID', 
+                                              colour=alg.rand_colour()))
 
 
 def setup(bot):
