@@ -47,12 +47,12 @@ class RCog(traits.CogTraits):
 
         ```
         n.r
-        \```r
+        ˋˋˋr
         t = (1:625) / 100\n
         x <- cos(t)\n
         y <- sin(t)\n
         plot(x, y)\n
-        \```
+        ˋˋˋ
         ```
         """
         code_block = tools.code_block_re.search(source)
