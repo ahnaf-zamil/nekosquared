@@ -1142,6 +1142,12 @@ class BasicsCog(traits.CogTraits):
 
             if cmd:
                 await self.reload.callback(self, ctx)
+                          
+                try:
+                    del self.__dict__['alias2command']
+                    _ = self.alias2command
+                except:
+                    pass
             else:
                 await ctx.send('No reload command found.')
 
