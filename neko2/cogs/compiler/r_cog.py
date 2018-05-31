@@ -48,6 +48,7 @@ class RCog(traits.CogTraits):
         ```
         n.r
         ˋˋˋr
+        
         t = (1:625) / 100\n
         x <- cos(t)\n
         y <- sin(t)\n
