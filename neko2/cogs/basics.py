@@ -175,6 +175,17 @@ class BasicsCog(traits.CogTraits):
             for line in await fp.readlines():
                 binder.add(line)
         binder.start()
+    
+    @commands.command(brief='Shows the copying policy for this bot.')
+    async def copying(self, ctx):
+        """Displays the current license guidelines for source code copying."""
+        binder = bookbinding.StringBookBinder(ctx, suffix='```', prefix='```',
+                                              max_lines=25)
+        async with self.file('COPYING.md') as fp:
+            binder.add_line('See `n.mylicense\' for the full license.\n')
+            for line in await fp.readlines():
+                binder.add(line)
+        binder.start()
 
     @commands.command(brief='Links to the GitHub repository.',
                       aliases=['github', 'repo', 'bitbucket', 'svn'])
