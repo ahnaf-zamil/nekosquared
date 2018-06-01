@@ -200,9 +200,10 @@ async def python(source):
         SourceFile('future_fstrings.py', ffstring)
     ]
     
-    if any(source.startswith(x) for x in ('#repl\n', '# repl\n', '#repr\n', '# repr\n')):
+    if any(source.strip().startswith(x) for x in ('#repl\n', '# repl\n', '#repr\n', '# repr\n')):
         source_files.append(SourceFile('replify.py', replify_src))
-        script = 'python3.5 future_fstrings.py | python3.5 replify.py; ' \
+        script = 'echo "Trying experimental REPL support!"; ' \
+                 'python3.5 future_fstrings.py main.py | python3.5 replify.py; ' \
                  'echo "Returned $?"'
     else:
         script = 'python3.5 future_fstrings.py main.py | python3.5; ' \
