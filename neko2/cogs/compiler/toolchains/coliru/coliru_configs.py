@@ -185,6 +185,7 @@ async def python(source):
     <https://github.com/asottile/tokenize-rt> for more details on
     how the f-string support is backported and implemented.
     """
+    sesh = await traits.CogTraits.acquire_http()
     
     source_files = [
         SourceFile('main.py', source),
