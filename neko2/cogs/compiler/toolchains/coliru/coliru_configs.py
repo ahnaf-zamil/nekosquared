@@ -34,7 +34,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 from .api import *
-from neko2.shared import traits
+from neko2.shared import ioutil, traits
 
 
 # Maps human readable languages to their syntax highlighting strings.
@@ -159,6 +159,10 @@ asottile_base = 'https://raw.githubusercontent.com/asottile'
 ffstring_url = asottile_base + '/future-fstrings/master/future_fstrings.py'
 trt_url = asottile_base + '/tokenize-rt/master/tokenize_rt.py'
 
+with open(ioutil.in_here('replify.py')) as fp:
+    replify_src = fp.read()
+del fp
+
 
 @register('python3', 'python3.5', 'py', 'py3', 'py3.5', language='Python')
 async def python(source):
@@ -169,10 +173,13 @@ async def python(source):
     ```python
     print('Hello, World')
     ```
+    
+    Add the `# repl` comment as the first line to enable interactive
+    interpreter behaviour (I am still working on this, so 
 
     See <https://github.com/asottile/future-fstrings> and
     <https://github.com/asottile/tokenize-rt> for more details on
-    how this works.
+    how the f-string support is backported and implemented.
     """
     import asyncio
 
@@ -186,12 +193,22 @@ async def python(source):
     ffstring, trt = await asyncio.gather(
         ffstring_req.text(),
         trt_req.text())
-    script = 'python3.5 future_fstrings.py main.py | python3.5; ' \
-             'echo "Returned $?"'
-    cc = Coliru(script,
-                SourceFile('main.py', source),
-                SourceFile('tokenize_rt.py', trt),
-                SourceFile('future_fstrings.py', ffstring))
+    
+    source_files = [
+        SourceFile('main.py', source),
+        SourceFile('tokenize_rt.py', trt),
+        SourceFile('future_fstrings.py', ffstring)
+    ]
+    
+    if any(source.startswith(x) for x in ('#repl\n', '# repl\n', '#repr\n', '# repr\n')):
+        source_files.append(SourceFile('replify.py', replify_src))
+        script = 'python3.5 future_fstrings.py | python3.5 replify.py; ' \
+                 'echo "Returned $?"'
+    else:
+        script = 'python3.5 future_fstrings.py main.py | python3.5; ' \
+                 'echo "Returned $?"'
+    
+    cc = Coliru(script)
 
     return await cc.execute(sesh)
 
@@ -288,7 +305,9 @@ async def bash(source):
     return await cc.execute(sesh)
 
 
-@register('gfortran', 'f08', language='Fortran 2008')
+# Fortran libs are missing... go figure.
+
+#@register('gfortran', 'f08', language='Fortran 2008')
 async def fortran(source):
     """
     GNU Fortran Compiler (most recent standard)
@@ -316,13 +335,13 @@ async def fortran(source):
     END PROGRAM Fibonacci
     ```
     """
-    script = 'gfortran main.f08; echo "Returned $?"'
+    script = 'gfortran main.f08 && ./a.out; echo "Returned $?"'
     cc = Coliru(script, SourceFile('main.f08', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
 
-@register('gfortran90', 'f90', language='Fortran 1990')
+#@register('gfortran90', 'f90', language='Fortran 1990')
 async def fortran90(source):
     """
     GNU Fortran Compiler (1990 Standard)
@@ -345,13 +364,13 @@ async def fortran90(source):
     END PROGRAM Fibonacci
     ```
     """
-    script = 'gfortran main.f90; echo "Returned $?"'
+    script = 'gfortran main.f90 && ./a.out; echo "Returned $?"'
     cc = Coliru(script, SourceFile('main.f90', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
 
-@register('gfortran95', 'f95', language='Fortran 1995')
+#@register('gfortran95', 'f95', language='Fortran 1995')
 async def fortran95(source):
     """
     GNU Fortran Compiler (1995 Standard)
@@ -374,7 +393,7 @@ async def fortran95(source):
     END PROGRAM Fibonacci
     ```
     """
-    script = 'gfortran main.f95; echo "Returned $?"'
+    script = 'gfortran main.f95 && ./a.out; echo "Returned $?"'
     cc = Coliru(script, SourceFile('main.f95', source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
