@@ -1,8 +1,6 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
 """
-[**Taking suggestions for Neko3 here**](https://goo.gl/forms/nscqZkCQ423A1iuZ2)
-
 I am a slightly weird bot that does a variety of things. Functionality is 
 mostly geared towards various development tools, such as interpreters
 and compilers for over 45 different programming languages. Various tools
@@ -10,18 +8,27 @@ for accessing documentation also exist. Functions to provide an easier way
 to manage Discord guilds are also being implemented, and are a 
 work-in-progress.
 
-[View progress on VERSION 3 of Neko!](
-https://github.com/neko404notfound/n3)
-
-Eventually, more random bits and pieces aimed towards general day-to-day
-use will also start to appear.
-
 Oh, and I cannot evaluate the price of lime.
 
-If you want to be nosey, you can also [check out the source code on GitHub](
-https://github.com/neko404notfound/nekosquared). Bugs and general development
-progress will begin to be documented on [Trello](https://goo.gl/NfKvDs).
+Links:
+- [Source code](https://github.com/neko404notfound/nekosquared)
+- [Bugs and development progress](https://goo.gl/NfKvDs)
 
+——————————————————————————————————————————————————————————————————————————
+
+**Neko³**
+
+Neko³ is currently being designed to eventually replace this bot entirely.
+Hopefully, we should see a much faster, efficient, reliable, and customisable
+user experience, including the ability to control what commands can be used,
+more utilities for documentation and general coding help, and a bunch of
+other cool stuff like a more "unix-y" interface. The idea being we can control
+the bot using flags as if it were a command line, and potentially even pipe
+output from one command to another!
+
+Links:
+ - [Suggestions: please contribute!](https://goo.gl/forms/nscqZkCQ423A1iuZ2)
+ - [Neko³ progress Trello board](https://trello.com/b/T0anaSde/neko)
 ===
 
 MIT License
