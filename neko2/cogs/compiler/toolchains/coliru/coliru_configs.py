@@ -208,7 +208,7 @@ async def python(source):
         script = 'python3.5 future_fstrings.py main.py | python3.5; ' \
                  'echo "Returned $?"'
     
-    cc = Coliru(script)
+    cc = Coliru(script, *source_files)
 
     return await cc.execute(sesh)
 
