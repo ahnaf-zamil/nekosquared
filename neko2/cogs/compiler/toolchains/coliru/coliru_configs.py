@@ -32,9 +32,23 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
+import requests
 
 from .api import *
 from neko2.shared import ioutil, traits
+
+
+# Thank asottile for this!
+asottile_base = 'https://raw.githubusercontent.com/asottile'
+ffstring_url = asottile_base + '/future-fstrings/master/future_fstrings.py'
+trt_url = asottile_base + '/tokenize-rt/master/tokenize_rt.py'
+ffstring_src = requests.get(ffstring_url).text
+trt_src = requests.get(trt_url).text
+
+# Thank me for this!
+with open(ioutil.in_here('replify.py')) as fp:
+    replify_src = fp.read()
+del fp, trt_url, ffstring_url, asottile_base
 
 
 # Maps human readable languages to their syntax highlighting strings.
@@ -154,16 +168,6 @@ async def python2(source):
     return await cc.execute(sesh)
 
 
-# Thank asottile for this!
-asottile_base = 'https://raw.githubusercontent.com/asottile'
-ffstring_url = asottile_base + '/future-fstrings/master/future_fstrings.py'
-trt_url = asottile_base + '/tokenize-rt/master/tokenize_rt.py'
-
-with open(ioutil.in_here('replify.py')) as fp:
-    replify_src = fp.read()
-del fp
-
-
 @register('python3', 'python3.5', 'py', 'py3', 'py3.5', language='Python')
 async def python(source):
     """
@@ -181,23 +185,11 @@ async def python(source):
     <https://github.com/asottile/tokenize-rt> for more details on
     how the f-string support is backported and implemented.
     """
-    import asyncio
-
-    # Pull future_fstrings source from Github.
-    sesh = await traits.CogTraits.acquire_http()
-    ffstring_req = sesh.request('get', ffstring_url)
-    trt_req = sesh.request('get', trt_url)
-
-    ffstring_req, trt_req = await asyncio.gather(ffstring_req, trt_req)
-
-    ffstring, trt = await asyncio.gather(
-        ffstring_req.text(),
-        trt_req.text())
     
     source_files = [
         SourceFile('main.py', source),
-        SourceFile('tokenize_rt.py', trt),
-        SourceFile('future_fstrings.py', ffstring)
+        SourceFile('tokenize_rt.py', trt_src),
+        SourceFile('future_fstrings.py', ffstring_src)
     ]
     
     if any(source.strip().startswith(x) for x in ('#repl\n', '# repl\n', '#repr\n', '# repr\n')):
