@@ -99,6 +99,9 @@ def main():
         # Set up a custom display hook to output more useful information
         # than the default one does for the Python repl.
         def displayhook(value):
+            if value is None:
+                return
+            
             if not isinstance(value, str):
                 value = repr(value)
             first, nl, rest = value.partition('\n')
