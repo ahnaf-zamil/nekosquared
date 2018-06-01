@@ -14,7 +14,7 @@ Links:
 - [Source code](https://github.com/neko404notfound/nekosquared)
 - [Bugs and development progress](https://goo.gl/NfKvDs)
 
-——————————————————————————————————————————————————————————————————————————
+———————————————
 
 **Neko³**
 
