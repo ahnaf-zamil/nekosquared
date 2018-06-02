@@ -42,6 +42,7 @@ import os
 import shutil
 import subprocess
 import sys
+import textwrap
 import time
 import traceback
 
@@ -65,13 +66,10 @@ dependencies = {
     'dataclasses': 'dataclasses',
     # PILLOW image manip lib
     'PIL': 'pillow',
-
-    # Google translate.
+    # Google translate
     'googletrans': 'googletrans',
-    
     # Faster event loop implementation.
     'uvloop': 'uvloop',
-
     'wordnik': 'wordnik-py3',
     'yaml': 'pyyaml',
     # Used by the `py` cog.
@@ -83,6 +81,9 @@ dependencies = {
     'discord.py': 'git+https://github.com/rapptz/discord.py@rewrite#egg'
                   '=discord.py[voice]',
 }
+
+def dd(string):
+    return textwrap.dedent(string)
 
 python_command = 'python3'
 
@@ -192,8 +193,7 @@ except AssertionError:
 # Generate a shell script to install the stuff we need in the venv.
 
 with open('temp-install-script.sh', 'w') as script_file:
-    script = '''
-        #!/bin/bash
+    script = '''#!/bin/bash
         function main() {{
             trap 'pkill python3.6; exit' INT
             source venv/bin/activate
@@ -201,7 +201,7 @@ with open('temp-install-script.sh', 'w') as script_file:
         '''.lstrip()
     for dep, pkg in dependencies.items():
         script += f'if {python_command} -c "import {dep}" > /dev/null 2>&1; then'
-        
+
         if update_flag is not None:
             script += f'        python3.6 -m pip install {update_flag} {pkg}\n'
         else:
@@ -218,7 +218,7 @@ with open('temp-install-script.sh', 'w') as script_file:
         time main
         '''
 
-    script = inspect.cleandoc(script)
+    script = dd(script)
     print('Script:')
     print(script)
     script_file.write(script)
@@ -231,14 +231,13 @@ print('Completed.')
 if not just_deps:
     print('Generating run script and sample service script.')
 
-    run_script = inspect.cleandoc('''#!/bin/bash
-    source venv/bin/activate
-    eval 'find -name "__pycache__" -type d -exec rm {{}} -rf \;' > /dev/null 
-    2>&1
-    {python_command} -m neko2
+    run_script = dd('''#!/bin/bash
+    # source venv/bin/activate
+    # eval 'find -name "__pycache__" -type d -exec rm {{}} -rf \;' > /dev/null 2>&1
+    {python_command} -OO -b -m neko2
     ''')
 
-    service_script = inspect.cleandoc('''[Unit]
+    service_script = dd('''[Unit]
     Description=Nekozilla^2 generated systemd Service
     
     [Service]
@@ -254,7 +253,7 @@ if not just_deps:
     WantedBy=multi-user.target
     ''')
 
-    enable_script = inspect.cleandoc('''#!/bin/bash
+    enable_script = dd('''#!/bin/bash
     sudo cp neko2.service /etc/systemd/system -v
     sudo systemctl daemon-reload
     sudo systemctl enable neko2
@@ -262,7 +261,7 @@ if not just_deps:
     echo "Run 'sudo systemctl start neko2' to start the service."
     ''')
 
-    update_script = inspect.cleandoc('''#!/bin/bash
+    update_script = dd('''#!/bin/bash
     git fetch --all && git reset --hard origin/master
     ''')
 
