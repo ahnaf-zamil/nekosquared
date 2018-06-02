@@ -65,7 +65,10 @@ def register(*names, language):
     def decorator(coro):
         languages[language.lower()] = [coro.__name__]
 
-        clean = inspect.cleandoc(inspect.getdoc(coro) or '')
+        unclean = inspect.getdoc(coro)
+        if not unclean:
+            unclean = 'No detailed info exists for this right now.'
+        clean = inspect.cleandoc(unclean)
         docs[language] = clean
 
         for n in {coro.__name__, *names}:
