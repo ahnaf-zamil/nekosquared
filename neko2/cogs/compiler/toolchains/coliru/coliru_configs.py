@@ -84,7 +84,7 @@ async def c(source):
     LLVM Clang C compiler
 
     Note that this will compile with the `-Wall`, `-Wextra`, `-Wpedantic`,
-    `-std=c11`, `-O0`, `-lm`, and `-lpthread` flags.
+    `-std=c11`, and `-O0` flags.
 
     Example:
     ```c
@@ -92,23 +92,27 @@ async def c(source):
 
     int main(void) { printf("Hello, World!\n"); }
     ```
-    Set the first line to `#pragma neko gcc` to use GCC. Otherwise, Clang is used.
+
+    Pragmas:
     
-    Use the `neko asm` `#pragma` directive to output assembly instead.
-    You may also use `neko 32` to force 32-bit binaries (the default is 
-    64-bit).
+    Neko supports a few pragmas to enable some flags and features.
+    Each have the syntax `#pragma neko [flag]`
     
-    Example:
-    ```c
-    #pragma neko gcc
-    #pragma neko asm
-    #pragma neko 32
-    ...
-    ```
+    - `32` - force 32 bit binary output (default is 64 bit).
+    - `asm` - dump assembly output.
+    - `gcc` - compile under `gcc`. The default is to use `clang`.
+    - `math` - compile with `-lm`.
+    - `pthread` - compile with `-lpthread`.
     """
-    script = '-Wall -Wextra -Wno-unknown-pragmas -pedantic -g -O0 -lm -lpthread -std=c11 -o a.out main.c '
+    script = '-Wall -Wextra -Wno-unknown-pragmas -pedantic -g -O0 -std=c11 -o a.out main.c '
     
     lines = source.split('\n')
+    
+    if '#pragma neko math' in lines:
+        script += '-lm '
+     
+    if '#pragma neko pthread' in lines:
+        script += '-lpthread '
     
     if '#pragma neko 32' in lines:
         script += '-m32 '
@@ -121,10 +125,10 @@ async def c(source):
     if '#pragma neko gcc' not in lines:
         if not source.endswith('\n'):
             source += '\n'
-        script = 'clang -gdwarf-2 ' + script
+        script = 'set -x; clang -gdwarf-2 ' + script
         
     else:
-        script = 'gcc ' + script
+        script = 'set -x; gcc ' + script
 
     cc = Coliru(script, SourceFile('main.c', source))
     sesh = await traits.CogTraits.acquire_http()
@@ -137,10 +141,8 @@ async def cpp(source):
     GNU C++ compiler
 
     Note that this will compile with the `-Wall`, `-Wextra`, `-Wpedantic`,
-    `-std=c++17`, `-O0`, `-lm`, `-lstdc++fs`, and `-lpthread` flags.
-    
-    Why do we not use clang here? The answer is: the clang compiler
-    on Coliru for C++ does not support C++17 yet.
+    `-std=c++14`, `-O0`, `-lm`, `-lstdc++fs`, and `-lpthread` flags by
+    default. If G++ is specified, we use `-std=c++17`.
 
     Example:
     ```cpp
@@ -149,21 +151,38 @@ async def cpp(source):
     int main() { std::cout << "Hello, World!" << std::endl; }
     ```
     
-    Use the `neko asm` `#pragma` directive to output assembly instead.
-    You may also use `neko 32` to force 32-bit binaries (the default is 
-    64-bit).
-   
-    Example:
-    ```c
-    #pragma neko gcc
-    #pragma neko asm
-    #pragma neko 32
-    ...
-    ```
+    Pragmas:
+    
+    Neko supports a few pragmas to enable some flags and features.
+    Each have the syntax `#pragma neko [flag]`
+    
+    - `32` - force 32 bit binary output (default is 64 bit).
+    - `asm` - dump assembly output.
+    - `fs` - compile with the `-lstdc++fs` flag.
+    - `gcc` or `g++` - compile under `g++` using `-std=c++17`. The
+        default is to use `clang++` and `-std=c++14`.
+    - `math` - compile with `-lm`.
+    - `pthread` - compile with `-lpthread`.
     """
-    script = '-Wall -Wextra -std=c++17 -Wno-unknown-pragmas -pedantic -g -O0 -lm -lstdc++fs -lpthread -o a.out main.cpp '
+    script = '-Wall -Wextra-Wno-unknown-pragmas -pedantic -g -O0 -o a.out main.cpp '
     
     lines = source.split('\n')
+    
+    if '#pragma neko gcc' in lines or '#pragma neko g++' in lines:
+        script += '-std=c++17 '
+        compiler = 'g++ '
+    else:
+        script += '-std=c++14 '
+        compiler = 'clang++ -gdwarf-2 '
+        
+    if '#pragma neko fs' in lines:
+        script += '-lstdc++fs '
+    
+    if '#pragma neko math' in lines:
+        script += '-lm '
+     
+    if '#pragma neko pthread' in lines:
+        script += '-lpthread '
     
     if '#pragma neko 32' in lines:
         script += '-m32 '
@@ -173,7 +192,7 @@ async def cpp(source):
     else:
         script += ' && (./a.out; echo "Returned $?")'
 
-    script = 'g++ ' + script
+    script = 'set -x; ' + compiler + script
 
     cc = Coliru(script, SourceFile('main.cpp', source))
     sesh = await traits.CogTraits.acquire_http()
