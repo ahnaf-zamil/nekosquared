@@ -54,6 +54,7 @@ class SearchResult:
 # 25th Apr 2018: Certificate issues on HTTPS, so using
 # HTTP instead.
 base_cppr = 'http://en.cppreference.com'
+base_cppr_https = 'https://en.cppreference.com'
 search_cppr = base_cppr + '/mwiki/index.php'
 
 
@@ -69,8 +70,12 @@ class CppCog(traits.CogTraits):
         if resp.status != 200:
             raise errors.HttpError(resp)
 
-        href = str(resp.url)[len(base_cppr):]
-
+        url = str(resp.url)
+        if url.starts_with(base_cppr_https):
+            href = url[len(base_cppr_https):]
+        else:
+            href = url[len(base_cppr):]
+            
         resp = await resp.text()
 
         # Parse the HTML response.
