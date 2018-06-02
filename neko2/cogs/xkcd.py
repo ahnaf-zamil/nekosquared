@@ -40,7 +40,7 @@ import random
 import threading
 import time
 
-from cached_property import threaded_cached_property
+from cached_property import threaded_cached_property_with_ttl
 import discord
 import requests
 
@@ -64,8 +64,13 @@ def get_alphas(string):
     return ''.join(c for c in string if a <= ord(c) <= z or A <= ord(c) <= Z)
 
 
-# 2 hour
+# Revalidate cache every 2 hours 
 SLEEP_FOR = 60 * 60 * 2
+# How long to keep cache in memory for before flushing, this speeds up subsequent
+# requests, but will consume more memory while still in memory. Hence the timeout.
+# Currently 30 minutes.
+TTL_LIFESPAN = 30 * 60
+
 CACHE_FILE = os.path.join(configfiles.CONFIG_DIRECTORY, 'xkcd.json')
 
 
@@ -81,13 +86,14 @@ class XkcdCache(threading.Thread,
     """
 
     def __init__(self, bot):
+        # Only called the first time for a singleton.
         setattr(bot, '__xkcd_cacher_thread', self)
         super().__init__(daemon=True)
 
         # Start self.
         self.start()
 
-    @threaded_cached_property
+    @threaded_cached_property_with_ttl(TTL_LIFESPAN)
     def cached_metadata(self):
         data = []
         if os.path.exists(CACHE_FILE):
@@ -97,7 +103,7 @@ class XkcdCache(threading.Thread,
 
     def run(self):
         """
-        Repeatedly runs every 12 hours or so to find the most recent xkcd
+        Repeatedly runs every few hours or so to find the most recent xkcd
         entries, storing metadata about them in xkcd.json. This is done to
         let us use Fuzzy matching to search xkcd  for certain criteria.
         """
@@ -131,13 +137,16 @@ class XkcdCache(threading.Thread,
                     data.append({
                         'num': next_comic['num'],
                         'title': next_comic['title'],
-                        'alt': next_comic['alt'],
-                        'transcript': next_comic['transcript']
+                        # 2nd June 2017: attempting to reduce massive memory footprint
+                        # by reducing the information provided here.
+                        # 'alt': next_comic['alt'],
+                        # 'transcript': next_comic['transcript']
                     })
 
             with open(CACHE_FILE, 'w') as fp:
                 data = data
-                json.dump(data, fp, indent='  ')
+                json.dump(data, fp)
+                
             del self.__dict__['cached_metadata']
 
             self.logger.info('XKCD recache completed. Going to sleep.')
@@ -165,7 +174,7 @@ class XkcdCog(traits.CogTraits):
         try:
             if not query:
                 # Get the most recent comic first and inspect the entry number
-                # (our cache can be up to 12 hours out of date).
+                # (our cache can be up to 2 hours out of date).
                 resp = await conn.get(most_recent_xkcd())
                 data = await resp.json()
                 num = data['num']
@@ -242,6 +251,6 @@ class XkcdCog(traits.CogTraits):
 
                 
 def setup(bot):
-    if not hasattr(bot, '__xkcd_cacher_thread'):
-        XkcdCache(bot)
+    # Ensures that cache is running.
+    XkcdCache(bot)
     bot.add_cog(XkcdCog())
