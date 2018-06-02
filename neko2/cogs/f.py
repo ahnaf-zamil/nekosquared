@@ -55,6 +55,13 @@ class F:
     message: discord.Message
     colour: int
     ctx: commands.Context
+        
+
+@morefunctools.always_background()
+async def destroy_bucket_later(self, channel):
+    await asyncio.sleep(F_TIMEOUT)
+    await self.buckets[channel].message.clear_reactions()
+    del self.buckets[channel]
 
 
 class RespectsCog:
@@ -95,12 +102,6 @@ class RespectsCog:
                 message: discord.Message = reaction.message
                 await message.remove_reaction(reaction, user)
 
-    @morefunctools.always_background()
-    async def destroy_bucket_later(self, channel):
-        await asyncio.sleep(F_TIMEOUT)
-        await self.buckets[channel].message.clear_reactions()
-        del self.buckets[channel]
-
     @staticmethod
     async def append_to_bucket(bucket, user):
         bucket.members.add(user)
@@ -118,8 +119,7 @@ class RespectsCog:
                     ', '.join(first) + f' and {last} ' +
                     'paid their respects')
         else:
-            message = (
-                f'{last} paid their respects.')
+            message = (f'{last} paid their respects.')
 
         embed = discord.Embed(
             description=message,
@@ -184,7 +184,7 @@ class RespectsCog:
                              ctx)
 
                 self.buckets[ctx.channel] = f_bucket
-                self.destroy_bucket_later(self, ctx.channel)
+                destroy_bucket_later(self, ctx.channel)
             else:
                 await self.append_to_bucket(bucket, ctx.author)
         except BaseException:
