@@ -116,7 +116,7 @@ def default_buttons() -> typing.List[Button]:
                 page_number = int(msg.content)
                 await machine.set_page_number(page_number)
             finally:
-                await attempt_delete(*[prompt, msg] if msg else prompt)
+                await (attempt_delete(prompt, msg) if msg else attempt_delete(prompt))
                 setattr(machine, '_is_showing_page_prompt', False)
                 await machine._flush_reacts()
 
