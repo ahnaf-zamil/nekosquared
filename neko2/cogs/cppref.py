@@ -75,6 +75,8 @@ class CppCog(traits.CogTraits):
 
         # Parse the HTML response.
         tree = bs4.BeautifulSoup(resp)
+        
+        self.logger.info(href)
 
         if href.startswith('/w/'):
             # Assume we are redirected to the first result page
