@@ -86,8 +86,7 @@ def register(*names, language):
 
 @register(language='C')
 async def c(source):
-    """
-    LLVM Clang C compiler
+    """LLVM Clang C compiler
 
     Note that this will compile with the `-Wall`, `-Wextra`, `-Wpedantic`,
     `-std=c11`, and `-O0` flags.
@@ -143,8 +142,7 @@ async def c(source):
 
 @register('c++', 'cc', language='C++')
 async def cpp(source):
-    """
-    GNU C++ compiler
+    """GNU C++ compiler
 
     Note that this will compile with the `-Wall`, `-Wextra`, `-Wpedantic`,
     `-std=c++14`, `-O0`, `-lm`, `-lstdc++fs`, and `-lpthread` flags by
@@ -207,8 +205,7 @@ async def cpp(source):
 
 @register('python2.7', 'py2', 'py2.7', language='Python2')
 async def python2(source):
-    """
-    Python2.7 Interpreter
+    """Python2.7 Interpreter
 
     Example:
     ```python
@@ -223,8 +220,7 @@ async def python2(source):
 
 @register('python3', 'python3.5', 'py', 'py3', 'py3.5', language='Python')
 async def python(source):
-    """
-    Python3.5 Interpreter (complete with f-string backport support!)
+    """Python3.5 Interpreter (complete with f-string backport support!)
 
     Example:
     ```python
@@ -262,8 +258,7 @@ async def python(source):
 
 @register('pl', language='PERL 5')
 async def perl(source):
-    """
-    PERL interpreter (PERL5)
+    """PERL interpreter (PERL5)
 
     Example:
     ```perl
@@ -286,8 +281,7 @@ async def perl(source):
 
 @register('irb', language='Ruby')
 async def ruby(source):
-    """
-    Ruby interpreter.
+    """Ruby interpreter.
 
     Example
     ```ruby
@@ -320,10 +314,7 @@ async def ruby(source):
 
 @register('shell', language='Shell')
 async def sh(source):
-    """
-    SHell interpreter.
-
-    Bash interpreter
+    """Shell interpreter.
 
     Example
     ```sh
@@ -338,8 +329,7 @@ async def sh(source):
 
 @register(language='Bash')
 async def bash(source):
-    """
-    Bourne-Again SHell interpreter
+    """Bash interpreter
 
     Example
     ```bash
@@ -356,8 +346,7 @@ async def bash(source):
 
 #@register('gfortran', 'f08', language='Fortran 2008')
 async def fortran(source):
-    """
-    GNU Fortran Compiler (most recent standard)
+    """GNU Fortran Compiler (most recent standard)
 
     This compiles the given code to Fortran using the 2008 standard.
 
@@ -390,8 +379,7 @@ async def fortran(source):
 
 #@register('gfortran90', 'f90', language='Fortran 1990')
 async def fortran90(source):
-    """
-    GNU Fortran Compiler (1990 Standard)
+    """GNU Fortran Compiler (1990 Standard)
 
     Example:
     ```fortran
@@ -419,8 +407,7 @@ async def fortran90(source):
 
 #@register('gfortran95', 'f95', language='Fortran 1995')
 async def fortran95(source):
-    """
-    GNU Fortran Compiler (1995 Standard)
+    """GNU Fortran Compiler (1995 Standard)
 
     Example:
     ```fortran
@@ -448,8 +435,7 @@ async def fortran95(source):
 
 @register('gawk', language='GNU Awk')
 async def awk(source):
-    """
-    GNU AWK interpreter.
+    """GNU AWK interpreter.
 
     Example:
     ```awk
@@ -471,8 +457,7 @@ async def awk(source):
 
 @register(language='Lua')
 async def lua(source):
-    """
-    Lua interpreter.
+    """Lua interpreter.
 
     Example:
     ```lua
@@ -497,8 +482,7 @@ async def lua(source):
 
 @register('makefile', language='GNU Make')
 async def make(source):
-    """
-    GNU-make.
+    """GNU-make.
 
     Allows you to write a basic Makefile and execute it. Note that Makefiles
     require tab indentation to work. The workaround for this drawback is to
