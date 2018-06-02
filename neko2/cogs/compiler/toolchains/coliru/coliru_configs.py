@@ -94,12 +94,25 @@ async def c(source):
     ```
     Set the first line to `#pragma neko gcc` to use GCC. Otherwise, Clang is used.
     
-    Use `#pragma neko asm` to get assembly output instead.
+    Use the `neko asm` `#pragma` directive to output assembly instead.
+    You may also use `neko 32` to force 32-bit binaries (the default is 
+    64-bit).
+    
+    Example:
+    ```c
+    #pragma neko gcc
+    #pragma neko asm
+    #pragma neko 32
+    ...
+    ```
     """
     script = '-Wall -Wextra -Wno-unknown-pragmas -pedantic -g -O0 -lm -lpthread -std=c11 -o a.out main.c '
     
     lines = source.split('\n')
     
+    if '#pragma neko 32' in lines:
+        script += '-m32 '
+        
     if '#pragma neko asm' in lines:
         script += '-S -Wa,-ashl && cat -n a.out'
     else:
@@ -135,10 +148,25 @@ async def cpp(source):
 
     int main() { std::cout << "Hello, World!" << std::endl; }
     ```
+    
+    Use the `neko asm` `#pragma` directive to output assembly instead.
+    You may also use `neko 32` to force 32-bit binaries (the default is 
+    64-bit).
+   
+    Example:
+    ```c
+    #pragma neko gcc
+    #pragma neko asm
+    #pragma neko 32
+    ...
+    ```
     """
     script = '-Wall -Wextra -std=c++17 -Wno-unknown-pragmas -pedantic -g -O0 -lm -lstdc++fs -lpthread -o a.out main.cpp '
     
     lines = source.split('\n')
+    
+    if '#pragma neko 32' in lines:
+        script += '-m32 '
     
     if '#pragma neko asm' in lines:
         script += '-S -Wa,-ashl && cat -n a.out'
