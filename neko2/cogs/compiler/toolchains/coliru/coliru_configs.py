@@ -32,6 +32,7 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
+import textwrap
 import requests
 
 from .api import *
@@ -66,9 +67,11 @@ def register(*names, language):
         languages[language.lower()] = [coro.__name__]
 
         unclean = inspect.getdoc(coro)
+        
         if not unclean:
             unclean = 'No detailed info exists for this right now.'
-        clean = inspect.cleandoc(unclean)
+        clean = textwrap.dedent(unclean)
+
         docs[language] = clean
 
         for n in {coro.__name__, *names}:
