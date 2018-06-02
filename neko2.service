@@ -1,0 +1,14 @@
+[Unit]
+    Description=Nekozilla^2 generated systemd Service
+    
+    [Service]
+    Type=simple
+    PIDFile=/var/run/neko2.pid
+    ExecStart=/home/pi/nekosquared/neko2.sh
+    Restart=always
+    User=pi
+    WorkingDirectory=/home/pi/nekosquared
+    
+    [Install]
+    WantedBy=multi-user.target
+    

@@ -20,8 +20,8 @@ venv
 *.egg-info
 
 # Stuff that the install script might generate
-neko2.service
-neko2.sh
+#neko2.service
+#neko2.sh
 enable.sh
 update.sh
 
