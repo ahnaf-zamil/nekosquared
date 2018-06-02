@@ -49,6 +49,7 @@ def in_here(*paths, nested_by=0):
             function
             itself.
     """
+    result, frame = None, None
     try:
         frame = inspect.stack()[1 + nested_by]
     except IndexError:
@@ -63,7 +64,11 @@ def in_here(*paths, nested_by=0):
         dir_name = os.path.dirname(file)
         abs_dir_name = os.path.abspath(dir_name)
 
-        return os.path.join(abs_dir_name, *paths)
+        result = os.path.join(abs_dir_name, *paths)
+    
+    # This is to prevent cyclic references that screw the interpreter up.
+    del frame
+    return result
 
 
 def json(file, *, relative_to_here=True):
