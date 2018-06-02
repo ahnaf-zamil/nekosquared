@@ -70,7 +70,7 @@ def register(*names, language):
         
         if not unclean:
             unclean = 'No detailed info exists for this right now.'
-        clean = textwrap.dedent(unclean)
+        clean = inspect.cleandoc(unclean)
 
         docs[language] = clean
 
@@ -142,7 +142,7 @@ async def c(source):
 
 @register('c++', 'cc', language='C++')
 async def cpp(source):
-    """GNU C++ compiler
+    """LLVM C++ compiler
 
     Note that this will compile with the `-Wall`, `-Wextra`, `-Wpedantic`,
     `-std=c++14`, `-O0`, `-lm`, `-lstdc++fs`, and `-lpthread` flags by
