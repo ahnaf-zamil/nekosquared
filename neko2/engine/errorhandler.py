@@ -58,6 +58,8 @@ handled_errors = {
     dpyext_errors.MissingPermissions,
     dpyext_errors.NoPrivateMessage,
     dpyext_errors.TooManyArguments,
+    discord.Forbidden,
+    discord.NotFound,
     aiohttp.ClientError
 }
 
