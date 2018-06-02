@@ -71,7 +71,7 @@ class CppCog(traits.CogTraits):
             raise errors.HttpError(resp)
 
         url = str(resp.url)
-        if url.starts_with(base_cppr_https):
+        if url.startswith(base_cppr_https):
             href = url[len(base_cppr_https):]
         else:
             href = url[len(base_cppr):]
