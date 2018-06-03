@@ -148,11 +148,10 @@ async def c(source):
 
 @register('c++', 'cc', language='C++')
 async def cpp(source):
-    """LLVM C++ compiler
+    """GNU C++ compiler
 
     Note that this will compile with the `-Wall`, `-Wextra`, `-Wpedantic`,
-    `-std=c++14`, `-O0`, `-lm`, `-lstdc++fs`, and `-lpthread` flags by
-    default. If G++ is specified, we use `-std=c++17`.
+    `-O0`, and `-std=c++17`.
 
     Example:
     ```cpp
@@ -169,8 +168,6 @@ async def cpp(source):
     - `32` - force 32 bit binary output (default is 64 bit).
     - `asm` - dump assembly output.
     - `fs` - compile with the `-lstdc++fs` flag.
-    - `gcc` or `g++` - compile under `g++` using `-std=c++17`. The
-        default is to use `clang++` and `-std=c++14`.
     - `math` - compile with `-lm`.
     - `pthread` - compile with `-lpthread`.
     """
@@ -190,13 +187,8 @@ async def cpp(source):
     if '#pragma neko 32' in lines:
         script += '-m32 '
         
-    if '#pragma neko gcc' in lines or '#pragma neko g++' in lines:
-        script += '-std=c++17 '
-        compiler = 'g++ '
-    else:
-        script += '-std=c++14 '
-        compiler = 'clang++ -gdwarf-2 '
-        
+    script += '-std=c++17 '
+    compiler = 'g++ '
     
     if '#pragma neko asm' in lines:
         script += ' -S -Wa,-ashl'
