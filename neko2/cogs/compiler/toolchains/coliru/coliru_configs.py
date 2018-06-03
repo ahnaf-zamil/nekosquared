@@ -130,10 +130,12 @@ async def c(source):
     if '#pragma neko gcc' not in lines:
         if not source.endswith('\n'):
             source += '\n'
-        script = 'set -x; clang -gdwarf-2 ' + script
-        
+        compiler = 'clang '
     else:
-        script = 'set -x; gcc ' + script
+        compiler = 'gcc '
+        
+    compiler_invocation = compiler + script
+    script = f'echo "# {compiler_invocation}"; set -x; {compiler_invocation}'   
 
     cc = Coliru(script, SourceFile('main.c', source))
     sesh = await traits.CogTraits.acquire_http()
@@ -168,7 +170,7 @@ async def cpp(source):
     - `math` - compile with `-lm`.
     - `pthread` - compile with `-lpthread`.
     """
-    script = '-Wall -Wextra-Wno-unknown-pragmas -pedantic -g -O0 -o a.out main.cpp '
+    script = '-Wall -Wextra -Wno-unknown-pragmas -pedantic -g -O0 -o a.out main.cpp '
     
     lines = source.split('\n')
     
@@ -196,7 +198,8 @@ async def cpp(source):
     else:
         script += ' && (./a.out; echo "Returned $?")'
 
-    script = 'set -x; ' + compiler + script
+    compiler_invocation = compiler + script
+    script = f'echo "# {compiler_invocation}"; set -x; {compiler_invocation}'
 
     cc = Coliru(script, SourceFile('main.cpp', source))
     sesh = await traits.CogTraits.acquire_http()

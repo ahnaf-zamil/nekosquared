@@ -131,6 +131,9 @@ async def execute(sesh: aiohttp.ClientSession,
     :param compiler_args: optional compiler args. Only applicable for C/C++
     :return: the response.
     """
+    if compiler_args is None and lang in (Language.c, Language.cpp, Language.fortran):
+        compiler_args = ' -o a.out '
+    
     form_args = {
         'LanguageChoiceWrapper': lang.value,
         'EditorChoiceWrapper': EDITOR,
