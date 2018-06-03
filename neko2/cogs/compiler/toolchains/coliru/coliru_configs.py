@@ -109,7 +109,7 @@ async def c(source):
     - `math` - compile with `-lm`.
     - `pthread` - compile with `-lpthread`.
     """
-    script = '-Wall -Wextra -Wno-unknown-pragmas -pedantic -g -O0 -std=c11 -o a.out main.c '
+    script = '-Wall -Wextra -Wno-unknown-pragmas -pedantic -g -O0 -std=c11 -o a.out app.c '
     
     lines = source.split('\n')
     
@@ -137,7 +137,7 @@ async def c(source):
 
     compiler_invocation = compiler + script
     
-    main = SourceFile('app.cpp', source)    
+    main = SourceFile('app.c', source)    
     make = SourceFile('Makefile', f'all:\n    {compiler_invocation}\n    {execute}\n')
     
     cc = Coliru('make -f Makefile', make, main)
