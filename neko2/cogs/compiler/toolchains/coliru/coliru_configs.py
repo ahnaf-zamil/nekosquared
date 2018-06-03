@@ -170,7 +170,7 @@ async def cpp(source):
     - `math` - compile with `-lm`.
     - `pthread` - compile with `-lpthread`.
     """
-    script = '-Wall -Wextra -Wno-unknown-pragmas -pedantic -g -O0 -o a.out main.cpp '
+    script = '-Wall -Wextra -Wno-unknown-pragmas -pedantic -g -O0 -o a.out app.cpp '
     
     lines = source.split('\n')
     
@@ -201,10 +201,10 @@ async def cpp(source):
 
     compiler_invocation = compiler + script
     
-    main = SourceFile('main.cpp', source)    
+    main = SourceFile('app.cpp', source)    
     make = SourceFile('Makefile', f'all:\n    {compiler_invocation}\n    {execute}\n')
     
-    cc = Coliru('ls -ahl; cat main.cpp -n; echo; cat Makefile -n; make -f Makefile', make, main)
+    cc = Coliru('ls -ahl; cat app.cpp -n; echo; cat Makefile -n; make -f Makefile', make, main)
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
