@@ -194,7 +194,7 @@ async def cpp(source):
         script += '-m32 '
     
     if '#pragma neko asm' in lines:
-        script += '-S -Wa,-ashl
+        script += ' -S -Wa,-ashl'
         execute = 'cat -n ./a.out'
     else:
         execute = './a.out'
