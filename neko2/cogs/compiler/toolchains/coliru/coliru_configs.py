@@ -204,7 +204,7 @@ async def cpp(source):
     main = SourceFile('main.cpp', source)
     make = SourceFile('Makefile', f'all:\n    {compiler_invocation}\n    {execute}\n')
 
-    cc = Coliru('make', make, main)
+    cc = Coliru('cat main.cpp Makefile -n; make', make, main)
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
