@@ -194,14 +194,17 @@ async def cpp(source):
         script += '-m32 '
     
     if '#pragma neko asm' in lines:
-        script += '-S -Wa,-ashl && cat -n a.out'
+        script += '-S -Wa,-ashl
+        execute = 'cat -n ./a.out'
     else:
-        script += ' && (./a.out; echo "Returned $?")'
+        execute = './a.out'
 
     compiler_invocation = compiler + script
-    script = f'echo "# {compiler_invocation}"; set -x; {compiler_invocation}'
+    
+    main = SourceFile('main.cpp', source)
+    make = SourceFile('Makefile', f'all:\n\t{compiler_invocation}\n\t{execute}\n')
 
-    cc = Coliru(script, SourceFile('main.cpp', source))
+    cc = Coliru('make', make, main)
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
