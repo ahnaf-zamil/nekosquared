@@ -121,11 +121,6 @@ async def c(source):
     
     if '#pragma neko 32' in lines:
         script += '-m32 '
-        
-    if '#pragma neko asm' in lines:
-        script += '-S -Wa,-ashl && cat -n a.out'
-    else:
-        script += ' && (./a.out; echo "Returned $?")'
 
     if '#pragma neko gcc' not in lines:
         if not source.endswith('\n'):
@@ -134,10 +129,19 @@ async def c(source):
     else:
         compiler = 'gcc '
         
-    compiler_invocation = compiler + script
-    script = f'echo "# {compiler_invocation}"; set -x; {compiler_invocation}'   
+    if '#pragma neko asm' in lines:
+        script += ' -S -Wa,-ashl'
+        execute = 'cat -n ./a.out'
+    else:
+        execute = './a.out'
 
-    cc = Coliru(script, SourceFile('main.c', source))
+    compiler_invocation = compiler + script
+    
+    main = SourceFile('app.cpp', source)    
+    make = SourceFile('Makefile', f'all:\n    {compiler_invocation}\n    {execute}\n')
+    
+    cc = Coliru('make -f Makefile', make, main)
+    
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
@@ -174,13 +178,6 @@ async def cpp(source):
     
     lines = source.split('\n')
     
-    if '#pragma neko gcc' in lines or '#pragma neko g++' in lines:
-        script += '-std=c++17 '
-        compiler = 'g++ '
-    else:
-        script += '-std=c++14 '
-        compiler = 'clang++ -gdwarf-2 '
-        
     if '#pragma neko fs' in lines:
         script += '-lstdc++fs '
     
@@ -192,6 +189,14 @@ async def cpp(source):
     
     if '#pragma neko 32' in lines:
         script += '-m32 '
+        
+    if '#pragma neko gcc' in lines or '#pragma neko g++' in lines:
+        script += '-std=c++17 '
+        compiler = 'g++ '
+    else:
+        script += '-std=c++14 '
+        compiler = 'clang++ -gdwarf-2 '
+        
     
     if '#pragma neko asm' in lines:
         script += ' -S -Wa,-ashl'
@@ -204,7 +209,7 @@ async def cpp(source):
     main = SourceFile('app.cpp', source)    
     make = SourceFile('Makefile', f'all:\n    {compiler_invocation}\n    {execute}\n')
     
-    cc = Coliru('ls -ahl; cat app.cpp -n; echo; cat Makefile -n; make -f Makefile', make, main)
+    cc = Coliru('make -f Makefile', make, main)
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
