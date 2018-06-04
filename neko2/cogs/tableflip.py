@@ -92,10 +92,15 @@ class TableFlipCog(traits.CogTraits):
                                           size=cls.webhook_avatar_res)
 
         avatar_resp = await http.get(avatar_url)
+        
+        name = message.author.display_name
+        if len(name) < 2:
+            # Webhook length restriction.
+            name = str(message.author)
 
         # noinspection PyUnresolvedReferences
         wh: discord.Webhook = await channel.create_webhook(
-            name=message.author.display_name,
+            name=message.author.name,
             avatar=await avatar_resp.read())
 
         try:
