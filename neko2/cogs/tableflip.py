@@ -100,7 +100,7 @@ class TableFlipCog(traits.CogTraits):
 
         # noinspection PyUnresolvedReferences
         wh: discord.Webhook = await channel.create_webhook(
-            name=message.author.name,
+            name=name,
             avatar=await avatar_resp.read())
 
         try:
