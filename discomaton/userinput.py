@@ -44,13 +44,18 @@ from .book import AbstractBooklet, default_formatter
 from .factories import bookbinding
 from .util import helpers
 
-__all__ = ('option_picker_formatter', 'ResultPickedInterrupt',
-           'ClosedInterrupt', 'option_picker', 'get_user_input')
+__all__ = (
+    "option_picker_formatter",
+    "ResultPickedInterrupt",
+    "ClosedInterrupt",
+    "option_picker",
+    "get_user_input",
+)
 
 
 def option_picker_formatter(booklet: AbstractBooklet) -> str:
     string = default_formatter(booklet)
-    return f'{string}\n**Please reply with an option:**'
+    return f"{string}\n**Please reply with an option:**"
 
 
 class ResultPickedInterrupt(RuntimeError):
@@ -62,15 +67,18 @@ class ResultPickedInterrupt(RuntimeError):
 
 class ClosedInterrupt(RuntimeError):
     """Raised if the option picker is closed."""
+
     pass
 
 
-async def option_picker(ctx,
-                        *options,
-                        timeout: float = 300,
-                        formatter=option_picker_formatter,
-                        option_formatter=str,
-                        max_lines: int = 6) -> typing.Any:
+async def option_picker(
+    ctx,
+    *options,
+    timeout: float = 300,
+    formatter=option_picker_formatter,
+    option_formatter=str,
+    max_lines: int = 6,
+) -> typing.Any:
     """
     Displays a list of options, enabling the user to pick one by
     providing input. If the user closes the pagination of options, we assume
@@ -92,17 +100,14 @@ async def option_picker(ctx,
         bot, message, channel = ctx
 
     if message.guild is None:
-        raise commands.NoPrivateMessage('Option pickers will not work in DMs.')
+        raise commands.NoPrivateMessage("Option pickers will not work in DMs.")
 
-    binder = bookbinding.StringBookBinder(ctx,
-                                          max_lines=max_lines,
-                                          timeout=None)
+    binder = bookbinding.StringBookBinder(ctx, max_lines=max_lines, timeout=None)
 
     binder.with_page_number_formatter(formatter)
 
     for i, option in enumerate(options):
-        binder.add_line(f'{i + 1} - {option_formatter(option)!s}',
-                        dont_alter=True)
+        binder.add_line(f"{i + 1} - {option_formatter(option)!s}", dont_alter=True)
 
     book = binder.build()
 
@@ -111,18 +116,14 @@ async def option_picker(ctx,
         raise ClosedInterrupt
 
     def predicate(response):
-        return response.author == message.author and \
-               response.channel == message.channel
+        return response.author == message.author and response.channel == message.channel
 
     async def get_option():
         # Raises a ResultPickedInterrupt when finished.
         user_input = None
 
         while user_input is None:
-            m = await bot.wait_for(
-                'message',
-                check=predicate,
-                timeout=timeout)
+            m = await bot.wait_for("message", check=predicate, timeout=timeout)
 
             content = m.content
 
@@ -132,10 +133,10 @@ async def option_picker(ctx,
                 if option_num < 1 or option_num > len(options):
                     raise IndexError
             except IndexError:
-                await channel.send('Out of range', delete_after=5)
+                await channel.send("Out of range", delete_after=5)
                 continue
             except ValueError:
-                await channel.send('Cancelling...', delete_after=5)
+                await channel.send("Cancelling...", delete_after=5)
                 await helpers.attempt_delete(m)
                 raise ClosedInterrupt
             else:
@@ -144,9 +145,7 @@ async def option_picker(ctx,
             raise ResultPickedInterrupt(options[option_num - 1])
 
     try:
-        option, _ = await asyncio.gather(
-            get_option(),
-            run_options_view())
+        option, _ = await asyncio.gather(get_option(), run_options_view())
     except ResultPickedInterrupt as result:
         return result.result
     except ClosedInterrupt:
@@ -176,14 +175,13 @@ def from_user(user):
     return predicate
 
 
-async def get_user_input(ctx: typing.Union[
-    commands.Context,
-    typing.Tuple[discord.TextChannel, discord.Client]
-],
-                         only_if: typing.Callable[
-                             [discord.Message], bool
-                         ] = lambda _: True,
-                         timeout=300) -> discord.Message:
+async def get_user_input(
+    ctx: typing.Union[
+        commands.Context, typing.Tuple[discord.TextChannel, discord.Client]
+    ],
+    only_if: typing.Callable[[discord.Message], bool] = lambda _: True,
+    timeout=300,
+) -> discord.Message:
     """
     Awaits user input.
     :param ctx: the context to associate with. This is either a
@@ -202,5 +200,4 @@ async def get_user_input(ctx: typing.Union[
         channel, client = ctx[0], ctx[1]
 
     with async_timeout.timeout(timeout=timeout):
-        return await client.wait_for('message',
-                                     check=only_if)
+        return await client.wait_for("message", check=only_if)

@@ -41,7 +41,7 @@ def scrub_tags(text):
 
 
 class TldrCog(traits.CogTraits):
-    @commands.command(brief='Shows TLDR pages (like man, but simpler).')
+    @commands.command(brief="Shows TLDR pages (like man, but simpler).")
     async def tldr(self, ctx, page: str, platform=None):
         """
         Similar to man pages, this shows information on how to use a command,
@@ -63,55 +63,55 @@ class TldrCog(traits.CogTraits):
         to respond.
         """
         platform = None if platform is None else platform.lower()
-        supported_platforms = ('common', 'linux', 'osx', 'sunos', 'windows')
+        supported_platforms = ("common", "linux", "osx", "sunos", "windows")
 
         if platform and platform not in supported_platforms:
-            return await ctx.send('Invalid platform.', delete_after=10)
-        elif any(x in page for x in '#?/'):
-            return await ctx.send('Invalid page name.', delete_after=10)
+            return await ctx.send("Invalid platform.", delete_after=10)
+        elif any(x in page for x in "#?/"):
+            return await ctx.send("Invalid page name.", delete_after=10)
 
-        url = 'https://raw.githubusercontent.com/tldr-pages/tldr/master/pages/'
+        url = "https://raw.githubusercontent.com/tldr-pages/tldr/master/pages/"
 
         conn = await self.acquire_http()
 
         if platform is None:
             resp = None
             for platform in supported_platforms:
-                resp = await conn.get(f'{url}{platform}/{page}.md')
+                resp = await conn.get(f"{url}{platform}/{page}.md")
                 if 200 <= resp.status < 300:
                     break
                 else:
                     ctx.bot.loop.create_task(resp.release())
         else:
-            url += f'{platform}/{page}.md'
+            url += f"{platform}/{page}.md"
             resp = await conn.get(url)
 
         if resp.status != 200:
-            return await ctx.send(f'Error: {resp.reason}.', delete_after=10)
+            return await ctx.send(f"Error: {resp.reason}.", delete_after=10)
 
-        content = ''.join(await resp.text()).splitlines()
+        content = "".join(await resp.text()).splitlines()
 
         if not content:
-            raise RuntimeError('No response from GitHub. Is the page empty?')
+            raise RuntimeError("No response from GitHub. Is the page empty?")
         elif len(content) == 1:
-            raise RuntimeError('No body, only a title. Is the page empty?')
+            raise RuntimeError("No body, only a title. Is the page empty?")
 
         # First line is title if it starts with '#'
-        if content[0].startswith('#'):
-            title = content.pop(0)[1:].lstrip() + f' ({platform})'
+        if content[0].startswith("#"):
+            title = content.pop(0)[1:].lstrip() + f" ({platform})"
         else:
-            title = f'{page} ({platform.title()})'
+            title = f"{page} ({platform.title()})"
 
         paginator = pag.Paginator()
         last_line_was_bullet = False
         for line in content:
 
             # Removes the blank line between bullets and code examples.
-            if last_line_was_bullet and not line.lstrip().startswith('- '):
+            if last_line_was_bullet and not line.lstrip().startswith("- "):
                 if not line.strip():
                     last_line_was_bullet = False
                     continue
-            elif line.lstrip().startswith(' '):
+            elif line.lstrip().startswith(" "):
                 last_line_was_bullet = True
 
             paginator.add_line(line)
@@ -121,11 +121,11 @@ class TldrCog(traits.CogTraits):
             page = scrub_tags(page)
 
             if page.strip():
-                pages.append(discord.Embed(
-                    title=title,
-                    description=page,
-                    colour=alg.rand_colour()
-                ))
+                pages.append(
+                    discord.Embed(
+                        title=title, description=page, colour=alg.rand_colour()
+                    )
+                )
 
         booklet = book.EmbedBooklet(ctx=ctx, pages=pages)
         await booklet.start()

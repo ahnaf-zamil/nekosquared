@@ -84,9 +84,9 @@ class NekoSquaredBotProcess(scribe.Scribe):
 
         
         """
-        logging.basicConfig(level='INFO')
+        logging.basicConfig(level="INFO")
         # Stops rate limiting spam from books.
-        logging.getLogger('discord.http').setLevel('WARNING')
+        logging.getLogger("discord.http").setLevel("WARNING")
 
         if len(self.args) > 1:
             config_path = self.args[1]
@@ -94,22 +94,27 @@ class NekoSquaredBotProcess(scribe.Scribe):
 
         try:
             import uvloop
+
             asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
         except:
-            self.logger.warning('UVloop could not be loaded. Using default '
-                                'asyncio event policy implementation...')
+            self.logger.warning(
+                "UVloop could not be loaded. Using default "
+                "asyncio event policy implementation..."
+            )
         else:
-            self.logger.info('UVloop was detected. Switched to that asyncio '
-                             'event policy implementation!')
+            self.logger.info(
+                "UVloop was detected. Switched to that asyncio "
+                "event policy implementation!"
+            )
         finally:
             loop = asyncio.get_event_loop()
 
         self.loop = loop
 
-        cfg_file = configfiles.get_from_config_dir('discord')
+        cfg_file = configfiles.get_from_config_dir("discord")
         self.bot = client.Bot(self.loop, cfg_file.sync_get())
 
-        setattr(self.bot, 'neko2botprocess', self)
+        setattr(self.bot, "neko2botprocess", self)
 
         # Acquire resources
         # noinspection PyProtectedMember
@@ -124,27 +129,27 @@ class NekoSquaredBotProcess(scribe.Scribe):
             try:
                 self.loop.run_until_complete(self.bot.start(self.bot.token))
             except BotInterrupt as ex:
-                self.logger.warning(f'Received interrupt {ex}')
+                self.logger.warning(f"Received interrupt {ex}")
             except BaseException:
                 traceback.print_exc()
-                self.logger.fatal('An unrecoverable error occurred.')
+                self.logger.fatal("An unrecoverable error occurred.")
             else:
-                self.logger.info('The bot stopped executing as expected')
+                self.logger.info("The bot stopped executing as expected")
 
             try:
                 if self.bot._logged_in:
                     self.loop.run_until_complete(self.bot.logout())
             except BotInterrupt:
-                self.bot.logger.fatal('Giving up all hope of a safe exit')
+                self.bot.logger.fatal("Giving up all hope of a safe exit")
             except BaseException:
                 traceback.print_exc()
-                self.bot.logger.fatal('Giving up all hope of a safe exit')
+                self.bot.logger.fatal("Giving up all hope of a safe exit")
             else:
-                self.bot.logger.info('Process is terminating NOW.')
+                self.bot.logger.info("Process is terminating NOW.")
             finally:
                 return
         except KeyboardInterrupt:
             return
         finally:
             self.loop.run_until_complete(traits.CogTraits._dealloc())
-            delattr(self.bot, 'neko2botprocess')
+            delattr(self.bot, "neko2botprocess")

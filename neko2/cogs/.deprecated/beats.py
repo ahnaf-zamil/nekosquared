@@ -48,17 +48,17 @@ import youtube_dl
 from neko2.shared import commands, traits
 
 if not discord.opus.is_loaded():
-    if os.name == 'winnt':
-        discord.opus.load_opus('libopus-0.dll')
+    if os.name == "winnt":
+        discord.opus.load_opus("libopus-0.dll")
     else:
-        discord.opus.load_opus('libopus.so')
+        discord.opus.load_opus("libopus.so")
 
 YOUTUBE_OPTS = {
-    'format': 'webm[abr>0]/bestaudio/best',
-    'ignoreerrors': True,
-    'defaultsearch': 'auto',
-    'source_address': '0.0.0.0',
-    'quiet': True
+    "format": "webm[abr>0]/bestaudio/best",
+    "ignoreerrors": True,
+    "defaultsearch": "auto",
+    "source_address": "0.0.0.0",
+    "quiet": True,
 }
 
 
@@ -78,11 +78,13 @@ class YouTubeVideo:
 
 
 class Session(traits.CogTraits):
-    def __init__(self,
-                 bot: discord.Client,
-                 voice_channel: discord.VoiceChannel,
-                 text_channel: discord.TextChannel,
-                 sessions: Dict[discord.Guild, 'Session']):
+    def __init__(
+        self,
+        bot: discord.Client,
+        voice_channel: discord.VoiceChannel,
+        text_channel: discord.TextChannel,
+        sessions: Dict[discord.Guild, "Session"],
+    ):
         self.voice_channel = voice_channel
         self.text_channel = text_channel
         self.__sessions = sessions
@@ -128,7 +130,7 @@ class Session(traits.CogTraits):
     def next(self, error=None):
         if self.voice_client.is_playing():
             self.voice_client.stop()
-            self.logger.info('Stopped VC client early.')
+            self.logger.info("Stopped VC client early.")
 
         if not error:
             self.play_next_event.set()
@@ -140,7 +142,7 @@ class Session(traits.CogTraits):
         Asyncio loop to play audio from YouTube by using the queue.
         """
         while not self.should_die:
-            self.logger.info('Iterating onto next item')
+            self.logger.info("Iterating onto next item")
 
             # Clear the flag to transition to the next item.
             self.play_next_event.clear()
@@ -153,20 +155,21 @@ class Session(traits.CogTraits):
                     video = await self.queue.get()
                 self.current_item = video
 
-                embed = discord.Embed(title=f'NOW PLAYING {video.yt_url}')
+                embed = discord.Embed(title=f"NOW PLAYING {video.yt_url}")
 
                 await self.text_channel.send(embed=embed)
 
-                await self.run_in_io_executor(self.voice_client.play,
-                                              [
-                                                  self.current_item.player
-                                              ],
-                                              {'after': self.next})
+                await self.run_in_io_executor(
+                    self.voice_client.play,
+                    [self.current_item.player],
+                    {"after": self.next},
+                )
 
                 await self.play_next_event.wait()
             except asyncio.TimeoutError:
                 await self.text_channel.send(
-                    'You were idle too long \N{FROWNING FACE WITH OPEN MOUTH}')
+                    "You were idle too long \N{FROWNING FACE WITH OPEN MOUTH}"
+                )
                 self.voice_client.stop()
                 self.voice_channel = None
             finally:
@@ -203,7 +206,7 @@ class YouTubePlayerCog(traits.CogTraits):
         voice_channel = self.get_voice_channel(ctx)
 
         if not voice_channel:
-            await ctx.send('Please enter a voice channel first!')
+            await ctx.send("Please enter a voice channel first!")
         elif ctx.guild in self.sessions:
             await self.sessions[ctx.guild].voice_client.move_to(voice_channel)
             acknowledge(ctx)
@@ -212,14 +215,14 @@ class YouTubePlayerCog(traits.CogTraits):
             await sesh.initialise()
             acknowledge(ctx)
 
-    @yt.command(aliases=['stop', 'cya', 'bye'])
+    @yt.command(aliases=["stop", "cya", "bye"])
     async def leave(self, ctx: commands.Context):
         voice_channel = self.get_voice_channel(ctx)
 
         if not voice_channel:
-            return await ctx.send('You are not in a voice channel.')
+            return await ctx.send("You are not in a voice channel.")
         elif ctx.guild not in self.sessions:
-            return await ctx.send('I am not in your voice channel.')
+            return await ctx.send("I am not in your voice channel.")
         else:
             sesh = self.sessions[ctx.guild]
             await sesh.deinitialise()
@@ -235,7 +238,7 @@ class YouTubePlayerCog(traits.CogTraits):
     def make_player(self, url):
         yt_dl = youtube_dl.YoutubeDL(YOUTUBE_OPTS)
         info = yt_dl.extract_info(url, download=False)
-        stream = discord.FFmpegPCMAudio(info['url'])
+        stream = discord.FFmpegPCMAudio(info["url"])
         return stream
 
     async def session_preamble(self, ctx):
@@ -252,11 +255,11 @@ class YouTubePlayerCog(traits.CogTraits):
             sesh = self.sessions[ctx.guild]
 
             if sesh.text_channel != ctx.channel:
-                await ctx.send(f'Please move to {sesh.text_channel.mention}.')
+                await ctx.send(f"Please move to {sesh.text_channel.mention}.")
                 return None
 
             if sesh.voice_channel is None:
-                await ctx.send('I am not in a channel.')
+                await ctx.send("I am not in a channel.")
                 await sesh.deinitialise()
                 del self.sessions[ctx.guild]
                 return None
@@ -266,22 +269,26 @@ class YouTubePlayerCog(traits.CogTraits):
                 try:
                     await ctx.author.move_to(
                         sesh.voice_channel,
-                        reason='Tried to use me in a different VC to the one '
-                               'I was already in.')
-                    await ctx.send(f'{ctx.author.mention}: moved you to the '
-                                   'channel I was already in!')
+                        reason="Tried to use me in a different VC to the one "
+                        "I was already in.",
+                    )
+                    await ctx.send(
+                        f"{ctx.author.mention}: moved you to the "
+                        "channel I was already in!"
+                    )
                     return sesh
                 except discord.Forbidden:
                     await ctx.send(
-                        f'I am currently in {sesh.voice_channel}... '
-                        f'please move there.')
+                        f"I am currently in {sesh.voice_channel}... "
+                        f"please move there."
+                    )
                     return None
             else:
                 return sesh
         except KeyError:
             return None
 
-    @yt.command(aliases=['enqueue', 'add'])
+    @yt.command(aliases=["enqueue", "add"])
     async def play(self, ctx: commands.Context, *, url: str):
 
         sesh = await self.session_preamble(ctx)
@@ -291,17 +298,16 @@ class YouTubePlayerCog(traits.CogTraits):
         try:
             player = await self.run_in_io_executor(self.make_player, [url])
         except TypeError:
-            return await ctx.send('That doesn\'t seem to be a valid link.')
+            return await ctx.send("That doesn't seem to be a valid link.")
 
-        video = YouTubeVideo(ctx.author,
-                             datetime.datetime.now(),
-                             url,
-                             player)
+        video = YouTubeVideo(ctx.author, datetime.datetime.now(), url, player)
 
         sesh.queue.put_nowait(video)
 
-        await ctx.send(f'I have added <{url}> to the queue. It has '
-                       f'{sesh.queue.qsize()} item(s) before it.')
+        await ctx.send(
+            f"I have added <{url}> to the queue. It has "
+            f"{sesh.queue.qsize()} item(s) before it."
+        )
 
     @yt.command()
     async def pause(self, ctx: commands.Context):
@@ -310,7 +316,7 @@ class YouTubePlayerCog(traits.CogTraits):
             return
         else:
             await sesh.voice_client.pause()
-            await ctx.send('Paused.')
+            await ctx.send("Paused.")
 
     @yt.command()
     async def resume(self, ctx: commands.Context):
@@ -319,7 +325,7 @@ class YouTubePlayerCog(traits.CogTraits):
             return
         else:
             await sesh.voice_client.resume()
-            await ctx.send('Resumed.')
+            await ctx.send("Resumed.")
 
     @yt.command()
     async def next(self, ctx: commands.Context):
@@ -328,7 +334,7 @@ class YouTubePlayerCog(traits.CogTraits):
             return
         else:
             if sesh.play_next_event.is_set():
-                return await ctx.send('Reached the end of the queue.')
+                return await ctx.send("Reached the end of the queue.")
             sesh.next()
             acknowledge(ctx)
 

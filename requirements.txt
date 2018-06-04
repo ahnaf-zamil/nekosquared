@@ -1,0 +1,12 @@
+git+https://github.com/rapptz/discord.py@rewrite
+aiofiles
+aiohttp>=3.2.1
+beautifulsoup4
+cached_property
+dataclasses
+googletrans
+pillow
+pyyaml
+uvloop
+websockets>=4.0.0
+wordnik-py3

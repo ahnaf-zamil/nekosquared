@@ -35,16 +35,10 @@ import discord
 
 from .abstract import AbstractIterableMachine
 
-__all__ = ('Button', 'as_button')
+__all__ = ("Button", "as_button")
 
 callback_t = typing.Callable[
-    [
-        'Button',
-        AbstractIterableMachine,
-        discord.Reaction,
-        discord.User
-    ],
-    typing.Any
+    ["Button", AbstractIterableMachine, discord.Reaction, discord.User], typing.Any
 ]
 
 
@@ -62,18 +56,17 @@ class Button:
             of async iterator being used, and returned.
     """
 
-    def __init__(self,
-                 name: str,
-                 reaction: str,
-                 callback: callback_t) -> None:
+    def __init__(self, name: str, reaction: str, callback: callback_t) -> None:
         self.name, self.reaction, self.callback = name, reaction, callback
         self._predicates = set()
-        self.__doc__ = getattr(callback, '__doc__', '')
+        self.__doc__ = getattr(callback, "__doc__", "")
 
-    async def __call__(self,
-                       machine: AbstractIterableMachine,
-                       reaction: discord.Reaction,
-                       user: discord.User) -> typing.Any:
+    async def __call__(
+        self,
+        machine: AbstractIterableMachine,
+        reaction: discord.Reaction,
+        user: discord.User,
+    ) -> typing.Any:
         """Calls the coroutine callback and returns the result."""
         return await self.callback(self, machine, reaction, user)
 
@@ -84,8 +77,8 @@ class Button:
     def __repr__(self) -> str:
         """Machine-friendly representation."""
         return (
-            f'<Button name={self.name!r}, reaction={self.reaction!r}, '
-            f'callback={self.callback!r}>'
+            f"<Button name={self.name!r}, reaction={self.reaction!r}, "
+            f"callback={self.callback!r}>"
         )
 
     @cached_property.cached_property
@@ -96,6 +89,7 @@ class Button:
         one, we return a falsy emptystring.
         """
         import inspect
+
         return inspect.cleandoc(inspect.getdoc(self))
 
     def should_show(self, machine: AbstractIterableMachine) -> bool:
@@ -108,11 +102,9 @@ class Button:
         """
         return all(p(machine) for p in self._predicates)
 
-    def with_predicate(self,
-                       predicate: typing.Callable[
-                           [AbstractIterableMachine],
-                           bool
-                       ]) -> typing.Callable:
+    def with_predicate(
+        self, predicate: typing.Callable[[AbstractIterableMachine], bool]
+    ) -> typing.Callable:
         """
         Decorates a predicate and sets the predicate. See `should_show` for
         more information.
@@ -124,13 +116,12 @@ class Button:
     should_show_predicate = with_predicate
 
 
-def as_button(*,
-              name: typing.Optional[str] = None,
-              reaction: str,
-              predicate: typing.Callable[
-                  [AbstractIterableMachine],
-                  bool
-              ] = lambda _: True) -> typing.Callable[[callback_t], Button]:
+def as_button(
+    *,
+    name: typing.Optional[str] = None,
+    reaction: str,
+    predicate: typing.Callable[[AbstractIterableMachine], bool] = lambda _: True,
+) -> typing.Callable[[callback_t], Button]:
     """Decorator for a co-routine to generate a new Button type."""
 
     def decorator(coro: callback_t) -> Button:

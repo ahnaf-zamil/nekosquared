@@ -55,7 +55,7 @@ class F:
     message: discord.Message
     colour: int
     ctx: commands.Context
-        
+
 
 @morefunctools.always_background()
 async def destroy_bucket_later(self, channel):
@@ -70,9 +70,10 @@ class RespectsCog:
         self.buckets: typing.Dict[discord.TextChannel, F] = {}
 
     if ENABLE_NAKED:
+
         async def on_message(self, message):
-            if message.content.lower() == 'f' and message.guild:
-                message.content = self.bot.command_prefix + 'f'
+            if message.content.lower() == "f" and message.guild:
+                message.content = self.bot.command_prefix + "f"
                 ctx = await self.bot.get_context(message)
                 try:
                     await self.f.invoke(ctx)
@@ -80,9 +81,10 @@ class RespectsCog:
                     return
 
     if ENABLE_REACT:
-        async def on_reaction_add(self,
-                                  reaction: discord.Reaction,
-                                  user: discord.Member):
+
+        async def on_reaction_add(
+            self, reaction: discord.Reaction, user: discord.Member
+        ):
             if user == self.bot.user:
                 return
 
@@ -95,7 +97,7 @@ class RespectsCog:
             c1 = b.message.id == reaction.message.id
             c2 = reaction.message.guild is not None
             c3 = user not in b.members
-            c4 = reaction.emoji == '\N{REGIONAL INDICATOR SYMBOL LETTER F}'
+            c4 = reaction.emoji == "\N{REGIONAL INDICATOR SYMBOL LETTER F}"
 
             if all((c1, c2, c3, c4)):
                 await self.append_to_bucket(b, user)
@@ -112,18 +114,14 @@ class RespectsCog:
         last = members[-1]
 
         first = list(map(str, first))
-        last = str(last) if last else ''
+        last = str(last) if last else ""
 
         if len(members) > 1:
-            message = (
-                    ', '.join(first) + f' and {last} ' +
-                    'paid their respects')
+            message = ", ".join(first) + f" and {last} " + "paid their respects"
         else:
-            message = (f'{last} paid their respects.')
+            message = f"{last} paid their respects."
 
-        embed = discord.Embed(
-            description=message,
-            colour=bucket.colour)
+        embed = discord.Embed(description=message, colour=bucket.colour)
 
         if bucket.message:
             await bucket.message.edit(embed=embed)
@@ -133,7 +131,7 @@ class RespectsCog:
             bucket.message = await bucket.ctx.send(embed=embed)
 
     @commands.guild_only()
-    @commands.command(brief='Pay your respects.')
+    @commands.command(brief="Pay your respects.")
     async def f(self, ctx, *, reason=None):
         try:
             await ctx.message.delete()
@@ -166,22 +164,24 @@ class RespectsCog:
                 if reason is None:
                     message = await ctx.send(
                         embed=discord.Embed(
-                            description=f'{ctx.author} paid their respects.',
-                            colour=colour))
+                            description=f"{ctx.author} paid their respects.",
+                            colour=colour,
+                        )
+                    )
                 else:
                     message = await ctx.send(
                         embed=discord.Embed(
-                            description=f'{ctx.author} paid their respects for'
-                                        f' {reason}'))
+                            description=f"{ctx.author} paid their respects for"
+                            f" {reason}"
+                        )
+                    )
 
                 if ENABLE_REACT:
-                    await message.add_reaction(
-                        '\N{REGIONAL INDICATOR SYMBOL LETTER F}')
+                    await message.add_reaction("\N{REGIONAL INDICATOR SYMBOL LETTER F}")
 
-                f_bucket = F(collections.MutableOrderedSet({ctx.author}),
-                             message,
-                             colour,
-                             ctx)
+                f_bucket = F(
+                    collections.MutableOrderedSet({ctx.author}), message, colour, ctx
+                )
 
                 self.buckets[ctx.channel] = f_bucket
                 destroy_bucket_later(self, ctx.channel)

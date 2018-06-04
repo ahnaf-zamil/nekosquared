@@ -87,23 +87,20 @@ def count_loc():
     """
     global lines_of_code
     try:
-        extrabits.InternalCogType.logger.info('Counting and caching LOC.')
+        extrabits.InternalCogType.logger.info("Counting and caching LOC.")
         lines_of_code = subprocess.check_output(
             [
-                '/bin/bash',
-                '-c',
-                'wc -l $(find neko2 neko2tests discomaton '
+                "/bin/bash",
+                "-c",
+                "wc -l $(find neko2 neko2tests discomaton "
                 'discomaton-examples config -name "*.py" '
                 '-o -name "*.sql" -o -name '
-                '"*.json" -o -name "*.yaml") '
+                '"*.json" -o -name "*.yaml") ',
             ],
-            universal_newlines=True)
-        # Gets the number from the total line of the output for wc
-        lines_of_code = (
-            lines_of_code.strip().split('\n')[-1]
-                                 .strip()
-                                 .split(' ')[0]
+            universal_newlines=True,
         )
+        # Gets the number from the total line of the output for wc
+        lines_of_code = lines_of_code.strip().split("\n")[-1].strip().split(" ")[0]
     finally:
         return
 
@@ -116,10 +113,10 @@ class BasicsCog(traits.CogTraits):
     def __init__(self, bot):
         """Init the cog."""
         try:
-            bot.remove_command('help')
+            bot.remove_command("help")
         except:
             pass
-        
+
         self.bot = bot
 
     # Prevents webhook exploits spamming the hell out of this.
@@ -137,11 +134,11 @@ class BasicsCog(traits.CogTraits):
         """Get the uptime of the bot as a string."""
         uptime = self.bot.uptime
         if uptime >= 60 * 60 * 24:
-            uptime /= (60.0 * 60 * 24)
+            uptime /= 60.0 * 60 * 24
             uptime = round(uptime, 1)
             uptime = f'{uptime} day{"s" if uptime != 1 else ""}'
         elif uptime >= 60 * 60:
-            uptime /= (60.0 * 60)
+            uptime /= 60.0 * 60
             uptime = round(uptime, 1)
             uptime = f'{uptime} hour{"s" if uptime != 1 else ""}'
         elif uptime >= 60:
@@ -158,49 +155,53 @@ class BasicsCog(traits.CogTraits):
     def lines_of_code(self):
         """Gets the #lines of code as a string description."""
         if lines_of_code is not None:
-            return f'{int(lines_of_code):,} lines of code'
+            return f"{int(lines_of_code):,} lines of code"
         else:
-            return 'No idea on how many lines of code'
+            return "No idea on how many lines of code"
 
-    @commands.command(brief='Gets the developer\'s high score (lines of code)')
+    @commands.command(brief="Gets the developer's high score (lines of code)")
     async def loc(self, ctx):
         await ctx.send(self.lines_of_code)
 
-    @commands.command(brief='Shows the license for this bot.')
+    @commands.command(brief="Shows the license for this bot.")
     async def mylicense(self, ctx):
         """Displays the current license agreement for source code usage."""
-        binder = bookbinding.StringBookBinder(ctx, suffix='```', prefix='```',
-                                              max_lines=25)
-        async with self.file('LICENSE') as fp:
-            for line in await fp.readlines():
-                binder.add(line)
-        binder.start()
-    
-    @commands.command(brief='Shows the copying policy for this bot.')
-    async def copying(self, ctx):
-        """Displays the current license guidelines for source code copying."""
-        binder = bookbinding.StringBookBinder(ctx, suffix='```', prefix='```',
-                                              max_lines=25)
-        async with self.file('COPYING.md') as fp:
-            binder.add_line('See `n.mylicense\' for the full license.\n')
+        binder = bookbinding.StringBookBinder(
+            ctx, suffix="```", prefix="```", max_lines=25
+        )
+        async with self.file("LICENSE") as fp:
             for line in await fp.readlines():
                 binder.add(line)
         binder.start()
 
-    @commands.command(brief='Links to the GitHub repository.',
-                      aliases=['github', 'repo', 'bitbucket', 'svn'])
+    @commands.command(brief="Shows the copying policy for this bot.")
+    async def copying(self, ctx):
+        """Displays the current license guidelines for source code copying."""
+        binder = bookbinding.StringBookBinder(
+            ctx, suffix="```", prefix="```", max_lines=25
+        )
+        async with self.file("COPYING.md") as fp:
+            binder.add_line("See `n.mylicense' for the full license.\n")
+            for line in await fp.readlines():
+                binder.add(line)
+        binder.start()
+
+    @commands.command(
+        brief="Links to the GitHub repository.",
+        aliases=["github", "repo", "bitbucket", "svn"],
+    )
     async def git(self, ctx, who: discord.Member = None):
         """Gets the repository that the bot's source code is hosted in."""
         who = who or ctx.author
-        await ctx.send(f'{who.mention}: <{neko2.__repository__}>')
+        await ctx.send(f"{who.mention}: <{neko2.__repository__}>")
 
-    @commands.command(brief='Links to the Trello page.')
+    @commands.command(brief="Links to the Trello page.")
     async def trello(self, ctx, who: discord.Member = None):
         """Gets the Trello page for the bot development."""
         who = who or ctx.author
-        await ctx.send(f'{who.mention}: <{neko2.__trello__}>')
+        await ctx.send(f"{who.mention}: <{neko2.__trello__}>")
 
-    @commands.command(brief='Gets usage information for commands.')
+    @commands.command(brief="Gets usage information for commands.")
     async def help(self, ctx, *, query: str = None):
         """
         If a command name is given, perform a search for that command and
@@ -212,7 +213,7 @@ class BasicsCog(traits.CogTraits):
         """
         if not query:
             await self._new_dialog(ctx)
-        elif query.lower() in ('-c', '--compact'):
+        elif query.lower() in ("-c", "--compact"):
             await self._summary_screen(ctx, bool(query))
         else:
             result = await self.get_best_match(query, ctx)
@@ -221,8 +222,9 @@ class BasicsCog(traits.CogTraits):
                 real_match, command = result
                 await self._command_page(ctx, query, command, real_match)
             else:
-                await ctx.send(f'No command found that matches `{query}`',
-                               delete_after=15)
+                await ctx.send(
+                    f"No command found that matches `{query}`", delete_after=15
+                )
 
     # noinspection PyUnresolvedReferences
     @staticmethod
@@ -244,12 +246,10 @@ class BasicsCog(traits.CogTraits):
 
         # We only show 10 commands per page.
         for i in range(0, len(commands), 12):
-            embed_page = discord.Embed(
-                title='Neko² commands',
-                colour=alg.rand_colour())
+            embed_page = discord.Embed(title="Neko² commands", colour=alg.rand_colour())
             # embed_page.set_thumbnail(url=ctx.bot.user.avatar_url)
 
-            next_commands = commands[i:i + 12]
+            next_commands = commands[i : i + 12]
 
             for command in next_commands:
                 # Special space char
@@ -259,8 +259,9 @@ class BasicsCog(traits.CogTraits):
                     name=name,
                     # If we put a zero space char first, and follow with an
                     # EM QUAD, it won't strip the space.
-                    value='\u200e\u2001' + (command.brief or '—'),
-                    inline=False)
+                    value="\u200e\u2001" + (command.brief or "—"),
+                    inline=False,
+                )
 
             embeds.append(embed_page)
 
@@ -282,9 +283,9 @@ class BasicsCog(traits.CogTraits):
 
         def new_page():
             next_page = embeds.Embed(
-                title=f'Help for {ctx.bot.command_prefix}'
-                      f'{command.qualified_name}',
-                colour=colour)
+                title=f"Help for {ctx.bot.command_prefix}" f"{command.qualified_name}",
+                colour=colour,
+            )
             pages.append(next_page)
             return next_page
 
@@ -292,33 +293,31 @@ class BasicsCog(traits.CogTraits):
         new_page()
 
         brief = command.brief
-        full_doc = command.help if command.help else ''
+        full_doc = command.help if command.help else ""
         full_doc = string.remove_single_lines(full_doc)
-        examples = getattr(command, 'examples', [])
+        examples = getattr(command, "examples", [])
         signature = command.signature
         cog = command.cog_name
 
         parent = command.full_parent_name
-        cooldown = getattr(command, '_buckets')
+        cooldown = getattr(command, "_buckets")
 
         if cooldown:
-            cooldown = getattr(cooldown, '_cooldown')
+            cooldown = getattr(cooldown, "_cooldown")
 
-        description = [
-            f'```markdown\n{ctx.bot.command_prefix}{signature}\n```'
-        ]
+        description = [f"```markdown\n{ctx.bot.command_prefix}{signature}\n```"]
 
         if cog:
             pages[-1].add_field(
-                name='Module defined in',
-                value=string.pascal2title(cog))
+                name="Module defined in", value=string.pascal2title(cog)
+            )
 
         if not real_match:
-            description.insert(0, f'Closest match for `{query}`')
+            description.insert(0, f"Closest match for `{query}`")
 
         if brief:
             description.append(brief)
-        pages[-1].description = '\n'.join(description)
+        pages[-1].description = "\n".join(description)
 
         # We detect this later to see if we should start paginating if the
         # description is too long.
@@ -326,19 +325,21 @@ class BasicsCog(traits.CogTraits):
 
         if full_doc and len(full_doc) >= 500:
             pages[-1].add_field(
-                name='Detailed description',
-                value=f'{string.trunc(full_doc, 500)}\n\nContinued on the '
-                      'next page...')
+                name="Detailed description",
+                value=f"{string.trunc(full_doc, 500)}\n\nContinued on the "
+                "next page...",
+            )
 
             should_paginate_full_doc = True
         elif full_doc:
-            pages[-1].add_field(name='Detailed description', value=full_doc)
+            pages[-1].add_field(name="Detailed description", value=full_doc)
 
         if examples:
-            examples = '\n'.join(
-                f'- `{ctx.bot.command_prefix}{command.qualified_name} '
-                f'{ex}`' for ex in examples)
-            pages[-1].add_field(name='Examples', value=examples)
+            examples = "\n".join(
+                f"- `{ctx.bot.command_prefix}{command.qualified_name} " f"{ex}`"
+                for ex in examples
+            )
+            pages[-1].add_field(name="Examples", value=examples)
 
         if isinstance(command, commands.BaseGroupMixin):
             _children = sorted(command.commands, key=lambda c: c.name)
@@ -357,11 +358,11 @@ class BasicsCog(traits.CogTraits):
             children = []
 
         if children:
-            children = ', '.join(f'`{child.name}`' for child in children)
-            pages[-1].add_field(name='Child commands', value=children)
+            children = ", ".join(f"`{child.name}`" for child in children)
+            pages[-1].add_field(name="Child commands", value=children)
 
         if parent:
-            pages[-1].add_field(name='Parent', value=f'`{parent}`')
+            pages[-1].add_field(name="Parent", value=f"`{parent}`")
 
         if cooldown:
             timeout = cooldown.per
@@ -369,24 +370,26 @@ class BasicsCog(traits.CogTraits):
                 timeout = int(timeout)
 
             pages[-1].add_field(
-                name='Cooldown policy',
+                name="Cooldown policy",
                 value=(
-                    f'{cooldown.type.name.title()}-scoped '
-                    f'per {cooldown.rate} '
+                    f"{cooldown.type.name.title()}-scoped "
+                    f"per {cooldown.rate} "
                     f'request{"s" if cooldown.rate - 1 else ""} '
-                    f'with a timeout of {timeout} '
-                    f'second{"s" if timeout - 1 else ""}'))
+                    f"with a timeout of {timeout} "
+                    f'second{"s" if timeout - 1 else ""}'
+                ),
+            )
 
         # pages[-1].set_thumbnail(url=ctx.bot.user.avatar_url)
 
-        if hasattr(command.callback, '_probably_broken'):
-            pages[0].add_field(name='In active development',
-                               value='Expect voodoo-type shit behaviour!')
+        if hasattr(command.callback, "_probably_broken"):
+            pages[0].add_field(
+                name="In active development", value="Expect voodoo-type shit behaviour!"
+            )
 
         if should_paginate_full_doc:
             # Generate pages using the Discord.py paginator.
-            pag = discomaton.RapptzPaginator(
-                prefix='', suffix='', max_size=1024)
+            pag = discomaton.RapptzPaginator(prefix="", suffix="", max_size=1024)
 
             for line in full_doc.splitlines():
                 pag.add_line(line)
@@ -394,18 +397,15 @@ class BasicsCog(traits.CogTraits):
             for page in pag.pages:
                 next_page = new_page()
                 next_page.description = pages[0].description
-                next_page.add_field(name='Detailed description',
-                                    value=page)
+                next_page.add_field(name="Detailed description", value=page)
 
         if len(pages) == 0:
-            raise RuntimeError('Empty help')
+            raise RuntimeError("Empty help")
         elif len(pages) == 1:
             await ctx.send(embed=pages[-1])
         else:
             # Paginate using embed paginator
-            await discomaton.EmbedBooklet(
-                pages=pages,
-                ctx=ctx).start()
+            await discomaton.EmbedBooklet(pages=pages, ctx=ctx).start()
 
     @staticmethod
     async def _summary_screen(ctx, show_aliases=False):
@@ -429,7 +429,7 @@ class BasicsCog(traits.CogTraits):
                     pass
             return cmds
 
-        current_page = ''
+        current_page = ""
 
         runnable_commands = await get_runnable_commands(ctx.bot)
 
@@ -451,19 +451,19 @@ class BasicsCog(traits.CogTraits):
         for i, (name, command) in enumerate(strings.items()):
             if i % 50 == 0 and i < len(strings):
                 if current_page:
-                    current_page += ' _continued..._'
+                    current_page += " _continued..._"
                     pages.append(current_page)
-                    current_page = ''
+                    current_page = ""
 
             if isinstance(command, commands.BaseGroupMixin):
                 # This is a command group. Only show if we have at least one
                 # available sub-command, though.
                 if len(await get_runnable_commands(command)) > 0:
-                    name = f'{name}...'
+                    name = f"{name}..."
 
             if current_page:
-                current_page += ', '
-            current_page += f'`{name}`'
+                current_page += ", "
+            current_page += f"`{name}`"
 
         if current_page:
             pages.append(current_page)
@@ -475,22 +475,25 @@ class BasicsCog(traits.CogTraits):
             commands list on one page.
             """
             page = embeds.Embed(
-                title='Available Neko² Commands',
+                title="Available Neko² Commands",
                 colour=0x000663,
-                description='The following can be run in this channel:\n\n'
-                            f'{body}')
-            page.set_footer(text='Commands proceeded by ellipses signify '
-                                 'command groups with sub-commands available.')
+                description="The following can be run in this channel:\n\n" f"{body}",
+            )
+            page.set_footer(
+                text="Commands proceeded by ellipses signify "
+                "command groups with sub-commands available."
+            )
             page.add_field(
-                name='Want more information?',
-                value=f'Run `{ctx.bot.command_prefix}help <command>` '
-                      f'for more details on a specific command!',
-                inline=False)
+                name="Want more information?",
+                value=f"Run `{ctx.bot.command_prefix}help <command>` "
+                f"for more details on a specific command!",
+                inline=False,
+            )
             page.set_thumbnail(url=ctx.bot.user.avatar_url)
             return page
 
         if len(pages) == 0:
-            await ctx.send('You cannot run any commands here.')
+            await ctx.send("You cannot run any commands here.")
         elif len(pages) == 1:
             await ctx.send(embed=mk_page(pages.pop()))
         else:
@@ -498,8 +501,7 @@ class BasicsCog(traits.CogTraits):
             for page in pages:
                 page_embeds.append(mk_page(page))
 
-            fsm = discomaton.EmbedBooklet(pages=page_embeds,
-                                          ctx=ctx)
+            fsm = discomaton.EmbedBooklet(pages=page_embeds, ctx=ctx)
 
             await fsm.start()
 
@@ -519,7 +521,7 @@ class BasicsCog(traits.CogTraits):
 
             for parent_name in parent_names:
                 for alias in aliases:
-                    yield f'{parent_name} {alias}'
+                    yield f"{parent_name} {alias}"
         else:
             yield from aliases
 
@@ -536,8 +538,9 @@ class BasicsCog(traits.CogTraits):
                 mapping[alias] = command
         return mapping
 
-    async def get_best_match(self, string: str, context) \
-            -> typing.Optional[typing.Tuple[bool, commands.BaseCommand]]:
+    async def get_best_match(
+        self, string: str, context
+    ) -> typing.Optional[typing.Tuple[bool, commands.BaseCommand]]:
         """
         Attempts to get the best match for the given string. This will
         first attempt to resolve the string directly. If that fails, we will
@@ -572,7 +575,8 @@ class BasicsCog(traits.CogTraits):
                     string,
                     alias2command.keys(),
                     scoring_algorithm=fuzzy.deep_ratio,
-                    min_score=60)
+                    min_score=60,
+                )
 
                 if not result:
                     return None
@@ -586,7 +590,8 @@ class BasicsCog(traits.CogTraits):
                     alias2command.keys(),
                     scoring_algorithm=fuzzy.deep_ratio,
                     min_score=60,
-                    max_results=None)
+                    max_results=None,
+                )
 
                 for guessed_name, score in score_it:
                     can_run = False
@@ -619,43 +624,50 @@ class BasicsCog(traits.CogTraits):
         # $(git log --oneline | wc -l) - commit count.
 
         f1 = asyncio.create_subprocess_exec(
-            'git',
-            'log',
-            '--pretty=%ar',
-            '--relative-date',
-            '-n1',
+            "git",
+            "log",
+            "--pretty=%ar",
+            "--relative-date",
+            "-n1",
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.DEVNULL,
-            stdin=asyncio.subprocess.DEVNULL)
+            stdin=asyncio.subprocess.DEVNULL,
+        )
 
         f2 = asyncio.create_subprocess_exec(
-            'git', 'log', '--pretty=%s%n%n%b', '-n1',
+            "git",
+            "log",
+            "--pretty=%s%n%n%b",
+            "-n1",
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.DEVNULL,
-            stdin=asyncio.subprocess.DEVNULL)
+            stdin=asyncio.subprocess.DEVNULL,
+        )
 
         f3 = asyncio.create_subprocess_shell(
-            'git log --oneline | wc -l',
+            "git log --oneline | wc -l",
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.DEVNULL,
-            stdin=asyncio.subprocess.DEVNULL)
+            stdin=asyncio.subprocess.DEVNULL,
+        )
 
         f1_res, f2_res, f3_res = await asyncio.gather(f1, f2, f3)
 
         return (
-            b''.join([await f1_res.stdout.read()]).decode('utf-8').strip(),
-            b''.join([await f2_res.stdout.read()]).decode('utf-8').strip(),
-            int(b''.join([await f3_res.stdout.read()]).decode('utf-8'))
+            b"".join([await f1_res.stdout.read()]).decode("utf-8").strip(),
+            b"".join([await f2_res.stdout.read()]).decode("utf-8").strip(),
+            int(b"".join([await f3_res.stdout.read()]).decode("utf-8")),
         )
 
-    @commands.command(name='uptime', brief='Shows how long I have been alive '
-                                           'for.')
+    @commands.command(name="uptime", brief="Shows how long I have been alive " "for.")
     async def uptime_cmd(self, ctx):
         """Determines the monotonic runtime of the bot."""
         await ctx.send(self.uptime)
 
-    @commands.command(aliases=['v', 'ver', 'about'],
-                      brief='Shows versioning info, and some other things.')
+    @commands.command(
+        aliases=["v", "ver", "about"],
+        brief="Shows versioning info, and some other things.",
+    )
     async def version(self, ctx):
         """Shows versioning information and some other useful statistics."""
         author = neko2.__author__
@@ -667,20 +679,20 @@ class BasicsCog(traits.CogTraits):
         if docstring:
             # Ensures the license is not included in the description, as that
             # is rather long.
-            docstring = ''.join(docstring.split('===', maxsplit=1)[0:1])
+            docstring = "".join(docstring.split("===", maxsplit=1)[0:1])
 
-            docstring = [
-                string.remove_single_lines(inspect.cleandoc(docstring))]
+            docstring = [string.remove_single_lines(inspect.cleandoc(docstring))]
         else:
             docstring = []
 
-        docstring.append(f'_Licensed under the **{licence}**_')
+        docstring.append(f"_Licensed under the **{licence}**_")
 
         embed = embeds.Embed(
-            title=f'Neko² v{version}',
+            title=f"Neko² v{version}",
             colour=0xc70025,
-            description='\n\n'.join(docstring),
-            url=repo)
+            description="\n\n".join(docstring),
+            url=repo,
+        )
 
         # Most recent changes
         # Must do in multiple stages to allow the cached property to do
@@ -688,29 +700,33 @@ class BasicsCog(traits.CogTraits):
         commit = self.get_commit
         when, update, count = await commit
 
-        embed.add_field(name=f'Update #{count} ({when})',
-                        value=string.trunc(update, 1024), inline=False)
+        embed.add_field(
+            name=f"Update #{count} ({when})",
+            value=string.trunc(update, 1024),
+            inline=False,
+        )
 
         embed.set_author(name=author)
 
-        embed.set_footer(text=f'Uptime: {uptime}')
+        embed.set_footer(text=f"Uptime: {uptime}")
         embed.set_thumbnail(url=ctx.bot.user.avatar_url)
 
-        embed.add_field(name='Developer EXP', value=self.lines_of_code)
+        embed.add_field(name="Developer EXP", value=self.lines_of_code)
         await ctx.send(embed=embed)
 
-    @commands.command(brief='Shows the current latencies for the me.')
+    @commands.command(brief="Shows the current latencies for the me.")
     async def ping(self, ctx):
         """
         Checks whether I am online and responsive or not.
         """
         start = time.monotonic()
-        message = await ctx.send(f'Pong!')
+        message = await ctx.send(f"Pong!")
         rtt = (time.monotonic() - start) * 1000
         await message.edit(
-            content=f'Pong! (Latency: ∼{ctx.bot.latency * 1000:,.2f}ms | '
-                    f'`ACK` time: ∼{rtt:,.2f}ms | '
-                    f'System local time: `{time.asctime()}`)')
+            content=f"Pong! (Latency: ∼{ctx.bot.latency * 1000:,.2f}ms | "
+            f"`ACK` time: ∼{rtt:,.2f}ms | "
+            f"System local time: `{time.asctime()}`)"
+        )
 
     async def _load_extension(self, namespace, recache=True) -> float:
         """
@@ -719,7 +735,7 @@ class BasicsCog(traits.CogTraits):
         raised.
         """
         if namespace in self.bot.extensions:
-            raise ImportWarning(f'{namespace} extension is already loaded.')
+            raise ImportWarning(f"{namespace} extension is already loaded.")
 
         start_time = time.monotonic()
         self.bot.load_extension(namespace)
@@ -736,15 +752,18 @@ class BasicsCog(traits.CogTraits):
         If no extension matching the namespace is found, a ModuleNotFoundError
         is raised.
         """
-        if namespace.startswith('neko2.engine'):
-            raise PermissionError('Seems that this is an internal extension. '
-                                  'These cannot be dynamically unloaded from '
-                                  'the bot engine. Please restart instead.')
+        if namespace.startswith("neko2.engine"):
+            raise PermissionError(
+                "Seems that this is an internal extension. "
+                "These cannot be dynamically unloaded from "
+                "the bot engine. Please restart instead."
+            )
 
         elif namespace not in self.bot.extensions:
             raise ModuleNotFoundError(
-                f'{namespace} was not loaded into this bot instance, and so '
-                'was not able to be unloaded.')
+                f"{namespace} was not loaded into this bot instance, and so "
+                "was not able to be unloaded."
+            )
 
         else:
             start_time = time.monotonic()
@@ -758,70 +777,79 @@ class BasicsCog(traits.CogTraits):
             return ttr
 
     @commands.is_owner()
-    @commands.command(hidden=True, brief='Loads an extension into me.')
+    @commands.command(hidden=True, brief="Loads an extension into me.")
     async def load(self, ctx, *, namespace):
         """Makes me load a given extension from disk."""
         try:
             secs = await self._load_extension(namespace)
         except ImportWarning as ex:
-            await ctx.send(embed=discord.Embed(
-                title=type(ex).__qualname__,
-                description=str(ex),
-                colour=0xffff00))
+            await ctx.send(
+                embed=discord.Embed(
+                    title=type(ex).__qualname__, description=str(ex), colour=0xffff00
+                )
+            )
         except ModuleNotFoundError as ex:
-            await ctx.send(embed=discord.Embed(
-                title=type(ex).__qualname__,
-                description=str(ex),
-                colour=0xffff00))
+            await ctx.send(
+                embed=discord.Embed(
+                    title=type(ex).__qualname__, description=str(ex), colour=0xffff00
+                )
+            )
         except Exception as ex:
-            await ctx.send(embed=discord.Embed(
-                title=type(ex).__qualname__,
-                description=str(ex),
-                colour=0xff0000))
-            tb = ''.join(traceback.format_exc())
-            pag = discomaton.Paginator(prefix='```', suffix='```')
+            await ctx.send(
+                embed=discord.Embed(
+                    title=type(ex).__qualname__, description=str(ex), colour=0xff0000
+                )
+            )
+            tb = "".join(traceback.format_exc())
+            pag = discomaton.Paginator(prefix="```", suffix="```")
             pag.add(tb)
             for page in pag.pages:
                 await ctx.send(page)
         else:
-            await ctx.send(embed=discord.Embed(
-                title=f'Loaded `{namespace}`',
-                description=f'Successfully loaded extension `{namespace}` in '
-                            f'approximately {secs:,.2f}s.',
-                colour=0x00ff00
-            ))
+            await ctx.send(
+                embed=discord.Embed(
+                    title=f"Loaded `{namespace}`",
+                    description=f"Successfully loaded extension `{namespace}` in "
+                    f"approximately {secs:,.2f}s.",
+                    colour=0x00ff00,
+                )
+            )
 
     @commands.is_owner()
-    @commands.command(hidden=True, brief='Unloads a given extension from me.')
+    @commands.command(hidden=True, brief="Unloads a given extension from me.")
     async def unload(self, ctx, *, namespace):
         """Unloads the given extension from my code."""
         try:
             secs = await self._unload_extension(namespace)
         except ModuleNotFoundError as ex:
-            await ctx.send(embed=discord.Embed(
-                title=type(ex).__qualname__,
-                description=str(ex),
-                colour=0xffff00))
+            await ctx.send(
+                embed=discord.Embed(
+                    title=type(ex).__qualname__, description=str(ex), colour=0xffff00
+                )
+            )
         except Exception as ex:
-            await ctx.send(embed=discord.Embed(
-                title=type(ex).__qualname__,
-                description=str(ex),
-                colour=0xff0000))
-            tb = ''.join(traceback.format_exc())
-            pag = discomaton.Paginator(prefix='```', suffix='```')
+            await ctx.send(
+                embed=discord.Embed(
+                    title=type(ex).__qualname__, description=str(ex), colour=0xff0000
+                )
+            )
+            tb = "".join(traceback.format_exc())
+            pag = discomaton.Paginator(prefix="```", suffix="```")
             pag.add(tb)
             for page in pag.pages:
                 await ctx.send(page)
         else:
-            await ctx.send(embed=discord.Embed(
-                title=f'Unloaded `{namespace}`',
-                description=f'Successfully unloaded extension `{namespace}` in'
-                            f' approximately {secs:,.2f}s.',
-                colour=0x00ff00
-            ))
+            await ctx.send(
+                embed=discord.Embed(
+                    title=f"Unloaded `{namespace}`",
+                    description=f"Successfully unloaded extension `{namespace}` in"
+                    f" approximately {secs:,.2f}s.",
+                    colour=0x00ff00,
+                )
+            )
 
     @commands.is_owner()
-    @commands.command(hidden='True', brief='Reloads an extension.')
+    @commands.command(hidden="True", brief="Reloads an extension.")
     async def reload(self, ctx, *, namespace=None):
         """
         Reloads a given extension. If the extension is not specified, then all
@@ -835,54 +863,64 @@ class BasicsCog(traits.CogTraits):
 
             start_time = time.monotonic()
             with ctx.typing():
-                log.append(f'Unloading `discomaton` cached module data.')
-                log.append('\n' + '-' * 50 + '\n')
+                log.append(f"Unloading `discomaton` cached module data.")
+                log.append("\n" + "-" * 50 + "\n")
 
                 unloaded_extensions = []
                 for extension in copy.copy(ctx.bot.extensions):
-                    if extension.startswith('neko2.engine'):
+                    if extension.startswith("neko2.engine"):
                         # Ignore internals
                         continue
 
                     try:
                         secs = await self._unload_extension(extension, False)
                     except Exception as ex:
-                        log.append(f'Unloading `{extension}` failed. '
-                                   f'{type(ex).__qualname__}: {ex}')
+                        log.append(
+                            f"Unloading `{extension}` failed. "
+                            f"{type(ex).__qualname__}: {ex}"
+                        )
                         error_count += 1
                     else:
-                        log.append(f'Unloaded `{extension}` in approximately '
-                                   f'{secs*1000:,.2f}ms')
+                        log.append(
+                            f"Unloaded `{extension}` in approximately "
+                            f"{secs*1000:,.2f}ms"
+                        )
                         unloaded_count += 1
                         unloaded_extensions.append(extension)
 
                 # Reload.
-                for extension in frozenset((*modules.modules,
-                                            *unloaded_extensions)):
+                for extension in frozenset((*modules.modules, *unloaded_extensions)):
                     try:
                         secs = await self._load_extension(extension, False)
                     except Exception as ex:
-                        log.append(f'Loading `{extension}` failed. '
-                                   f'{type(ex).__qualname__}: {ex}')
+                        log.append(
+                            f"Loading `{extension}` failed. "
+                            f"{type(ex).__qualname__}: {ex}"
+                        )
                         error_count += 1
                     else:
-                        log.append(f'Loaded `{extension}` in approximately '
-                                   f'{secs*1000:,.2f}ms')
+                        log.append(
+                            f"Loaded `{extension}` in approximately "
+                            f"{secs*1000:,.2f}ms"
+                        )
                         loaded_count += 1
 
             time_taken = time.monotonic() - start_time
 
-            book = bookbinding.StringBookBinder(ctx, max_lines=5,
-                                                timeout=30)
+            book = bookbinding.StringBookBinder(ctx, max_lines=5, timeout=30)
 
-            book.add_line('Completed operation in approximately '
-                          f'**{time_taken*1000:,.2f}ms**')
-            book.add_line(f'Unloaded **{unloaded_count}**, '
-                          f'loaded **{loaded_count}**')
-            book.add_line(f'Encountered **{error_count} '
-                          f'error{"s" if error_count - 1 else ""}**')
-            book.add_line('')
-            book.add_line('_See following pages for logs._')
+            book.add_line(
+                "Completed operation in approximately " f"**{time_taken*1000:,.2f}ms**"
+            )
+            book.add_line(
+                f"Unloaded **{unloaded_count}**, " f"loaded **{loaded_count}**"
+            )
+            book.add_line(
+                f"Encountered **{error_count} "
+                f'error{"s" if error_count - 1 else ""}**'
+            )
+            book.add_line("")
+            book.add_line("_See following pages for logs._")
 
             book.add_break()
 
@@ -897,25 +935,27 @@ class BasicsCog(traits.CogTraits):
             await self.unload.callback(self, ctx, namespace=namespace)
             await self.load.callback(self, ctx, namespace=namespace)
 
-    @commands.command(brief='Determines if you can run the command here.')
+    @commands.command(brief="Determines if you can run the command here.")
     async def canirun(self, ctx, command):
         command = ctx.bot.get_command(command)
         if command is None:
-            return await ctx.send('That command does not exist...',
-                                  delete_after=5)
+            return await ctx.send("That command does not exist...", delete_after=5)
 
         try:
             can_run = await command.can_run(ctx)
         except Exception as ex:
-            await ctx.send('You cannot run the command here, because: '
-                           f'`{type(ex).__name__}: {ex!s}`')
+            await ctx.send(
+                "You cannot run the command here, because: "
+                f"`{type(ex).__name__}: {ex!s}`"
+            )
         else:
-            await ctx.send(f'You {can_run and "can" or "cannot"} run this '
-                           'command here.')
+            await ctx.send(
+                f'You {can_run and "can" or "cannot"} run this ' "command here."
+            )
 
     def flush_command_cache(self):
         try:
-            del self.__dict__['alias2command']
+            del self.__dict__["alias2command"]
         except KeyError:
             pass
 
@@ -931,9 +971,8 @@ class BasicsCog(traits.CogTraits):
     # @staticmethod
     # async def __local_check(ctx):
     #     return await ctx.bot.is_owner(ctx.author)
-
     @commands.is_owner()
-    @commands.command(aliases=['stop', 'die'])
+    @commands.command(aliases=["stop", "die"])
     async def restart(self, ctx):
         """
         Kills the bot. If it is running as a systemd service, this should
@@ -950,51 +989,69 @@ class BasicsCog(traits.CogTraits):
         if discord:
             from discord.ext.commands import errors
 
-            error_type = random.choice((
-                errors.TooManyArguments,
-                errors.CommandOnCooldown,
-                errors.DisabledCommand,
-                errors.CommandNotFound,
-                errors.NoPrivateMessage,
-                errors.MissingPermissions,
-                errors.NotOwner,
-                errors.BadArgument,
-                errors.MissingRequiredArgument,
-                errors.CheckFailure,
-                errors.CommandError,
-                errors.DiscordException,
-                errors.CommandInvokeError))
+            error_type = random.choice(
+                (
+                    errors.TooManyArguments,
+                    errors.CommandOnCooldown,
+                    errors.DisabledCommand,
+                    errors.CommandNotFound,
+                    errors.NoPrivateMessage,
+                    errors.MissingPermissions,
+                    errors.NotOwner,
+                    errors.BadArgument,
+                    errors.MissingRequiredArgument,
+                    errors.CheckFailure,
+                    errors.CommandError,
+                    errors.DiscordException,
+                    errors.CommandInvokeError,
+                )
+            )
         else:
-            error_type = random.choice((
-                Exception, RuntimeError, IOError, BlockingIOError,
-                UnboundLocalError, UnicodeDecodeError, SyntaxError,
-                SystemError, NotImplementedError, FileExistsError,
-                FileNotFoundError, InterruptedError, EOFError, NameError,
-                AttributeError, ValueError, KeyError, FutureWarning,
-                DeprecationWarning, PendingDeprecationWarning))
+            error_type = random.choice(
+                (
+                    Exception,
+                    RuntimeError,
+                    IOError,
+                    BlockingIOError,
+                    UnboundLocalError,
+                    UnicodeDecodeError,
+                    SyntaxError,
+                    SystemError,
+                    NotImplementedError,
+                    FileExistsError,
+                    FileNotFoundError,
+                    InterruptedError,
+                    EOFError,
+                    NameError,
+                    AttributeError,
+                    ValueError,
+                    KeyError,
+                    FutureWarning,
+                    DeprecationWarning,
+                    PendingDeprecationWarning,
+                )
+            )
 
-        await ctx.send(f'Raising {error_type.__qualname__}')
+        await ctx.send(f"Raising {error_type.__qualname__}")
         raise error_type
 
     @commands.is_owner()
     @commands.command(hidden=True)
     async def exec(self, ctx, *, command):
-        self.logger.warning(
-            f'{ctx.author} executed {command!r} in {ctx.channel}')
-        binder = bookbinding.StringBookBinder(ctx, max_lines=50,
-                                              prefix='```python',
-                                              suffix='```')
+        self.logger.warning(f"{ctx.author} executed {command!r} in {ctx.channel}")
+        binder = bookbinding.StringBookBinder(
+            ctx, max_lines=50, prefix="```python", suffix="```"
+        )
 
         try:
-            binder.add_line('# Output:')
-            if command.count('\n') == 0:
+            binder.add_line("# Output:")
+            if command.count("\n") == 0:
                 with async_timeout.timeout(10):
-                    if command.startswith('await '):
+                    if command.startswith("await "):
                         command = command[6:]
                     result = eval(command)
                     if inspect.isawaitable(result):
-                        binder.add_line(
-                            f'# automatically awaiting result {result}')
+                        binder.add_line(f"# automatically awaiting result {result}")
                         result = await result
                     binder.add(str(result))
             else:
@@ -1003,15 +1060,16 @@ class BasicsCog(traits.CogTraits):
                         with contextlib.redirect_stdout(output_stream):
                             with contextlib.redirect_stderr(output_stream):
                                 wrapped_command = (
-                                        'async def _aexec(ctx):\n' +
-                                        '\n'.join(f'    {line}'
-                                                  for line
-                                                  in command.split('\n')) +
-                                        '\n')
+                                    "async def _aexec(ctx):\n"
+                                    + "\n".join(
+                                        f"    {line}" for line in command.split("\n")
+                                    )
+                                    + "\n"
+                                )
                                 exec(wrapped_command)
-                                result = await (locals()['_aexec'](ctx))
+                                result = await (locals()["_aexec"](ctx))
                         binder.add(output_stream.getvalue())
-                        binder.add('# Returned ' + str(result))
+                        binder.add("# Returned " + str(result))
         except:
             binder.add(traceback.format_exc())
         finally:
@@ -1020,22 +1078,21 @@ class BasicsCog(traits.CogTraits):
     @commands.is_owner()
     @commands.command(hidden=True, rest_is_raw=True)
     async def shell(self, ctx, *, command):
-        self.logger.warning(
-            f'{ctx.author} executed shell {command!r} in {ctx.channel}')
+        self.logger.warning(f"{ctx.author} executed shell {command!r} in {ctx.channel}")
 
-        binder = bookbinding.StringBookBinder(ctx, max_lines=30,
-                                              prefix='```bash',
-                                              suffix='```')
+        binder = bookbinding.StringBookBinder(
+            ctx, max_lines=30, prefix="```bash", suffix="```"
+        )
 
         try:
             with async_timeout.timeout(600):
                 # Random string name.
-                temp_script = f'/tmp/{time.monotonic()}{time.time()}.sh'
-                binder.add(f'# This will time out after 600 seconds...')
-                binder.add(f'# Creating script {temp_script} (chmod 744)\n')
-                with open(temp_script, 'w') as fp:
-                    for line in command.split('\n'):
-                        fp.write(f'{line}\n')
+                temp_script = f"/tmp/{time.monotonic()}{time.time()}.sh"
+                binder.add(f"# This will time out after 600 seconds...")
+                binder.add(f"# Creating script {temp_script} (chmod 744)\n")
+                with open(temp_script, "w") as fp:
+                    for line in command.split("\n"):
+                        fp.write(f"{line}\n")
                 os.chmod(temp_script, 0o744)
 
                 # Execute script in shell.
@@ -1043,80 +1100,82 @@ class BasicsCog(traits.CogTraits):
                     process = await asyncio.create_subprocess_shell(
                         temp_script,
                         stdout=asyncio.subprocess.PIPE,
-                        stderr=asyncio.subprocess.PIPE)
+                        stderr=asyncio.subprocess.PIPE,
+                    )
                     stdout = (await process.stdout.read()).decode()
                     stderr = (await process.stderr.read()).decode()
 
                     if stdout:
-                        out_stream.write('# ==/dev/stdout==\n')
-                        if not stdout.endswith('\n'):
-                            stdout += '\n'
+                        out_stream.write("# ==/dev/stdout==\n")
+                        if not stdout.endswith("\n"):
+                            stdout += "\n"
                         out_stream.write(stdout)
                     if stderr:
-                        out_stream.write('# ==/dev/stderr==\n')
-                        if not stderr.endswith('\n'):
-                            stderr += '\n'
+                        out_stream.write("# ==/dev/stderr==\n")
+                        if not stderr.endswith("\n"):
+                            stderr += "\n"
                         out_stream.write(stderr)
                     if stdout or stderr:
-                        out_stream.write('# ======EOF======\n')
+                        out_stream.write("# ======EOF======\n")
 
                     out_stream.write(
-                        '# Returned '
-                        f'{process.returncode if process.returncode else 0}')
-                    binder.add(out_stream.getvalue().replace('`', 'ˋ'))
+                        "# Returned "
+                        f"{process.returncode if process.returncode else 0}"
+                    )
+                    binder.add(out_stream.getvalue().replace("`", "ˋ"))
         except:
             binder.add(traceback.format_exc())
         finally:
             binder.start()
 
     @commands.is_owner()
-    @commands.command(brief='Disables repl until restart.', hidden=True)
+    @commands.command(brief="Disables repl until restart.", hidden=True)
     async def lockdown(self, ctx):
         """In case I notice someone managed to get to the repl somehow."""
         try:
-            ctx.bot.remove_command('exec')
+            ctx.bot.remove_command("exec")
         except BaseException as e:
-            await ctx.send(f'Can\'t disable exec.\n{type(e).__name__}: {e}')
+            await ctx.send(f"Can't disable exec.\n{type(e).__name__}: {e}")
         else:
-            await ctx.send('Disabled exec.')
+            await ctx.send("Disabled exec.")
         try:
-            ctx.bot.remove_command('shell')
+            ctx.bot.remove_command("shell")
         except BaseException as e:
-            await ctx.send(f'Can\'t disable shell.\n{type(e).__name__}: {e}')
+            await ctx.send(f"Can't disable shell.\n{type(e).__name__}: {e}")
         else:
-            await ctx.send('Disabled shell.')
+            await ctx.send("Disabled shell.")
 
     @commands.is_owner()
-    @commands.command(brief='Changes the avatar to the given URL.')
+    @commands.command(brief="Changes the avatar to the given URL.")
     async def setavatar(self, ctx, *, url):
         conn = await self.acquire_http()
-        async with conn.request('get', url) as r, ctx.typing():
+        async with conn.request("get", url) as r, ctx.typing():
             await ctx.bot.user.edit(avatar=await r.read())
         commands.acknowledge(ctx)
 
     @commands.is_owner()
-    @commands.command(brief='Shows host health, resource utilisation, etc.')
+    @commands.command(brief="Shows host health, resource utilisation, etc.")
     async def syshealth(self, ctx):
-        command = ('set -x',
-                   'ps -eo euser,args,rss,thcount,%cpu,%mem | '
-                   'grep -P "^($(whoami)|EUSER)"',
-                   'uptime',
-                   'free -hl',
-                   'who -Ha',
-                   'set +x')
-        command = '(' + ' && '.join(command) + ') 2>&1'
+        command = (
+            "set -x",
+            "ps -eo euser,args,rss,thcount,%cpu,%mem | " 'grep -P "^($(whoami)|EUSER)"',
+            "uptime",
+            "free -hl",
+            "who -Ha",
+            "set +x",
+        )
+        command = "(" + " && ".join(command) + ") 2>&1"
 
         await self.shell.callback(self, ctx, command=command)
 
     @commands.is_owner()
-    @commands.command(brief='Shows event loop information.')
+    @commands.command(brief="Shows event loop information.")
     async def loophealth(self, ctx):
         all_tasks = asyncio.Task.all_tasks(loop=ctx.bot.loop)
 
-        booklet = bookbinding.StringBookBinder(ctx,
-                                               prefix='```',
-                                               suffix='```',
-                                               max_lines=None)
+        booklet = bookbinding.StringBookBinder(
+            ctx, prefix="```", suffix="```", max_lines=None
+        )
         summary = []
 
         for task in all_tasks:
@@ -1130,10 +1189,9 @@ class BasicsCog(traits.CogTraits):
             booklet.add_break()
 
         booklet.add_break(to_start=True)
-        summary = '\n'.join(summary)
+        summary = "\n".join(summary)
         booklet.add(summary, to_start=True)
-        booklet.add_line(f'{len(all_tasks)} coroutines in the loop.',
-                         to_start=True)
+        booklet.add_line(f"{len(all_tasks)} coroutines in the loop.", to_start=True)
         booklet.start()
 
     @commands.is_owner()
@@ -1144,29 +1202,30 @@ class BasicsCog(traits.CogTraits):
         otherwise the modules just get reloaded instead.
         """
         if should_restart:
-            return await self.update.callback(self, ctx, '--mute', '--restart')
+            return await self.update.callback(self, ctx, "--mute", "--restart")
         else:
-            await self.update.callback(self, ctx, '--mute')
+            await self.update.callback(self, ctx, "--mute")
 
             # Find the reload command and call it if it exists
-            cmd = alg.find(lambda c: c.name == 'reload', ctx.bot.commands)
+            cmd = alg.find(lambda c: c.name == "reload", ctx.bot.commands)
 
             if cmd:
                 await self.reload.callback(self, ctx)
-                          
+
                 try:
-                    del self.__dict__['alias2command']
+                    del self.__dict__["alias2command"]
                     _ = self.alias2command
                 except:
                     pass
             else:
-                await ctx.send('No reload command found.')
+                await ctx.send("No reload command found.")
 
     @commands.is_owner()
     @commands.command(
-        brief='Clears the stash, and ensures we are up to date with master, '
-              'even if it means destroying the current code base. Use this to '
-              'invoke a bot update remotely.')
+        brief="Clears the stash, and ensures we are up to date with master, "
+        "even if it means destroying the current code base. Use this to "
+        "invoke a bot update remotely."
+    )
     async def update(self, ctx, *args):
         """
         This will DM you the results.
@@ -1184,12 +1243,12 @@ class BasicsCog(traits.CogTraits):
         As of 2.13, run `--mute` or `-m` to not receive inbox spam.
         """
 
-        should_restart = '--restart' in args or '-r' in args
+        should_restart = "--restart" in args or "-r" in args
 
-        should_mute = '--mute' in args or '-m' in args
+        should_mute = "--mute" in args or "-m" in args
 
         # Ensure git is installed first
-        git_path = shutil.which('git')
+        git_path = shutil.which("git")
 
         commands.acknowledge(ctx)
 
@@ -1197,33 +1256,34 @@ class BasicsCog(traits.CogTraits):
 
         async with ctx.channel.typing():
             if not git_path:
-                return await ctx.author.send('I can\'t seem to find git!')
+                return await ctx.author.send("I can't seem to find git!")
 
             # Ensure that we have a `.git` folder in the current directory
-            if os.path.exists('.git'):
-                if os.path.isdir('.git'):
+            if os.path.exists(".git"):
+                if os.path.isdir(".git"):
                     pass
                 else:
-                    return await ctx.author.send('.git is not a directory')
+                    return await ctx.author.send(".git is not a directory")
             else:
-                return ctx.author.send('.git does not exist. Is this a repo?')
+                return ctx.author.send(".git does not exist. Is this a repo?")
 
             with io.StringIO() as out_s:
-                shell = os.getenv('SHELL')
+                shell = os.getenv("SHELL")
                 if shell is None:
-                    shell = shutil.which('sh')
+                    shell = shutil.which("sh")
                     if shell is None:
-                        shell = '?? '
+                        shell = "?? "
 
                 async def call(cmd):
                     nonlocal did_fail
-                    out_s.write(f'{shell} -c {cmd}')
+                    out_s.write(f"{shell} -c {cmd}")
                     process = await asyncio.create_subprocess_shell(
                         cmd,
                         # encoding='utf-8',
                         stdout=asyncio.subprocess.PIPE,
-                        stderr=asyncio.subprocess.PIPE)
-                    out_s.write(f'> Invoked PID {process.pid}\n')
+                        stderr=asyncio.subprocess.PIPE,
+                    )
+                    out_s.write(f"> Invoked PID {process.pid}\n")
                     # Might deadlock?
                     out_s.write((await process.stdout.read()).decode())
                     out_s.write((await process.stderr.read()).decode())
@@ -1231,35 +1291,38 @@ class BasicsCog(traits.CogTraits):
 
                     if code:
                         did_fail = True
-                    out_s.write(f'> Terminated with code {code}\n\n')
+                    out_s.write(f"> Terminated with code {code}\n\n")
 
                 try:
-                    await call(f'{git_path} fetch --all')
-                    print('The following changes will be lost:')
-                    await call(f'{git_path} diff --stat HEAD origin/master')
-                    print('And replaced with')
-                    await call(f'{git_path} show --stat | '
-                               'sed "s/<.*@.*[.].*>/<email>/g"')
+                    await call(f"{git_path} fetch --all")
+                    print("The following changes will be lost:")
+                    await call(f"{git_path} diff --stat HEAD origin/master")
+                    print("And replaced with")
+                    await call(
+                        f"{git_path} show --stat | " 'sed "s/<.*@.*[.].*>/<email>/g"'
+                    )
                     print()
-                    print('Status:')
-                    await call(f'{git_path} status --porcelain')
+                    print("Status:")
+                    await call(f"{git_path} status --porcelain")
                     print()
-                    print('Overwriting local history with remote history.')
-                    await call(f'{git_path} reset --hard origin/$(git '
-                               'rev-parse --symbolic-full-name --abbrev-ref '
-                               'HEAD)')
-                    await call(f'{git_path} stash list && {git_path} stash '
-                               'drop; true')
+                    print("Overwriting local history with remote history.")
+                    await call(
+                        f"{git_path} reset --hard origin/$(git "
+                        "rev-parse --symbolic-full-name --abbrev-ref "
+                        "HEAD)"
+                    )
+                    await call(
+                        f"{git_path} stash list && {git_path} stash " "drop; true"
+                    )
                 except BaseException as ex:
-                    err = traceback.format_exception(
-                        type(ex), ex, ex.__traceback__)
+                    err = traceback.format_exception(type(ex), ex, ex.__traceback__)
                     # Seems that lines might have newlines. This is annoying.
 
-                    err = ''.join(err).split('\n')
-                    err = [f'# {e_ln}\n' for e_ln in err]
+                    err = "".join(err).split("\n")
+                    err = [f"# {e_ln}\n" for e_ln in err]
 
                     # Remove last comment.
-                    err = ''.join(err)[:-1]
+                    err = "".join(err)[:-1]
                     out_s.write(err)
                     traceback.print_exception(type(ex), ex, ex.__traceback__)
                     did_fail = True
@@ -1267,43 +1330,46 @@ class BasicsCog(traits.CogTraits):
                     log = out_s.getvalue()
 
                     self.logger.warning(
-                        f'{ctx.author} Invoked destructive update from '
-                        f'{ctx.guild}@#{ctx.channel}\n{log}')
+                        f"{ctx.author} Invoked destructive update from "
+                        f"{ctx.guild}@#{ctx.channel}\n{log}"
+                    )
 
                     p = dpycmds.Paginator()
 
-                    for line in log.split('\n'):
+                    for line in log.split("\n"):
                         p.add_line(line)
 
                     if not should_mute:
                         await ctx.author.send(
-                            f'Will send {len(p.pages)} messages of output!')
+                            f"Will send {len(p.pages)} messages of output!"
+                        )
 
                         for page in p.pages:
                             if page:
                                 await ctx.author.send(page)
 
         if did_fail:
-            await ctx.author.send('The fix process failed at some point '
-                                  'I won\'t restart. Please update '
-                                  'manually.')
-            self.logger.fatal('Fix failure.')
+            await ctx.author.send(
+                "The fix process failed at some point "
+                "I won't restart. Please update "
+                "manually."
+            )
+            self.logger.fatal("Fix failure.")
         else:
             if should_restart:
-                await ctx.send(
-                    'The fix process succeeded. I will now '
-                    'shut down!')
-                self.logger.warning(
-                    'Successful fix! Going offline in 2 seconds')
+                await ctx.send("The fix process succeeded. I will now " "shut down!")
+                self.logger.warning("Successful fix! Going offline in 2 seconds")
                 await asyncio.sleep(2)
                 await ctx.bot.logout()
             else:
-                await ctx.send('Completed.', delete_after=10)
+                await ctx.send("Completed.", delete_after=10)
 
     @commands.cooldown(1, 30, commands.BucketType.guild)
-    @commands.command(brief='Shows a summary of what this bot can see, the '
-                            'bot\'s overall health and status, and software '
-                            'versioning information')
+    @commands.command(
+        brief="Shows a summary of what this bot can see, the "
+        "bot's overall health and status, and software "
+        "versioning information"
+    )
     async def stats(self, ctx):
         import threading
         from datetime import timedelta
@@ -1320,7 +1386,7 @@ class BasicsCog(traits.CogTraits):
             ack_time = monotonic()
 
         start_ack = monotonic()
-        future = ctx.bot.loop.create_task(ctx.send('Getting ping!'))
+        future = ctx.bot.loop.create_task(ctx.send("Getting ping!"))
         future.add_done_callback(callback)
 
         message = await future
@@ -1333,63 +1399,66 @@ class BasicsCog(traits.CogTraits):
         users = max(len(ctx.bot.users), len(list(ctx.bot.get_all_members())))
         tasks = len(asyncio.Task.all_tasks(loop=asyncio.get_event_loop()))
 
-        stats = collections.OrderedDict({
-            'Users': f'{users:,}',
-            'Guilds/channels': f'{len(ctx.bot.guilds):,}/'
-                               f'{len(list(ctx.bot.get_all_channels())):,}',
-            'Commands/aliases': f'{len(frozenset(ctx.bot.walk_commands())):,}'
-                                f'/{len(ctx.bot.all_commands):,}',
-            'Cogs/extensions': f'{len(ctx.bot.cogs):,}/{len(ctx.bot.extensions):,}',
-            'Futures/threads': f'{tasks:,}/{threading.active_count():,}',
-            'Bot uptime': str(timedelta(seconds=ctx.bot.uptime)),
-            'System uptime': str(timedelta(seconds=monotonic())),
-            'Lines of code': f'{int(lines_of_code or 0):,}',
-            'Heartbeat latency': f'∼{ctx.bot.latency * 1000:,.2f}ms',
-            '`ACK` latency': f'∼{ack_time * 1000:,.2f}ms',
-            'Event loop latency': f'{event_loop_latency * 1e6:,.2f}µs',
-            'Affinity/nice': f'{", ".join(map(str, os.sched_getaffinity(0)))}/'
-                             f'{priority}',
-            'Architecture': f'{platform.machine()} '
-                            f'{" ".join(platform.architecture())}',
-            'Days since last accident': random.randrange(0, 2372),
-            'Python':
-                f'{platform.python_implementation()} '
-                f'{platform.python_version()}\n'
+        stats = collections.OrderedDict(
+            {
+                "Users": f"{users:,}",
+                "Guilds/channels": f"{len(ctx.bot.guilds):,}/"
+                f"{len(list(ctx.bot.get_all_channels())):,}",
+                "Commands/aliases": f"{len(frozenset(ctx.bot.walk_commands())):,}"
+                f"/{len(ctx.bot.all_commands):,}",
+                "Cogs/extensions": f"{len(ctx.bot.cogs):,}/{len(ctx.bot.extensions):,}",
+                "Futures/threads": f"{tasks:,}/{threading.active_count():,}",
+                "Bot uptime": str(timedelta(seconds=ctx.bot.uptime)),
+                "System uptime": str(timedelta(seconds=monotonic())),
+                "Lines of code": f"{int(lines_of_code or 0):,}",
+                "Heartbeat latency": f"∼{ctx.bot.latency * 1000:,.2f}ms",
+                "`ACK` latency": f"∼{ack_time * 1000:,.2f}ms",
+                "Event loop latency": f"{event_loop_latency * 1e6:,.2f}µs",
+                "Affinity/nice": f'{", ".join(map(str, os.sched_getaffinity(0)))}/'
+                f"{priority}",
+                "Architecture": f"{platform.machine()} "
+                f'{" ".join(platform.architecture())}',
+                "Days since last accident": random.randrange(0, 2372),
+                "Python": f"{platform.python_implementation()} "
+                f"{platform.python_version()}\n"
                 f'{" ".join(platform.python_build()).title()}\n'
-                f'{platform.python_compiler()}',
-            'Frameworks': f'discord.py v{discord.__version__}\n'
-                          f'aiohttp v{aiohttp.__version__}\n'
-                          f'websockets v{websockets.__version__}',
-        })
-                          
-        if ctx.bot.shard_count and ctx.bot_shard_count > 1:
-            stats['Shards'] = f'{ctx.bot.shard_count}'
+                f"{platform.python_compiler()}",
+                "Frameworks": f"discord.py v{discord.__version__}\n"
+                f"aiohttp v{aiohttp.__version__}\n"
+                f"websockets v{websockets.__version__}",
+            }
+        )
 
-        embed = discord.Embed(title='Statistics and specs for nerds',
-                              colour=alg.rand_colour())
+        if ctx.bot.shard_count and ctx.bot_shard_count > 1:
+            stats["Shards"] = f"{ctx.bot.shard_count}"
+
+        embed = discord.Embed(
+            title="Statistics and specs for nerds", colour=alg.rand_colour()
+        )
 
         # embed.set_thumbnail(url=ctx.bot.user.avatar_url)
 
         embed.set_footer(text=platform.platform())
 
         for name, value in stats.items():
-            embed.add_field(name=name, value=value, 
-                            inline='\n' not in str(value))
+            embed.add_field(name=name, value=value, inline="\n" not in str(value))
 
-        await message.edit(content='', embed=embed)
+        await message.edit(content="", embed=embed)
 
-        em = '\N{REGIONAL INDICATOR SYMBOL LETTER X}'
+        em = "\N{REGIONAL INDICATOR SYMBOL LETTER X}"
 
         @neko2.shared.morefunctools.always_background()
         async def later():
             try:
                 await message.add_reaction(em)
-                await ctx.bot.wait_for('reaction_add',
-                                       timeout=300,
-                                       check=lambda r, u:
-                                       r.emoji == em and not u.bot
-                                       and r.message.id == message.id
-                                       and u.id == ctx.message.author.id)
+                await ctx.bot.wait_for(
+                    "reaction_add",
+                    timeout=300,
+                    check=lambda r, u: r.emoji == em
+                    and not u.bot
+                    and r.message.id == message.id
+                    and u.id == ctx.message.author.id,
+                )
             except asyncio.TimeoutError:
                 try:
                     await message.clear_reactions()
@@ -1404,37 +1473,38 @@ class BasicsCog(traits.CogTraits):
 
         later()
 
-    @commands.command(brief='Shows you what OS I am running.')
+    @commands.command(brief="Shows you what OS I am running.")
     async def os(self, ctx):
         modenv = os.environ
         modenv = dict(modenv)
-        modenv['USER'] = modenv['USERNAME'] = 'Neko²'
+        modenv["USER"] = modenv["USERNAME"] = "Neko²"
 
         process = await asyncio.create_subprocess_shell(
             'screenfetch -N -p -d "-shell"',
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             # Fool screenfetch into outputting false values for these options.
-            env=modenv)
+            env=modenv,
+        )
 
-        stdout = (await process.stdout.read()).decode().replace('`', 'ˋ')
-        stdout = f'```brainfuck\n{stdout}\n```'
+        stdout = (await process.stdout.read()).decode().replace("`", "ˋ")
+        stdout = f"```brainfuck\n{stdout}\n```"
         await ctx.send(stdout)
 
-    @commands.command(brief='Times the execution of another command.')
+    @commands.command(brief="Times the execution of another command.")
     async def timeit(self, ctx, *, content):
         # Make a fake copy of the message to produce a new context with
         msg = copy.copy(ctx.message)
-        msg.content = f'{ctx.prefix}{content}'
+        msg.content = f"{ctx.prefix}{content}"
 
         try:
             new_ctx = await ctx.bot.get_context(msg)
 
             if not new_ctx.command:
-                raise commands.CommandNotFound('That command doesn\'t exist.')
+                raise commands.CommandNotFound("That command doesn't exist.")
 
             if new_ctx.command == self.timeit:
-                return await ctx.send('Don\'t be a smartass.')
+                return await ctx.send("Don't be a smartass.")
 
             start_time, execution_time = 0, 0
 
@@ -1448,17 +1518,18 @@ class BasicsCog(traits.CogTraits):
             future = loop.create_task(ctx.bot.invoke(new_ctx))
             future.add_done_callback(on_done)
             await future
-            await ctx.send(f'`{ctx.message.content.replace("`", "ˋ")}`'
-                           f' took **{execution_time*1000:,.2f}ms** to'
-                           f' complete.')
+            await ctx.send(
+                f'`{ctx.message.content.replace("`", "ˋ")}`'
+                f" took **{execution_time*1000:,.2f}ms** to"
+                f" complete."
+            )
 
         except Exception as ex:
-            await ctx.send(f'{type(ex).__qualname__}: {ex}')
+            await ctx.send(f"{type(ex).__qualname__}: {ex}")
 
-    @commands.command(brief='Sends an invite to let you add the bot to your '
-                            'server.')
+    @commands.command(brief="Sends an invite to let you add the bot to your " "server.")
     async def invite(self, ctx):
-        await ctx.send(f'{ctx.author.mention}: {ctx.bot.invite}')
+        await ctx.send(f"{ctx.author.mention}: {ctx.bot.invite}")
 
 
 def setup(bot):

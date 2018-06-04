@@ -35,9 +35,11 @@ from neko2.shared import traits, commands, fuzzy
 
 
 class TransCog(traits.CogTraits):
-    @commands.group(brief='Translate between languages.',
-                    aliases=['trans', 't'],
-                    invoke_without_command=True)
+    @commands.group(
+        brief="Translate between languages.",
+        aliases=["trans", "t"],
+        invoke_without_command=True,
+    )
     async def translate(self, ctx, source_lang, dest_lang, *, phrase):
         """
         Required arguments:
@@ -53,20 +55,20 @@ class TransCog(traits.CogTraits):
 
         To translate the previous sent message, you can run `n.t ^`.
         """
-        if source_lang in ('*', '.'):
-            source_lang = 'auto'
-        if dest_lang in ('*', '.'):
-            dest_lang = 'en'
+        if source_lang in ("*", "."):
+            source_lang = "auto"
+        if dest_lang in ("*", "."):
+            dest_lang = "en"
 
         def fuzzy_wuzzy_match(input_name):
             match = fuzzy.extract_best(input_name, googletrans.LANGUAGES.values())
             if match is None:
-                raise NameError('Not a recognised language')
+                raise NameError("Not a recognised language")
             else:
                 return googletrans.LANGCODES[match[0]]
 
         try:
-            acceptable_langs = (*googletrans.LANGUAGES.keys(), 'auto')
+            acceptable_langs = (*googletrans.LANGUAGES.keys(), "auto")
 
             source_lang = source_lang.lower()
             dest_lang = dest_lang.lower()
@@ -77,19 +79,19 @@ class TransCog(traits.CogTraits):
 
             def pool():
                 return googletrans.Translator().translate(
-                    phrase, dest_lang, source_lang)
+                    phrase, dest_lang, source_lang
+                )
 
             result = await self.run_in_io_executor(pool)
 
             if result is None:
-                await ctx.send('No response...', delete_after=10)
+                await ctx.send("No response...", delete_after=10)
             else:
                 source = googletrans.LANGUAGES[result.src].title()
                 dest = googletrans.LANGUAGES[result.dest].title()
 
                 book = bookbinding.StringBookBinder(ctx, max_lines=10)
-                book.add_line(f'_From **{source}** to **{dest}**_',
-                              empty_after=True)
+                book.add_line(f"_From **{source}** to **{dest}**_", empty_after=True)
 
                 book.add(result.text)
 
@@ -103,10 +105,11 @@ class TransCog(traits.CogTraits):
         except Exception as ex:
             await ctx.send(str(ex).title(), delete_after=10)
 
-    @translate.command(brief='View a list of supported languages')
+    @translate.command(brief="View a list of supported languages")
     async def list(self, ctx):
-        langs = [f'`{code}` - {lang.title()}'
-                 for code, lang in googletrans.LANGUAGES.items()]
+        langs = [
+            f"`{code}` - {lang.title()}" for code, lang in googletrans.LANGUAGES.items()
+        ]
 
         book = bookbinding.StringBookBinder(ctx)
         for line in langs:
@@ -114,9 +117,12 @@ class TransCog(traits.CogTraits):
 
         await book.start()
 
-    @translate.command(brief='Translate whatever was just sent previously.',
-                       name='that', aliases=['this', '^', '^^'])
-    async def translate_that(self, ctx, to='en'):
+    @translate.command(
+        brief="Translate whatever was just sent previously.",
+        name="that",
+        aliases=["this", "^", "^^"],
+    )
+    async def translate_that(self, ctx, to="en"):
         """
         Pass an optional language to translate to. If nothing is specified,
         I will assume you want English: the best language of them all 😉
@@ -125,11 +131,11 @@ class TransCog(traits.CogTraits):
         history = await ctx.channel.history(limit=2).flatten()
 
         if len(history) < 2 or not history[-1].content:
-            await ctx.send('I can\'t seem to find a message...',
-                           delete_after=10)
+            await ctx.send("I can't seem to find a message...", delete_after=10)
         else:
             await self.translate.callback(
-                self, ctx, '*', to, phrase=history[-1].content)
+                self, ctx, "*", to, phrase=history[-1].content
+            )
 
 
 def setup(bot):

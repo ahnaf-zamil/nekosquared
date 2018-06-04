@@ -38,11 +38,10 @@ import typing  # Type checking
 from neko2.modules import modules  # Modules to load with.
 from neko2.shared import alg  # Timing.
 
-__all__ = ('auto_load_modules',)
+__all__ = ("auto_load_modules",)
 
 
-def auto_load_modules(bot) \
-        -> typing.List[typing.Tuple[BaseException, str]]:
+def auto_load_modules(bot) -> typing.List[typing.Tuple[BaseException, str]]:
     """
     Auto-loads any modules into the given bot.
     :param bot: the bot to load modules into.
@@ -58,18 +57,20 @@ def auto_load_modules(bot) \
     errors = []
 
     if modules is None:
-        logger.warning('No modules were listed.')
+        logger.warning("No modules were listed.")
     else:
         for module in modules:
             # noinspection PyBroadException
             try:
                 _, time = alg.time_it(lambda: bot.load_extension(module))
             except BaseException as ex:
-                logger.fatal(f'FAILED TO LOAD {module}. SEE TRACEBACK BELOW.')
+                logger.fatal(f"FAILED TO LOAD {module}. SEE TRACEBACK BELOW.")
                 traceback.print_exc()
                 errors.append((ex, module))
             else:
-                logger.info(f'Loaded module {module} in {time * 1000:,.2f}ms')
-        logger.warning(f'Loaded {len(modules) - len(errors)}/{len(modules)} '
-                       'modules successfully. Will now start bot.')
+                logger.info(f"Loaded module {module} in {time * 1000:,.2f}ms")
+        logger.warning(
+            f"Loaded {len(modules) - len(errors)}/{len(modules)} "
+            "modules successfully. Will now start bot."
+        )
     return errors

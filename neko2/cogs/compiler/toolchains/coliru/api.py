@@ -37,15 +37,14 @@ from typing import Dict
 from dataclasses import dataclass
 from neko2.cogs.compiler import tools
 
+__all__ = ("HOST", "SourceFile", "Coliru")
 
-__all__ = ('HOST', 'SourceFile', 'Coliru')
+HOST = "http://coliru.stacked-crooked.com"
+SHARE_EP = "/share"
+COMPILE_EP = "/compile"
 
-HOST = 'http://coliru.stacked-crooked.com'
-SHARE_EP = '/share'
-COMPILE_EP = '/compile'
-
-SHARE_ARCHIVE_DIR = '/Archive2'
-INITL_FILE_NAME = 'main.cpp'
+SHARE_ARCHIVE_DIR = "/Archive2"
+INITL_FILE_NAME = "main.cpp"
 
 
 @dataclass()
@@ -60,15 +59,16 @@ class SourceFile:
         access, this property gets cached for good measure.
         """
         # Implicitly fix makefiles
-        is_probably_makefile = any(self.name.lower().startswith(x) for x in (
-            'gnumakefile', 'makefile'))
+        is_probably_makefile = any(
+            self.name.lower().startswith(x) for x in ("gnumakefile", "makefile")
+        )
 
         if is_probably_makefile:
             mf = tools.fix_makefile(self.__code)
-            self.__dict__['code'] = mf
+            self.__dict__["code"] = mf
             return mf
         else:
-            self.__dict__['code'] = self.__code
+            self.__dict__["code"] = self.__code
             return self.__code
 
     def __hash__(self):
@@ -80,11 +80,13 @@ class Coliru:
     Handles "running" an instance of Coliru.
     """
 
-    def __init__(self,
-                 shell_script: str,
-                 main_file: SourceFile,
-                 *other_files: SourceFile,
-                 verbose=False):
+    def __init__(
+        self,
+        shell_script: str,
+        main_file: SourceFile,
+        *other_files: SourceFile,
+        verbose=False,
+    ):
         self.shell_script = shell_script
         self.main_file = main_file
         self.other_files = other_files
@@ -102,11 +104,8 @@ class Coliru:
         Shares the given resource on Coliru and returns the path to the file on
         the file system for later use.
         """
-        url = f'{HOST}{SHARE_EP}'
-        data = json.dumps({
-            'cmd': '',
-            'src': file.code
-        })
+        url = f"{HOST}{SHARE_EP}"
+        data = json.dumps({"cmd": "", "src": file.code})
 
         resp = await session.post(url, data=data)
 
@@ -119,9 +118,7 @@ class Coliru:
 
         first_two, rest = identifier[:2], identifier[2:]
 
-        return (
-            file, f'{SHARE_ARCHIVE_DIR}/{first_two}/{rest}/{INITL_FILE_NAME}'
-        )
+        return (file, f"{SHARE_ARCHIVE_DIR}/{first_two}/{rest}/{INITL_FILE_NAME}")
 
     def _generate_script(self, files: Dict[SourceFile, str]) -> str:
         """
@@ -133,23 +130,21 @@ class Coliru:
         :return: a bash script to build the source code.
         """
 
-        script_lines = ['#!/bin/bash']
+        script_lines = ["#!/bin/bash"]
 
         for file, path in files.items():
             # Don't bother if the name is not going to change.
             if path != file.name:
-                script_lines.append(f'cp {path} {file.name}')
+                script_lines.append(f"cp {path} {file.name}")
 
         # Append the build script
-        script_lines.append('set -x' if self.verbose else '')
+        script_lines.append("set -x" if self.verbose else "")
         script_lines.append(self.shell_script)
-        script_lines.append('set +x')
+        script_lines.append("set +x")
 
-        return '\n'.join(script_lines)
+        return "\n".join(script_lines)
 
-    async def execute(self,
-                      session,
-                      loop=asyncio.get_event_loop()) -> str:
+    async def execute(self, session, loop=asyncio.get_event_loop()) -> str:
         """
         Collects the data we need and sends it to coliru for processing.
         This will then return a string containing the full output.
@@ -166,11 +161,8 @@ class Coliru:
 
         script = self._generate_script(files)
 
-        payload = json.dumps({
-            'cmd': script,
-            'src': self.main_file.code
-        })
+        payload = json.dumps({"cmd": script, "src": self.main_file.code})
 
-        resp = await session.post(f'{HOST}{COMPILE_EP}', data=payload)
+        resp = await session.post(f"{HOST}{COMPILE_EP}", data=payload)
         resp.raise_for_status()
-        return (await resp.read()).decode('utf-8', 'ignore')
+        return (await resp.read()).decode("utf-8", "ignore")

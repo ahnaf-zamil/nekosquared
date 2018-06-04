@@ -30,11 +30,12 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import logging  # Logging (duh!)
 
-__all__ = ('Scribe',)
+__all__ = ("Scribe",)
 
 
 class Scribe:
     """Adds functionality to a class to allow it to log information."""
+
     logger: logging.Logger
 
     def __init_subclass__(cls, **_):

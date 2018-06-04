@@ -35,7 +35,6 @@ from discomaton.factories import bookbinding
 from neko2.shared import commands
 from neko2.shared import traits
 
-
 from . import tools
 from .toolchains import coliru
 
@@ -43,9 +42,11 @@ from .toolchains import coliru
 class ColiruCog(traits.CogTraits):
     @commands.group(
         invoke_without_command=True,
-        name='coliru', aliases=['cc'],
-        brief='Attempts to execute the given code using '
-              '[coliru](http://coliru.stacked-crooked.com).')
+        name="coliru",
+        aliases=["cc"],
+        brief="Attempts to execute the given code using "
+        "[coliru](http://coliru.stacked-crooked.com).",
+    )
     async def coliru(self, ctx, *, arguments):
         """
         Attempts to execute some code by detecting the language in the
@@ -64,9 +65,11 @@ class ColiruCog(traits.CogTraits):
 
         if not code_block or len(code_block.groups()) < 2:
             booklet = bookbinding.StringBookBinder(ctx)
-            booklet.add_line('I couldn\'t detect a valid language in your '
-                             'syntax highlighting... try again by editing '
-                             'your initial message.')
+            booklet.add_line(
+                "I couldn't detect a valid language in your "
+                "syntax highlighting... try again by editing "
+                "your initial message."
+            )
             booklet = booklet.build()
             booklet.start()
 
@@ -81,29 +84,30 @@ class ColiruCog(traits.CogTraits):
                 output = await coliru.targets[language](source)
         except KeyError:
             booklet = bookbinding.StringBookBinder(ctx)
-            booklet.add_line(f'That language ({language}) is not yet supported'
-                             ' by this toolchain. Feel free to edit your'
-                             ' message if you wish to do something else.')
+            booklet.add_line(
+                f"That language ({language}) is not yet supported"
+                " by this toolchain. Feel free to edit your"
+                " message if you wish to do something else."
+            )
             booklet = booklet.build()
             booklet.start()
 
             await tools.listen_to_edit(ctx, booklet)
         else:
-            binder = bookbinding.StringBookBinder(ctx,
-                                                  prefix='```markdown',
-                                                  suffix='```',
-                                                  max_lines=25)
+            binder = bookbinding.StringBookBinder(
+                ctx, prefix="```markdown", suffix="```", max_lines=25
+            )
 
-            binder.add_line(f'Interpreting as {language!r} source.')
+            binder.add_line(f"Interpreting as {language!r} source.")
 
-            for line in output.split('\n'):
+            for line in output.split("\n"):
                 binder.add_line(line)
 
-            if ctx.invoked_with in ('ccd', 'colirud'):
+            if ctx.invoked_with in ("ccd", "colirud"):
                 await commands.try_delete(ctx)
 
             if len(output.strip()) == 0:
-                await ctx.send('No output...')
+                await ctx.send("No output...")
                 return
 
             booklet = binder.build()
@@ -111,39 +115,43 @@ class ColiruCog(traits.CogTraits):
 
             await tools.listen_to_edit(ctx, booklet)
 
-    @coliru.command(brief='Shows help for supported languages.')
+    @coliru.command(brief="Shows help for supported languages.")
     async def help(self, ctx, *, language=None):
         """
         Shows all supported languages and their markdown highlighting
         syntax expected to invoke them correctly.
         """
         if not language:
-            output = '**Supported languages**\n'
+            output = "**Supported languages**\n"
             for lang in sorted(coliru.languages):
-                output += (f'- {lang.title()} -- `{ctx.prefix}cc '
-                           f'ˋˋˋ{coliru.languages[lang.lower()][0]} '
-                           f'...`\n')
+                output += (
+                    f"- {lang.title()} -- `{ctx.prefix}cc "
+                    f"ˋˋˋ{coliru.languages[lang.lower()][0]} "
+                    f"...`\n"
+                )
             await ctx.send(output)
         else:
             try:
                 lang = language.lower()
 
                 help_text = coliru.docs[language]
-                help_text += '\n\n'
+                help_text += "\n\n"
                 help_text += (
-                    'Invoke using syntax highlighted code blocks with '
-                    'one of the following names:\n')
-                help_text += ', '.join(f'`{x}`'
-                                       for x in coliru.languages[lang])
+                    "Invoke using syntax highlighted code blocks with "
+                    "one of the following names:\n"
+                )
+                help_text += ", ".join(f"`{x}`" for x in coliru.languages[lang])
 
                 await ctx.send(help_text)
             except KeyError:
-                await ctx.send(f'Could not find anything for `{language}`')
+                await ctx.send(f"Could not find anything for `{language}`")
 
-    @coliru.command(brief='Allows fine-tuned customisation of how a job is '
-                          'run, at the loss of some of the simplicity.',
-                    usage='ˋbash commandˋ [ˋfile_nameˋ ˋˋˋcodeˋˋˋ]*',
-                    name='a')
+    @coliru.command(
+        brief="Allows fine-tuned customisation of how a job is "
+        "run, at the loss of some of the simplicity.",
+        usage="ˋbash commandˋ [ˋfile_nameˋ ˋˋˋcodeˋˋˋ]*",
+        name="a",
+    )
     async def advanced(self, ctx, *, arguments):
         """
         This tool enables you to specify more than one file, in any supported
@@ -235,11 +243,11 @@ class ColiruCog(traits.CogTraits):
             command = tools.inline_block_re.search(arguments)
 
             if not command:
-                raise ValueError('No command was given.')
+                raise ValueError("No command was given.")
 
             command = command.groups()[0]
 
-            rest = arguments[len(command):].lstrip()
+            rest = arguments[len(command) :].lstrip()
 
             # Get files:
             files = []
@@ -254,32 +262,31 @@ class ColiruCog(traits.CogTraits):
                 files.append((attachment.filename, buff))
 
             if len(files) == 0:
-                raise ValueError('Expected one or more source files.')
+                raise ValueError("Expected one or more source files.")
 
             # Map to sourcefile objects
             files = [coliru.SourceFile(*file) for file in files]
 
             # Main file
-            main = coliru.SourceFile('.run.sh', command)
+            main = coliru.SourceFile(".run.sh", command)
 
             # Generate the coliru API client instance.
-            c = coliru.Coliru('bash .run.sh', main, *files, verbose=True)
+            c = coliru.Coliru("bash .run.sh", main, *files, verbose=True)
 
             output = await c.execute(await self.acquire_http())
 
-            binder = bookbinding.StringBookBinder(ctx,
-                                                  prefix='```markdown',
-                                                  suffix='```',
-                                                  max_lines=25)
+            binder = bookbinding.StringBookBinder(
+                ctx, prefix="```markdown", suffix="```", max_lines=25
+            )
 
-            for line in output.split('\n'):
+            for line in output.split("\n"):
                 binder.add_line(line)
 
-            if ctx.invoked_with in ('ccd', 'colirud'):
+            if ctx.invoked_with in ("ccd", "colirud"):
                 await commands.try_delete(ctx)
 
             if len(output.strip()) == 0:
-                await ctx.send('No output...')
+                await ctx.send("No output...")
                 return
 
             booklet = binder.build()
@@ -288,6 +295,6 @@ class ColiruCog(traits.CogTraits):
             await tools.listen_to_edit(ctx, booklet)
 
         except IndexError:
-            return await ctx.send('Invalid input format.')
+            return await ctx.send("Invalid input format.")
         except ValueError as ex:
             return await ctx.send(str(ex))

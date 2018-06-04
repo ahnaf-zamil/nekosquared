@@ -40,15 +40,15 @@ class GuildChannelConverter(commands.Converter):
     """
     Gets a guild channel
     """
+
     async def convert(self, ctx, body: str):
-        for t in (commands.TextChannelConverter,
-                  commands.VoiceChannelConverter):
+        for t in (commands.TextChannelConverter, commands.VoiceChannelConverter):
             try:
                 return await t().convert(ctx, body)
             except:
                 pass
 
-        raise commands.BadArgument(f'No channel matching `{body}` was found.')
+        raise commands.BadArgument(f"No channel matching `{body}` was found.")
 
 
 class LowercaseCategoryConverter(commands.Converter):
@@ -66,17 +66,17 @@ class LowercaseCategoryConverter(commands.Converter):
             if category.name.lower() == argument:
                 return category
 
-        raise commands.BadArgument(f'Category matching `{argument}` was not '
-                                   'found.')
+        raise commands.BadArgument(f"Category matching `{argument}` was not " "found.")
 
 
 class GuildChannelCategoryConverter(commands.Converter):
     """
     Gets a guild channel or category.
     """
+
     async def convert(self, ctx, body: str):
         # If the input is in the format <#123> then it is a text channel.
-        if body.startswith('<#') and body.endswith('>'):
+        if body.startswith("<#") and body.endswith(">"):
             sf_str = body[2:-1]
             if sf_str.isdigit():
                 sf = int(sf_str)
@@ -85,9 +85,11 @@ class GuildChannelCategoryConverter(commands.Converter):
                 if channel:
                     return channel
 
-            raise commands.BadArgument('Unable to access that channel. Make '
-                                       'sure that it exists, and that I have '
-                                       'access to it, and try again.')
+            raise commands.BadArgument(
+                "Unable to access that channel. Make "
+                "sure that it exists, and that I have "
+                "access to it, and try again."
+            )
 
         # Otherwise, it could be a text channel, a category or a voice channel.
         # We need to hunt for it manually.
@@ -102,24 +104,24 @@ class GuildChannelCategoryConverter(commands.Converter):
             channel = alg.find(lambda c: c.name.lower() == body, to_search)
             if channel:
                 return channel
-            raise commands.BadArgument('No channel matching input was found.')
+            raise commands.BadArgument("No channel matching input was found.")
 
 
 class MentionConverter(commands.Converter):
     """
     A converter that takes generic types of mentions.
     """
+
     async def convert(self, ctx, body: str):
-        if body.startswith('<') and body.endswith('>'):
+        if body.startswith("<") and body.endswith(">"):
             tb = body[1:-1]
 
-            if tb.startswith('@&'):
+            if tb.startswith("@&"):
                 return await commands.RoleConverter().convert(ctx, body)
-            elif tb.startswith('@') and tb[1:2].isdigit() or tb[1:2] == '!':
+            elif tb.startswith("@") and tb[1:2].isdigit() or tb[1:2] == "!":
                 return await commands.MemberConverter().convert(ctx, body)
-            elif tb.startswith('#'):
-                return await commands.TextChannelConverter().convert(
-                    ctx, body)
+            elif tb.startswith("#"):
+                return await commands.TextChannelConverter().convert(ctx, body)
         else:
             try:
                 return await commands.EmojiConverter().convert(ctx, body)
@@ -132,8 +134,7 @@ class MentionConverter(commands.Converter):
                 pass
 
             try:
-                return await commands.PartialEmojiConverter()\
-                    .convert(ctx, body)
+                return await commands.PartialEmojiConverter().convert(ctx, body)
             except:
                 pass
 
@@ -143,12 +144,15 @@ class MentionConverter(commands.Converter):
 
         if ctx.guild:
             all_strings = [
-                *ctx.guild.members, *ctx.guild.channels, *ctx.guild.categories,
-                *ctx.guild.roles, *ctx.guild.emojis,
+                *ctx.guild.members,
+                *ctx.guild.channels,
+                *ctx.guild.categories,
+                *ctx.guild.roles,
+                *ctx.guild.emojis,
             ]
 
             def search(obj):
-                if getattr(obj, 'display_name', '') == body:
+                if getattr(obj, "display_name", "") == body:
                     return True
                 if str(obj) == body or obj.name == body:
                     return True
@@ -161,11 +165,10 @@ class MentionConverter(commands.Converter):
             result = alg.find(search, all_strings)
             if not result:
                 # Try again not matching case.
-
                 def search(obj):
                     _body = body.lower()
 
-                    if getattr(obj, 'display_name', '').lower() == _body:
+                    if getattr(obj, "display_name", "").lower() == _body:
                         return True
                     if str(obj).lower() == _body:
                         return True
@@ -176,7 +179,7 @@ class MentionConverter(commands.Converter):
                 result = alg.find(search, all_strings)
 
             if not result:
-                raise commands.BadArgument(f'Could not resolve `{body}`')
+                raise commands.BadArgument(f"Could not resolve `{body}`")
             else:
                 return result
 
@@ -186,6 +189,7 @@ class MentionOrSnowflakeConverter(MentionConverter):
     A specialisation of MentionConverter that ensures that raw snowflakes can
     also be input.
     """
+
     async def convert(self, ctx, body: str):
         if body.isdigit():
             return int(body)

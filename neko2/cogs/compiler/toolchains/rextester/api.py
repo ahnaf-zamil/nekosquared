@@ -38,23 +38,21 @@ import base64
 from dataclasses import dataclass
 import enum
 
-
 # Forces simple editor in any response. Not really relevant, but required
 # nonetheless. Layout forces vertical layout. Again, doesn't have much
 # relevance to what we are doing.
 EDITOR = 3
 LAYOUT = 1
 
-
 # Code endpoint to post to
-ENDPOINT = 'http://rextester.com/rundotnet/Run'
-
+ENDPOINT = "http://rextester.com/rundotnet/Run"
 
 # view-source:http://rextester.com/l/common_lisp_online_compiler:466
 class Language(enum.IntEnum):
     """
     Language opcodes to specify which language to execute.
     """
+
     csharp = 1
     visual_basic = 2
     fsharp = 3
@@ -119,10 +117,9 @@ class RextesterResponse:
     result: str
 
 
-async def execute(sesh: aiohttp.ClientSession,
-                  lang: Language,
-                  source: str,
-                  compiler_args: str=None) -> RextesterResponse:
+async def execute(
+    sesh: aiohttp.ClientSession, lang: Language, source: str, compiler_args: str = None
+) -> RextesterResponse:
     """
     Executes the given source code as the given language under rextester
     :param sesh: the aiohttp session to use.
@@ -132,47 +129,51 @@ async def execute(sesh: aiohttp.ClientSession,
     :return: the response.
     """
     if compiler_args is None and lang in (Language.c, Language.cpp, Language.fortran):
-        compiler_args = ' -o a.out '
-    
+        compiler_args = " -o a.out "
+
     form_args = {
-        'LanguageChoiceWrapper': lang.value,
-        'EditorChoiceWrapper': EDITOR,
-        'LayoutChoiceWrapper': LAYOUT,
-        'Program': source,
-        'Input': '',
-        'ShowWarnings': True,
-        'Privacy': '',
-        'PrivacyUsers': '',
-        'Title': '',
-        'SavedOutput': '',
-        'WholeError': '',
-        'WholeWarning': '',
-        'StatsToSave': '',
-        'CodeGuid': ''
+        "LanguageChoiceWrapper": lang.value,
+        "EditorChoiceWrapper": EDITOR,
+        "LayoutChoiceWrapper": LAYOUT,
+        "Program": source,
+        "Input": "",
+        "ShowWarnings": True,
+        "Privacy": "",
+        "PrivacyUsers": "",
+        "Title": "",
+        "SavedOutput": "",
+        "WholeError": "",
+        "WholeWarning": "",
+        "StatsToSave": "",
+        "CodeGuid": "",
     }
 
     if compiler_args:
-        form_args['CompilerArgs'] = compiler_args
+        form_args["CompilerArgs"] = compiler_args
 
     async with sesh.post(ENDPOINT, data=form_args) as resp:
         resp.raise_for_status()
 
-        data = await resp.json(content_type='text/html')
+        data = await resp.json(content_type="text/html")
 
     return RextesterResponse(
-        data['Errors'],
-        data['Warnings'],
-        list(map(base64.b64decode, (data['Files'] or {}).values())),
-        data['Stats'],
-        data['Result'])
+        data["Errors"],
+        data["Warnings"],
+        list(map(base64.b64decode, (data["Files"] or {}).values())),
+        data["Stats"],
+        data["Result"],
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     loop = asyncio.get_event_loop()
 
     async def test():
         async with aiohttp.ClientSession() as cs:
-            r = await execute(cs, Language.csharp, '''
+            r = await execute(
+                cs,
+                Language.csharp,
+                """
                 using System;
                 using System.Collections.Generic;
                 using System.Linq;
@@ -188,7 +189,8 @@ if __name__ == '__main__':
                         }
                     }
                 }
-                ''')
+                """,
+            )
 
             print(repr(r))
 

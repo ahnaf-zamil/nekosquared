@@ -42,7 +42,7 @@ from . import lipsum
 
 
 class BookCog:
-    @commands.command(brief='Demonstrates a basic book made from strings.')
+    @commands.command(brief="Demonstrates a basic book made from strings.")
     async def string_book(self, ctx, everyone_can_edit=False):
         """
         Produces multiple pages, and displays them to the author only.
@@ -54,7 +54,7 @@ class BookCog:
         # Generate our pages first. This is so that Discord doesn't complain
         # of messages being too large. This is just a reference to Danny's
         # paginator implementation for now.
-        paginator = pag.RapptzPaginator(prefix='', suffix='')
+        paginator = pag.RapptzPaginator(prefix="", suffix="")
 
         for line in lipsum.lorem_ipsum.splitlines():
             paginator.add_line(line)
@@ -64,11 +64,12 @@ class BookCog:
             pages=paginator.pages,
             ctx=ctx,
             timeout=100,
-            only_author=not everyone_can_edit)
+            only_author=not everyone_can_edit,
+        )
 
         await b.start()
 
-    @commands.command(brief='Shows a single page book.')
+    @commands.command(brief="Shows a single page book.")
     async def single_page_string_book(self, ctx, everyone_can_edit=False):
         """
         See `string_book`. The difference here is that only a single page of
@@ -76,7 +77,7 @@ class BookCog:
         """
         # Generate our pages first. This is so that Discord doesn't complain
         # of messages being too large.
-        paginator = pag.RapptzPaginator(prefix='', suffix='')
+        paginator = pag.RapptzPaginator(prefix="", suffix="")
 
         for line in lipsum.lorem_about_500.splitlines():
             paginator.add_line(line)
@@ -86,11 +87,12 @@ class BookCog:
             pages=paginator.pages,
             ctx=ctx,
             timeout=100,
-            only_author=not everyone_can_edit)
+            only_author=not everyone_can_edit,
+        )
 
         await b.start()
 
-    @commands.command(brief='Demonstrates a basic book made from strings.')
+    @commands.command(brief="Demonstrates a basic book made from strings.")
     async def string_book_lines(self, ctx, everyone_can_edit=False):
         """
         Produces multiple pages, and displays them to the author only.
@@ -105,7 +107,7 @@ class BookCog:
         # Generate our pages first. This is so that Discord doesn't complain
         # of messages being too large. This is just a reference to Danny's
         # paginator implementation for now.
-        paginator = pag.Paginator(prefix='', suffix='', max_lines=10)
+        paginator = pag.Paginator(prefix="", suffix="", max_lines=10)
 
         for line in lipsum.lorem_ipsum.splitlines():
             paginator.add_line(line)
@@ -115,11 +117,12 @@ class BookCog:
             pages=paginator.pages,
             ctx=ctx,
             timeout=100,
-            only_author=not everyone_can_edit)
+            only_author=not everyone_can_edit,
+        )
 
         await b.start()
 
-    @commands.command(brief='Demonstrates a basic book made from embeds.')
+    @commands.command(brief="Demonstrates a basic book made from embeds.")
     async def embed_book(self, ctx, everyone_can_edit=False):
         """
         Produces multiple pages, and displays them to the author only.
@@ -127,7 +130,7 @@ class BookCog:
         # Generate our pages first. This is so that Discord doesn't complain
         # of messages being too large. This is just a reference to Danny's
         # paginator implementation for now.
-        paginator = pag.RapptzPaginator(prefix='', suffix='', max_size=2048)
+        paginator = pag.RapptzPaginator(prefix="", suffix="", max_size=2048)
 
         for line in lipsum.lorem_ipsum.splitlines():
             paginator.add_line(line)
@@ -136,15 +139,15 @@ class BookCog:
         for page in paginator.pages:
             embed_pages.append(
                 embeds.Embed(
-                    title='Just an example',
+                    title="Just an example",
                     description=page,
-                    colour=randint(0, 0xFFFFFF)))
+                    colour=randint(0, 0xFFFFFF),
+                )
+            )
 
         # Create our book state machine
         b = book.EmbedBooklet(
-            pages=embed_pages,
-            ctx=ctx,
-            timeout=100,
-            only_author=not everyone_can_edit)
+            pages=embed_pages, ctx=ctx, timeout=100, only_author=not everyone_can_edit
+        )
 
         await b.start()

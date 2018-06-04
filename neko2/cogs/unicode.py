@@ -49,42 +49,43 @@ from neko2.shared import alg, collections, commands, errors, traits
 
 def _make_fileformat_url(codepoint: int) -> str:
     return (
-        'http://www.fileformat.info/info/unicode/char'
-        f'/{hex(codepoint)[2:]}/index.htm')
+        "http://www.fileformat.info/info/unicode/char"
+        f"/{hex(codepoint)[2:]}/index.htm"
+    )
 
 
 _char2category = {
     # https://en.wikipedia.org/wiki/Template:General_Category_(Unicode%29
-    'Lu': 'Uppercase letter',
-    'Ll': 'Lowercase letter',
-    'Lm': 'Modifier letter',
-    'Lt': 'Titlecase letter',
-    'Lo': 'Other letter',
-    'Mn': 'Non-spacing mark',
-    'Mc': 'Spacing-combining mark',
-    'Me': 'Enclosing mark',
-    'Nd': 'Decimal number',
-    'Nl': 'Letter number',
-    'No': 'Other number',
-    'Pc': 'Punctuation connector',
-    'Pd': 'Punctuation dash',
-    'Ps': 'Open punctuation',
-    'Pe': 'Closed punctuation',
-    'Pi': 'Opening quote punctuation',
-    'Pf': 'Closing quote punctuation',
-    'Po': 'Other punctuation',
-    'Sm': 'Mathematical symbol',
-    'Sc': 'Currency symbol',
-    'Sk': 'Modifier symbol',
-    'So': 'Other symbol',
-    'Zs': 'Space separator',
-    'Zl': 'Line separator',
-    'Zp': 'Paragraph separator',
-    'Cc': 'Other control',
-    'Cf': 'Other format',
-    'Cs': 'Other surrogate',
-    'Co': 'Other private-use',
-    'Cn': 'Other unassigned'
+    "Lu": "Uppercase letter",
+    "Ll": "Lowercase letter",
+    "Lm": "Modifier letter",
+    "Lt": "Titlecase letter",
+    "Lo": "Other letter",
+    "Mn": "Non-spacing mark",
+    "Mc": "Spacing-combining mark",
+    "Me": "Enclosing mark",
+    "Nd": "Decimal number",
+    "Nl": "Letter number",
+    "No": "Other number",
+    "Pc": "Punctuation connector",
+    "Pd": "Punctuation dash",
+    "Ps": "Open punctuation",
+    "Pe": "Closed punctuation",
+    "Pi": "Opening quote punctuation",
+    "Pf": "Closing quote punctuation",
+    "Po": "Other punctuation",
+    "Sm": "Mathematical symbol",
+    "Sc": "Currency symbol",
+    "Sk": "Modifier symbol",
+    "So": "Other symbol",
+    "Zs": "Space separator",
+    "Zl": "Line separator",
+    "Zp": "Paragraph separator",
+    "Cc": "Other control",
+    "Cf": "Other format",
+    "Cs": "Other surrogate",
+    "Co": "Other private-use",
+    "Cn": "Other unassigned",
 }
 
 
@@ -104,17 +105,16 @@ class UnicodeCog(traits.CogTraits):
             return chr(self.raw)
 
         @classmethod
-        async def from_name(cls, name: str) -> Optional['Unicode']:
+        async def from_name(cls, name: str) -> Optional["Unicode"]:
             """Looks up a given character by a name or alias."""
 
         @classmethod
-        async def from_raw(cls, raw: str) -> Optional['Unicode']:
+        async def from_raw(cls, raw: str) -> Optional["Unicode"]:
             """Looks up a given character by the raw literal."""
             pass
 
         @classmethod
-        async def from_number(cls,
-                              number: Union[str, int]) -> Optional['Unicode']:
+        async def from_number(cls, number: Union[str, int]) -> Optional["Unicode"]:
             """Looks up a given character by hex/octal/binary/integer value."""
             pass
 
@@ -134,7 +134,7 @@ class UnicodeCog(traits.CogTraits):
         content = await resp.text()
         soup = bs4.BeautifulSoup(content)
 
-        '''
+        """
         <!-- Expects to find this somewhere -->
         
         <tr class="row0">
@@ -175,35 +175,33 @@ class UnicodeCog(traits.CogTraits):
             <td>eol<br />LINE FEED<br />line, new<br />new line<br />end of 
             line<br />lf<br />line, end of<br />nl<br /></td>
         </tr>        
-        '''
-        name: bs4.Tag = soup.find(name='td', text='Name')
-        old_name: bs4.Tag = soup.find(name='td', text='Old name')
-        bidi: bs4.Tag = soup.find(name='td', text='BIDI')
-        idxs: bs4.Tag = soup.find(name='td', text='Index entries')
-        category: bs4.Tag = soup.find(name='td', text='Category')
+        """
+        name: bs4.Tag = soup.find(name="td", text="Name")
+        old_name: bs4.Tag = soup.find(name="td", text="Old name")
+        bidi: bs4.Tag = soup.find(name="td", text="BIDI")
+        idxs: bs4.Tag = soup.find(name="td", text="Index entries")
+        category: bs4.Tag = soup.find(name="td", text="Category")
 
         # Name resolution order.
         def resolve(tag) -> str:
             if not tag:
-                return ''
+                return ""
             else:
                 sib = tag.find_next_sibling()
-                return sib.text if sib else ''
+                return sib.text if sib else ""
 
         name = resolve(name)
 
-        if name == '<control>':
+        if name == "<control>":
             # Force resolving another name first.
-            nro = (resolve(old_name), resolve(bidi),
-                   resolve(idxs).splitlines(), name)
+            nro = (resolve(old_name), resolve(bidi), resolve(idxs).splitlines(), name)
         else:
-            nro = (name, resolve(old_name), resolve(bidi),
-                   resolve(idxs).splitlines())
+            nro = (name, resolve(old_name), resolve(bidi), resolve(idxs).splitlines())
 
-        name: str = alg.find(bool, nro, 'UNKNOWN')
+        name: str = alg.find(bool, nro, "UNKNOWN")
         category: str = resolve(category)
-        category = re.findall('\[(.*)\]', category)
-        category: str = category[0] if category else '??'
+        category = re.findall("\[(.*)\]", category)
+        category: str = category[0] if category else "??"
 
         return self.Unicode(name, category, code_point)
 
@@ -228,8 +226,9 @@ class UnicodeCog(traits.CogTraits):
         book = bookbinding.StringBookBinder(ctx, max_lines=None)
 
         preamble = (
-            f'**Character info (Unicode v{unicodedata.unidata_version})**',
-            '__**`##  Ct UTF-CODE DECIMAL DESCRIPTION`**__')
+            f"**Character info (Unicode v{unicodedata.unidata_version})**",
+            "__**`##  Ct UTF-CODE DECIMAL DESCRIPTION`**__",
+        )
 
         # Categories for current page
         categories = set()
@@ -238,12 +237,12 @@ class UnicodeCog(traits.CogTraits):
         def dump_page():
             nonlocal current_page
             # Define the categories used.
-            category_amble = ''
+            category_amble = ""
             for category in sorted(categories):
-                desc = _char2category.get(category, 'Unknown')
-                category_amble += f'\n`{category}` - {desc}'
+                desc = _char2category.get(category, "Unknown")
+                category_amble += f"\n`{category}` - {desc}"
 
-            page = '\n'.join((*preamble, *current_page, category_amble))
+            page = "\n".join((*preamble, *current_page, category_amble))
             book.add_break()
             book.add_raw(page)
             categories.clear()
@@ -251,14 +250,15 @@ class UnicodeCog(traits.CogTraits):
 
         for i, char in enumerate(unicodes):
             decimal = char.raw
-            hexd = f'U+{hex(decimal)[2:]}'
+            hexd = f"U+{hex(decimal)[2:]}"
             category = char.category
             name = char.name
             lit = chr(char.raw)
 
             current_page.append(
-                f'`{i+1:02}  {category} {hexd:>8} {decimal:>7} '
-                f'{name}  {lit}`  {lit}')
+                f"`{i+1:02}  {category} {hexd:>8} {decimal:>7} "
+                f"{name}  {lit}`  {lit}"
+            )
 
             categories.add(category)
 
@@ -274,10 +274,13 @@ class UnicodeCog(traits.CogTraits):
         else:
             await ctx.send(booklet.current_page)
 
-    @commands.group(name='char', brief='Character inspection for Unicode.',
-                    invoke_without_command=True,
-                    aliases=['unicode', 'utf', 'utf-8', 'utf8'],
-                    examples=['¯\_(ツ)_/¯  0x1Q44c :musical_note: '])
+    @commands.group(
+        name="char",
+        brief="Character inspection for Unicode.",
+        invoke_without_command=True,
+        aliases=["unicode", "utf", "utf-8", "utf8"],
+        examples=["¯\_(ツ)_/¯  0x1Q44c :musical_note: "],
+    )
     async def char_group(self, ctx, *, characters):
         """
         Outputs unicode information about the given characters.
@@ -294,22 +297,22 @@ class UnicodeCog(traits.CogTraits):
 
         await self._send_table(ctx, *charlist)
 
-    @char_group.command(brief='Looks up a given character description.',
-                        examples=['OK HAND SIGN'])
+    @char_group.command(
+        brief="Looks up a given character description.", examples=["OK HAND SIGN"]
+    )
     async def lookup(self, ctx, *, description):
         """
         Looks up a given unicode character by an alias, name or description.
         """
         try:
-            await self._send_table(ctx, await self._lookup_literal(
-                ctx.bot,
-                unicodedata.lookup(description)
-            ))
+            await self._send_table(
+                ctx,
+                await self._lookup_literal(ctx.bot, unicodedata.lookup(description)),
+            )
         except:
-            await ctx.send('No match...', delete_after=5)
+            await ctx.send("No match...", delete_after=5)
 
-    @char_group.command(brief='Looks up characters by ordinal value.',
-                        examples=[''])
+    @char_group.command(brief="Looks up characters by ordinal value.", examples=[""])
     async def ord(self, ctx, ordinal: str, *ordinals: str):
         """
         Takes decimal, binary (`0b1101`), octal (`0o173`), and hexadecimal
@@ -323,7 +326,7 @@ class UnicodeCog(traits.CogTraits):
 
             charlist = []
             while i < len(ordinals) and len(charlist) < 20:
-                ordinal = int(ordinals[i].replace('#', '0x'), 0)
+                ordinal = int(ordinals[i].replace("#", "0x"), 0)
 
                 character = await self._lookup_literal(ctx.bot, chr(ordinal))
                 if character:
@@ -333,7 +336,7 @@ class UnicodeCog(traits.CogTraits):
             charset = collections.OrderedSet(charlist)
             await self._send_table(ctx, *charset)
         except:
-            await ctx.send(f'Invalid input on ordinal #{i+1}.', delete_after=5)
+            await ctx.send(f"Invalid input on ordinal #{i+1}.", delete_after=5)
 
 
 def setup(bot):

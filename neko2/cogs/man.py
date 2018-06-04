@@ -37,8 +37,8 @@ from neko2.shared import commands
 
 
 class ManCog:
-    @commands.command(brief='Shows manpages.')
-    async def man(self, ctx, page, section: str=None, *, grep=None):
+    @commands.command(brief="Shows manpages.")
+    async def man(self, ctx, page, section: str = None, *, grep=None):
         """
         Searches man pages for the given input.
 
@@ -62,20 +62,20 @@ class ManCog:
            8   System administration commands (usually only for root)
            9   Kernel routines [Non standard]
         """
-        if section and section != '*' and not section.isdigit():
-            raise commands.BadArgument('Expected a * or integer for section.')
+        if section and section != "*" and not section.isdigit():
+            raise commands.BadArgument("Expected a * or integer for section.")
         else:
-            if section == '*':
+            if section == "*":
                 section = None
             if section is not None:
                 section = int(section)
 
         if section is not None and not (1 <= section <= 9):
-            return await ctx.send('Section must be between 1 and 9.',
-                                  delete_after=10)
-        elif page.strip().startswith('-'):
-            return await ctx.send('Flag-like arguments are not allowed.',
-                                  delete_after=10)
+            return await ctx.send("Section must be between 1 and 9.", delete_after=10)
+        elif page.strip().startswith("-"):
+            return await ctx.send(
+                "Flag-like arguments are not allowed.", delete_after=10
+            )
         else:
             section = str(section) if section else None
 
@@ -83,23 +83,28 @@ class ManCog:
 
         # Gets the full manpage content which will be huge.
         main_proc = await asyncio.create_subprocess_exec(
-            'man', *common_args,
+            "man",
+            *common_args,
             # encoding='utf-8',
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.DEVNULL,
             stdin=asyncio.subprocess.DEVNULL,
-            env={'COLUMNS': '75'})
+            env={"COLUMNS": "75"},
+        )
 
-        main_stream = b''.join([await main_proc.stdout.read()]).decode('utf-8')
+        main_stream = b"".join([await main_proc.stdout.read()]).decode("utf-8")
 
         if main_proc.returncode or not len(main_stream.strip()):
-            await ctx.send('Error: the man page might not exist on my system.',
-                           delete_after=10)
+            await ctx.send(
+                "Error: the man page might not exist on my system.", delete_after=10
+            )
         else:
-            book = (bookbinding.StringBookBinder(ctx)
-                    .with_prefix('```')
-                    .with_suffix('```')
-                    .with_max_lines(30))
+            book = (
+                bookbinding.StringBookBinder(ctx)
+                .with_prefix("```")
+                .with_suffix("```")
+                .with_max_lines(30)
+            )
 
             for line in main_stream.splitlines():
                 book.add_line(line, dont_alter=True)
@@ -122,16 +127,15 @@ class ManCog:
 
                     if len(matching_pages) > 1:
                         # Metadata to be used later by the regex button.
-                        setattr(book, '_regex_matches', matching_pages)
+                        setattr(book, "_regex_matches", matching_pages)
                         # Index in the match list
-                        setattr(book, '_current_match', 0)
+                        setattr(book, "_current_match", 0)
 
                         # noinspection PyProtectedMember
-                        @button.as_button(name='Next match', reaction='⏯')
-                        async def next_match(_unused_btn,
-                                             machine,
-                                             _unused_react,
-                                             _unused_user_):
+                        @button.as_button(name="Next match", reaction="⏯")
+                        async def next_match(
+                            _unused_btn, machine, _unused_react, _unused_user_
+                        ):
                             cm = machine._current_match + 1
                             cm %= len(machine._regex_matches)
 
@@ -144,6 +148,7 @@ class ManCog:
 
                 except Exception as ex:
                     import traceback
+
                     traceback.print_exc()
                     await ctx.send(ex, delete_after=10)
 
@@ -152,5 +157,6 @@ class ManCog:
 
 def setup(bot):
     import shutil
-    assert shutil.which('man'), 'Install `man` first.'
+
+    assert shutil.which("man"), "Install `man` first."
     bot.add_cog(ManCog())

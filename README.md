@@ -1,11 +1,19 @@
 # Neko²
 
-Built from the mistakes and learnings of Neko.
+[![mit](https://img.shields.io/badge/License-MIT-brightgreen.svg?style=flat-square)](./LICENSE)
+[![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg?style=flat-square)](https://www.python.org/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg?style=flat-square)](https://github.com/ambv/black)
+[![Discord](https://img.shields.io/discord/265828729970753537.svg?logo=discord&label=Sebi%27s+Bot+Tutorial&style=flat-square)](https://discord.gg/GWdhBSp)
 
-As of 24th April 2018, a copy of Discomaton is packaged with this repository. This is to remove
-the need for a second repository purely for the purpose of hosting this mini-library. I may
-well add support again in the future if there is any demand for it, but I doubt that will be
-necesarry.
+
+I am a slightly weird bot that does a variety of things. Functionality is 
+mostly geared towards various development tools, such as interpreters
+and compilers for over 45 different programming languages. Various tools
+for accessing documentation also exist. Functions to provide an easier way
+to manage Discord guilds are also being implemented, and are a 
+work-in-progress.
+
+Oh, and I cannot evaluate the price of lime.
 
 ## Installation
 

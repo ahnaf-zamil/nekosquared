@@ -32,7 +32,7 @@ import typing
 
 from discord import embeds
 
-__all__ = ('FormatError', 'validate_embed', 'validate_message')
+__all__ = ("FormatError", "validate_embed", "validate_message")
 
 
 class FormatError(ValueError):
@@ -54,12 +54,14 @@ class FormatError(ValueError):
     __repr__ = __str__
 
 
-def _len_validation(content: str,
-                    *,
-                    min_l: int = 0,
-                    max_l: int,
-                    name: str,
-                    acceptable: typing.Iterable = None) -> None:
+def _len_validation(
+    content: str,
+    *,
+    min_l: int = 0,
+    max_l: int,
+    name: str,
+    acceptable: typing.Iterable = None,
+) -> None:
     """
     Validates a string. Used internally to make error checking more concise.
 
@@ -76,14 +78,18 @@ def _len_validation(content: str,
     cropped = content.strip()
 
     if len(cropped) <= min_l:
-        raise FormatError(f'{name} cannot be shorter than '
-                          f'{min_l + 1} characters. This excludes '
-                          'padding whitespace.')
+        raise FormatError(
+            f"{name} cannot be shorter than "
+            f"{min_l + 1} characters. This excludes "
+            "padding whitespace."
+        )
     elif len(cropped) > max_l:
-        raise FormatError(f'{name} cannot be longer than '
-                          f'{max_l} characters. This includes padding '
-                          f'whitespace. The given field is {len(cropped)} '
-                          'characters wide.')
+        raise FormatError(
+            f"{name} cannot be longer than "
+            f"{max_l} characters. This includes padding "
+            f"whitespace. The given field is {len(cropped)} "
+            "characters wide."
+        )
 
 
 def validate_message(message: str) -> None:
@@ -93,7 +99,7 @@ def validate_message(message: str) -> None:
     :param message: the message body to validate
     :raises: FormatError if validation fails.
     """
-    _len_validation(message, max_l=2000, name='Message content')
+    _len_validation(message, max_l=2000, name="Message content")
 
 
 # noinspection PyProtectedMember
@@ -114,46 +120,42 @@ def validate_embed(embed: embeds.Embed) -> None:
             total_length += len(x)
 
     _len_validation(
-        embed.title,
-        max_l=256,
-        name='Embed title',
-        acceptable=[embeds.EmptyEmbed])
+        embed.title, max_l=256, name="Embed title", acceptable=[embeds.EmptyEmbed]
+    )
     add_len(embed.title)
 
     _len_validation(
         embed.description,
         max_l=2048,
-        name='Embed description',
-        acceptable=[embeds.EmptyEmbed])
+        name="Embed description",
+        acceptable=[embeds.EmptyEmbed],
+    )
     add_len(embed.title)
 
     if len(embed.fields) >= 25:
-        raise FormatError('Embed can only have up to 25 fields.')
+        raise FormatError("Embed can only have up to 25 fields.")
 
-    fields = getattr(embed, '_fields', [])
+    fields = getattr(embed, "_fields", [])
 
     for i in range(0, len(fields)):
         field = fields[i]
-        name, value = field['name'], field['value']
+        name, value = field["name"], field["value"]
         add_len(name)
         add_len(value)
-        _len_validation(name, max_l=256, name=f'Name in field {i} (0 based)')
-        _len_validation(value, max_l=1024,
-                        name=f'Value in field {i} (0 based)')
+        _len_validation(name, max_l=256, name=f"Name in field {i} (0 based)")
+        _len_validation(value, max_l=1024, name=f"Value in field {i} (0 based)")
 
-    if hasattr(embed, '_footer'):
-        add_len(embed._footer.get('text', ''))
+    if hasattr(embed, "_footer"):
+        add_len(embed._footer.get("text", ""))
         _len_validation(
-            embed._footer.get('text', ''),
-            max_l=2048,
-            name='Embed footer text')
+            embed._footer.get("text", ""), max_l=2048, name="Embed footer text"
+        )
 
-    if hasattr(embed, '_author'):
-        add_len(embed._author.get('name', ''))
+    if hasattr(embed, "_author"):
+        add_len(embed._author.get("name", ""))
         _len_validation(
-            embed._author.get('name', ''),
-            max_l=2048,
-            name='Embed author name')
+            embed._author.get("name", ""), max_l=2048, name="Embed author name"
+        )
 
     if total_length > 6000:
-        raise FormatError('Total embed length cannot exceed 6000 characters.')
+        raise FormatError("Total embed length cannot exceed 6000 characters.")

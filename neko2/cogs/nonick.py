@@ -67,7 +67,7 @@ class NoNickCog:
                     # Keep lock closed for 5 seconds for a timeout.
                     await asyncio.sleep(5)
 
-                await member.edit(reason='Nickname was changed', nick=None)
+                await member.edit(reason="Nickname was changed", nick=None)
 
 
 def setup(bot):

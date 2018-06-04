@@ -33,8 +33,8 @@ import discord
 from discomaton import book
 from neko2.shared import commands, string, traits
 
-urban_random = 'http://api.urbandictionary.com/v0/random'
-urban_search = 'http://api.urbandictionary.com/v0/define'
+urban_random = "http://api.urbandictionary.com/v0/random"
+urban_search = "http://api.urbandictionary.com/v0/define"
 
 
 class UrbanDictionaryCog(traits.CogTraits):
@@ -49,48 +49,47 @@ class UrbanDictionaryCog(traits.CogTraits):
 
         # Adds ellipses to the end and truncates if a string is too long.
         def dots(string, limit=1024):
-            return string if len(string) < limit else string[
-                                                      :limit - 3] + '...'
+            return string if len(string) < limit else string[: limit - 3] + "..."
 
-        title = definition['word'].title()
-        defn = dots(definition['definition'], 2000)
+        title = definition["word"].title()
+        defn = dots(definition["definition"], 2000)
 
         # Remove embedded URLS to stop Discord following them.
-        defn = defn.replace('https://', '').replace('http://', '')
+        defn = defn.replace("https://", "").replace("http://", "")
         # [] signify bold phrases
-        defn = defn.replace('[', '**').replace(']', '**')
+        defn = defn.replace("[", "**").replace("]", "**")
 
         # Sanitise backticks and place in a code block if applicable.
-        example = dots(definition['example'].replace('`', '’'))
+        example = dots(definition["example"].replace("`", "’"))
         if example:
-            example = f'`{string.trunc(example, 1000)}`'
+            example = f"`{string.trunc(example, 1000)}`"
 
-        author = definition['author']
-        yes = definition['thumbs_up']
-        no = definition['thumbs_down']
-        permalink = definition['permalink']
+        author = definition["author"]
+        yes = definition["thumbs_up"]
+        no = definition["thumbs_down"]
+        permalink = definition["permalink"]
 
         embed = discord.Embed(
-            title=title,
-            description=string.trunc(defn),
-            colour=0xFFFF00,
-            url=permalink)
+            title=title, description=string.trunc(defn), colour=0xFFFF00, url=permalink
+        )
 
         embed.set_author(
-            name=f'{author} (\N{HEAVY BLACK HEART} {yes} '
-                 f'\N{PILE OF POO} {no})')
+            name=f"{author} (\N{HEAVY BLACK HEART} {yes} " f"\N{PILE OF POO} {no})"
+        )
 
         if example:
-            embed.add_field(name='Example', value=example)
+            embed.add_field(name="Example", value=example)
 
-        if 'tags' in definition and definition['tags']:
-            tags = ', '.join(sorted({*definition['tags']}))
+        if "tags" in definition and definition["tags"]:
+            tags = ", ".join(sorted({*definition["tags"]}))
             embed.set_footer(text=string.trunc(tags))
         return embed
 
     @commands.command(
-        brief='Looks up a definition on Urban Dictionary.',
-        examples=['java', ''], aliases=['ud', 'udd', 'urband'])
+        brief="Looks up a definition on Urban Dictionary.",
+        examples=["java", ""],
+        aliases=["ud", "udd", "urband"],
+    )
     async def urban(self, ctx: commands.Context, *, phrase: str = None):
         """If no phrase is given, we pick some random ones to show."""
 
@@ -99,21 +98,22 @@ class UrbanDictionaryCog(traits.CogTraits):
         with ctx.typing():
             # Get the response
             if phrase:
-                resp = await conn.get(urban_search, params={'term': phrase})
+                resp = await conn.get(urban_search, params={"term": phrase})
             else:
                 resp = await conn.get(urban_random)
 
             # Decode the JSON.
-            resp = (await resp.json())['list']
+            resp = (await resp.json())["list"]
 
         if len(resp) == 0:
-            return await ctx.send('No results. You sure that is a thing?',
-                                  delete_after=15)
+            return await ctx.send(
+                "No results. You sure that is a thing?", delete_after=15
+            )
 
         embeds = [self._format_urban_defn(word) for word in resp]
 
         # If we have more than one result, make a FSM from the pages.
-        if ctx.invoked_with in ('udd', 'urband'):
+        if ctx.invoked_with in ("udd", "urband"):
             await commands.try_delete(ctx)
 
         book.EmbedBooklet(ctx=ctx, pages=embeds).start()

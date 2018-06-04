@@ -34,10 +34,9 @@ from functools import *
 import functools as _functools
 import inspect
 
-__all__ = (*dir(_functools), 'old_wraps')
+__all__ = (*dir(_functools), "old_wraps")
 
 old_wraps = _functools.wraps
-
 
 # noinspection PyBroadException
 def wraps(what):
@@ -48,29 +47,28 @@ def wraps(what):
     This also will work with functions and coroutine types.
     """
     if isinstance(what, type):
+
         def decorator(new_klass: type):
-            for attr in ('__name__',
-                         '__qualname__',
-                         '__module__',
-                         '__class__',
-                         '__doc__'):
+            for attr in (
+                "__name__",
+                "__qualname__",
+                "__module__",
+                "__class__",
+                "__doc__",
+            ):
                 try:
-                    setattr(new_klass,
-                            attr,
-                            getattr(what, attr, None))
+                    setattr(new_klass, attr, getattr(what, attr, None))
                 except BaseException:
                     pass
             return new_klass
 
         return decorator
     else:
+
         def decorator(fn: callable):
-            for attr in ('__name__',
-                         '__doc__'):
+            for attr in ("__name__", "__doc__"):
                 try:
-                    setattr(fn,
-                            attr,
-                            getattr(what, attr, None))
+                    setattr(fn, attr, getattr(what, attr, None))
                 except BaseException:
                     pass
             return fn
@@ -97,6 +95,7 @@ class SingletonMeta(type):
 
     !!!!!!!!!!!!!!THIS IS NOT THREAD SAFE!!!!!!!!!!!!!!
     """
+
     _cache = {}
 
     def __call__(cls, *args, **kwargs):
@@ -120,9 +119,12 @@ def always_background(loop: asyncio.AbstractEventLoop = None):
 
     def decorator(coro):
         if len(inspect.signature(coro).parameters) > 0:
-            if [*inspect.signature(coro).parameters.keys()][0] in ('mcs',
-                                                                   'cls',
-                                                                   'self'):
+            if [*inspect.signature(coro).parameters.keys()][0] in (
+                "mcs",
+                "cls",
+                "self",
+            ):
+
                 @wraps(coro)
                 def callback(self, *args, **kwargs):
                     """Invokes as a task."""
@@ -135,6 +137,7 @@ def always_background(loop: asyncio.AbstractEventLoop = None):
 
                     # Enables awaiting, optionally.
                     return task
+
                 return callback
 
         @wraps(coro)
@@ -151,4 +154,5 @@ def always_background(loop: asyncio.AbstractEventLoop = None):
             return task
 
         return callback
+
     return decorator

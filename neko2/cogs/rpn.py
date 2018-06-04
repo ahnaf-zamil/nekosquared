@@ -31,28 +31,28 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 from decimal import Decimal
 
 operations = {
-    '+': lambda a, b: a + b,
-    '-': lambda a, b: a - b,
-    '*': lambda a, b: a * b,
-    '/': lambda a, b: a / b,
-    'div': lambda a, b: a / b,
-    'idiv': lambda a, b: a // b,
-    '//': lambda a, b: a // b,
-    '%': lambda a, b: a % b,
-    '**': lambda a, b: a ** b,
-    '|': lambda a, b: int(a) | int(b),
-    '&': lambda a, b: int(a) & int(b),
-    '^': lambda a, b: int(a) ^ int(b),
-    '<<': lambda a, b: int(a) << int(b),
-    '>>': lambda a, b: int(a) >> int(b),
-    '<': lambda a, b: 1 if a < b else 0,
-    '>': lambda a, b: 1 if a > b else 0,
-    '<=': lambda a, b: 1 if a <= b else 0,
-    '>=': lambda a, b: 1 if a >= b else 0,
-    '==': lambda a, b: 1 if a == b else 0,
-    '!=': lambda a, b: 1 if a != b else 0,
-    '&&': lambda a, b: 1 if a and b else 0,
-    '||': lambda a, b: 1 if a or b else 0
+    "+": lambda a, b: a + b,
+    "-": lambda a, b: a - b,
+    "*": lambda a, b: a * b,
+    "/": lambda a, b: a / b,
+    "div": lambda a, b: a / b,
+    "idiv": lambda a, b: a // b,
+    "//": lambda a, b: a // b,
+    "%": lambda a, b: a % b,
+    "**": lambda a, b: a ** b,
+    "|": lambda a, b: int(a) | int(b),
+    "&": lambda a, b: int(a) & int(b),
+    "^": lambda a, b: int(a) ^ int(b),
+    "<<": lambda a, b: int(a) << int(b),
+    ">>": lambda a, b: int(a) >> int(b),
+    "<": lambda a, b: 1 if a < b else 0,
+    ">": lambda a, b: 1 if a > b else 0,
+    "<=": lambda a, b: 1 if a <= b else 0,
+    ">=": lambda a, b: 1 if a >= b else 0,
+    "==": lambda a, b: 1 if a == b else 0,
+    "!=": lambda a, b: 1 if a != b else 0,
+    "&&": lambda a, b: 1 if a and b else 0,
+    "||": lambda a, b: 1 if a or b else 0,
 }
 
 
@@ -73,7 +73,7 @@ def parse(tokens):
     Attempts to parse the tokens. If successful, we return the result value.
     """
     if not tokens:
-        raise ValueError('Please provide some input.')
+        raise ValueError("Please provide some input.")
 
     stack = []
     pos = 0
@@ -88,27 +88,29 @@ def parse(tokens):
                 try:
                     stack.append(Decimal(op(left, right)))
                 except ZeroDivisionError:
-                    stack.append(float('nan'))
+                    stack.append(float("nan"))
 
     except IndexError:
         return (
-            'Pop from empty stack. Perhaps you have too many operators? '
-            f'(At token {pos + 1} of {len(tokens)}: {token!r})')
+            "Pop from empty stack. Perhaps you have too many operators? "
+            f"(At token {pos + 1} of {len(tokens)}: {token!r})"
+        )
     except KeyError:
         return (
-            f'Operator was unrecognised. (At token {pos + 1} of '
-            f'{len(tokens)}: {token!r})')
+            f"Operator was unrecognised. (At token {pos + 1} of "
+            f"{len(tokens)}: {token!r})"
+        )
     except Exception as ex:
-        return f'{type(ex).__name__}: {ex}'
+        return f"{type(ex).__name__}: {ex}"
     else:
         if len(stack) != 1:
-            return 'Too many values. Perhaps you missed an operator?'
+            return "Too many values. Perhaps you missed an operator?"
         else:
             return stack.pop()
 
 
 # Test CLI.
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
 
     tokens = list(tokenize(*sys.argv[1:]))
@@ -117,9 +119,8 @@ if __name__ == '__main__':
 else:
     from neko2.shared import commands
 
-
     class ReversePolishCog:
-        @commands.command(brief='Parses the given reverse polish notation.')
+        @commands.command(brief="Parses the given reverse polish notation.")
         async def rpn(self, ctx, *expression):
             """
             Executes the given reverse polish (postfix) notation expression.
@@ -137,18 +138,19 @@ else:
                 Division and mod operations are no longer inverted.
                 Division by zero errors are now handled.
             """
-            if len(expression) == 1 and expression[0].lower() == 'help':
+            if len(expression) == 1 and expression[0].lower() == "help":
                 await ctx.send(
-                    '**Supported Operators:**\n' +
-                    ', '.join(sorted(f'`{o}`' for o in operations)) + '\n\n' +
-                    '**"What the hell is this?"**\n' +
-                    '<http://en.wikipedia.org/wiki/' +
-                    'Reverse_Polish_notation>')
+                    "**Supported Operators:**\n"
+                    + ", ".join(sorted(f"`{o}`" for o in operations))
+                    + "\n\n"
+                    + '**"What the hell is this?"**\n'
+                    + "<http://en.wikipedia.org/wiki/"
+                    + "Reverse_Polish_notation>"
+                )
             else:
                 _tokens = list(tokenize(*expression))
                 _result = parse(_tokens)
                 await ctx.send(_result)
-
 
     def setup(bot):
         bot.add_cog(ReversePolishCog())

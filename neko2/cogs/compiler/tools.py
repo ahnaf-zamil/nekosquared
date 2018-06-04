@@ -33,7 +33,7 @@ import re
 
 from neko2.shared import commands
 
-__inline_block = r'`([^\s`][^`]*?)`'
+__inline_block = r"`([^\s`][^`]*?)`"
 
 # Matches the file name and source in a block formatted like so.
 #
@@ -45,10 +45,10 @@ __inline_block = r'`([^\s`][^`]*?)`'
 #
 # ... language is ignored
 __fnab = (
-    r'`((?:[^.\s\\/`][^`\\/]*){1}?)`'
-    r'\s*```(?:[a-zA-Z0-9]+)?\s([\s\S(^\\`{3})]*?)\s*```'
+    r"`((?:[^.\s\\/`][^`\\/]*){1}?)`"
+    r"\s*```(?:[a-zA-Z0-9]+)?\s([\s\S(^\\`{3})]*?)\s*```"
 )
-__highlighted_block = r'```([a-zA-Z0-9]+)\s([\s\S(^\\`{3})]*?)\s*```'
+__highlighted_block = r"```([a-zA-Z0-9]+)\s([\s\S(^\\`{3})]*?)\s*```"
 
 # Used to detect code blocks.
 code_block_re = re.compile(__highlighted_block)
@@ -61,7 +61,7 @@ file_name_and_block_re = re.compile(__fnab)
 
 # Used to detect four-space indentation in Makefiles so that they can be
 # replaced with tab control characters.
-four_space_re = re.compile(r'^ {4}')
+four_space_re = re.compile(r"^ {4}")
 
 
 def fix_makefile(input_code: str) -> str:
@@ -74,9 +74,9 @@ def fix_makefile(input_code: str) -> str:
     strings = []
     for line in input_code.splitlines():
         while four_space_re.match(line):
-            line = four_space_re.sub('\t', line)
+            line = four_space_re.sub("\t", line)
         strings.append(line)
-    return '\n'.join(strings)
+    return "\n".join(strings)
 
 
 async def listen_to_edit(ctx, booklet=None, *additional_messages):
@@ -90,7 +90,6 @@ async def listen_to_edit(ctx, booklet=None, *additional_messages):
                 await message.delete()
             await (await booklet.root_resp).delete()
 
-        await commands.wait_for_edit(ctx=ctx,
-                                     msg=booklet.root_resp,
-                                     timeout=1800,
-                                     custom_delete=custom_delete)
+        await commands.wait_for_edit(
+            ctx=ctx, msg=booklet.root_resp, timeout=1800, custom_delete=custom_delete
+        )

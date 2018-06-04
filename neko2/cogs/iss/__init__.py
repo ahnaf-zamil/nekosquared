@@ -38,7 +38,7 @@ import discord
 
 from neko2.shared import commands, ioutil, traits
 
-default_map_image = image.open(ioutil.in_here('mercator-small.png'))
+default_map_image = image.open(ioutil.in_here("mercator-small.png"))
 
 
 class MapCoordinate(enum.Enum):
@@ -98,7 +98,7 @@ class MercatorProjection:
             vertical = (self.oy - vertical) / self.dy
             return (vertical, horizontal)
         else:
-            raise TypeError('Unknown measurement')
+            raise TypeError("Unknown measurement")
 
     def duplicate(self):
         """Deep copy the projection."""
@@ -122,11 +122,7 @@ class SpaceCog(traits.CogTraits):
         def _plot():
             mercator = MercatorProjection()
 
-            x, y = mercator.swap_units(
-                latitude,
-                longitude,
-                MapCoordinate.long_lat
-            )
+            x, y = mercator.swap_units(latitude, longitude, MapCoordinate.long_lat)
 
             x, y = int(x), int(y)
 
@@ -148,12 +144,12 @@ class SpaceCog(traits.CogTraits):
 
         img = await self.run_in_io_executor(_plot)
 
-        img.save(bytesio, 'PNG')
+        img.save(bytesio, "PNG")
 
         # Seek back to the start
         bytesio.seek(0)
 
-    @commands.command(brief='Shows you where the ISS is.')
+    @commands.command(brief="Shows you where the ISS is.")
     @commands.cooldown(1, 30, commands.BucketType.guild)
     async def iss(self, ctx):
         """
@@ -166,43 +162,45 @@ class SpaceCog(traits.CogTraits):
             with io.BytesIO() as b:
                 http = await self.acquire_http()
                 res = await http.request(
-                    'GET',
-                    'https://api.wheretheiss.at/v1/satellites/25544')
-
-                data = await res.json()
-                image_fut = self.plot(data['latitude'], data['longitude'], b)
-
-                assert isinstance(data, dict), 'I...I don\'t understand...'
-
-                long = data['longitude']
-                lat = data['latitude']
-                time = datetime.datetime.fromtimestamp(data['timestamp'])
-                altitude = data['altitude']
-                velocity = data['velocity']
-
-                is_day = data['visibility'] == 'daylight'
-
-                desc = '\n'.join([
-                    f'**Longitude**: {long:.3f}°E',
-                    f'**Latitude**: {abs(lat):.3f}°{"N" if lat >= 0 else "S"}',
-                    f'**Altitude**: {altitude:.3f} km',
-                    f'**Velocity**: {velocity:.3f} km/h',
-                    f'**Timestamp**: {time} UTC'
-                ])
-
-                embed = discord.Embed(
-                    title='International space station location',
-                    description=desc,
-                    color=0xFFFF00 if is_day else 0x0D293B,
-                    url='http://www.esa.int/Our_Activities/Human_Spaceflight'
-                        '/International_Space_Station'
-                        '/Where_is_the_International_Space_Station '
+                    "GET", "https://api.wheretheiss.at/v1/satellites/25544"
                 )
 
-                embed.set_footer(text='Data provided by whereistheiss.at')
+                data = await res.json()
+                image_fut = self.plot(data["latitude"], data["longitude"], b)
+
+                assert isinstance(data, dict), "I...I don't understand..."
+
+                long = data["longitude"]
+                lat = data["latitude"]
+                time = datetime.datetime.fromtimestamp(data["timestamp"])
+                altitude = data["altitude"]
+                velocity = data["velocity"]
+
+                is_day = data["visibility"] == "daylight"
+
+                desc = "\n".join(
+                    [
+                        f"**Longitude**: {long:.3f}°E",
+                        f'**Latitude**: {abs(lat):.3f}°{"N" if lat >= 0 else "S"}',
+                        f"**Altitude**: {altitude:.3f} km",
+                        f"**Velocity**: {velocity:.3f} km/h",
+                        f"**Timestamp**: {time} UTC",
+                    ]
+                )
+
+                embed = discord.Embed(
+                    title="International space station location",
+                    description=desc,
+                    color=0xFFFF00 if is_day else 0x0D293B,
+                    url="http://www.esa.int/Our_Activities/Human_Spaceflight"
+                    "/International_Space_Station"
+                    "/Where_is_the_International_Space_Station ",
+                )
+
+                embed.set_footer(text="Data provided by whereistheiss.at")
 
                 await image_fut
-                file = discord.File(b, 'iss.png')
+                file = discord.File(b, "iss.png")
 
                 await ctx.send(file=file, embed=embed)
 

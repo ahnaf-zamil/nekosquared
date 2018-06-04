@@ -34,9 +34,9 @@ import typing
 
 from cached_property import cached_property
 
-__all__ = ('OrderedSet', 'MutableOrderedSet', 'Stack', 'TwoWayDict')
+__all__ = ("OrderedSet", "MutableOrderedSet", "Stack", "TwoWayDict")
 
-SetType = typing.TypeVar('SetType')
+SetType = typing.TypeVar("SetType")
 
 
 class OrderedSet(Set, typing.Generic[SetType]):
@@ -91,7 +91,7 @@ class MutableOrderedSet(OrderedSet, MutableSet):
         self._dict.pop(x)
 
 
-FifoFiloType = typing.TypeVar('FifoFiloType')
+FifoFiloType = typing.TypeVar("FifoFiloType")
 
 
 class _FifoFiloBase(Sequence, typing.Generic[FifoFiloType]):
@@ -100,10 +100,9 @@ class _FifoFiloBase(Sequence, typing.Generic[FifoFiloType]):
     This is exposed as a Queue or Stack subtype.
     """
 
-    def __init__(self,
-                 items: typing.Optional[typing.Sequence[FifoFiloType]] =
-                 None) \
-            -> None:
+    def __init__(
+        self, items: typing.Optional[typing.Sequence[FifoFiloType]] = None
+    ) -> None:
         """
         Initialise the stack.
         :param items: the items to add to the stack initially.
@@ -216,7 +215,7 @@ class TwoWayDict(OrderedDict):
         rev = OrderedDict()
 
         for k, v in self.items():
-            if hasattr(v, '__iter__') and not isinstance(v, str):
+            if hasattr(v, "__iter__") and not isinstance(v, str):
                 for sv in v:
                     rev[sv] = k
             else:
@@ -227,6 +226,6 @@ class TwoWayDict(OrderedDict):
         return self._reversed_representation
 
     def __setitem__(self, key, value):
-        if '_reversed_representation' in self.__dict__:
-            del self.__dict__['_reversed_representation']
+        if "_reversed_representation" in self.__dict__:
+            del self.__dict__["_reversed_representation"]
         return super().__setitem__(key, value)

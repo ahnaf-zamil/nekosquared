@@ -38,19 +38,17 @@ import requests
 from .api import *
 from neko2.shared import ioutil, traits
 
-
 # Thank asottile for this!
-asottile_base = 'https://raw.githubusercontent.com/asottile'
-ffstring_url = asottile_base + '/future-fstrings/master/future_fstrings.py'
-trt_url = asottile_base + '/tokenize-rt/master/tokenize_rt.py'
+asottile_base = "https://raw.githubusercontent.com/asottile"
+ffstring_url = asottile_base + "/future-fstrings/master/future_fstrings.py"
+trt_url = asottile_base + "/tokenize-rt/master/tokenize_rt.py"
 ffstring_src = requests.get(ffstring_url).text
 trt_src = requests.get(trt_url).text
 
 # Thank me for this!
-with open(ioutil.in_here('replify.py')) as fp:
+with open(ioutil.in_here("replify.py")) as fp:
     replify_src = fp.read()
 del fp, trt_url, ffstring_url, asottile_base
-
 
 # Maps human readable languages to their syntax highlighting strings.
 languages = {}
@@ -67,9 +65,9 @@ def register(*names, language):
         languages[language.lower()] = [coro.__name__]
 
         unclean = inspect.getdoc(coro)
-        
+
         if not unclean:
-            unclean = 'No detailed info exists for this right now.'
+            unclean = "No detailed info exists for this right now."
         clean = inspect.cleandoc(unclean)
 
         docs[language] = clean
@@ -84,7 +82,7 @@ def register(*names, language):
     return decorator
 
 
-@register(language='C')
+@register(language="C")
 async def c(source):
     """LLVM Clang C compiler
 
@@ -109,44 +107,46 @@ async def c(source):
     - `math` - compile with `-lm`.
     - `pthread` - compile with `-lpthread`.
     """
-    script = '-Wall -Wextra -Wno-unknown-pragmas -pedantic -g -O0 -std=c11 -o a.out app.c '
-    
-    lines = source.split('\n')
-    
-    if '#pragma neko math' in lines:
-        script += '-lm '
-     
-    if '#pragma neko pthread' in lines:
-        script += '-lpthread '
-    
-    if '#pragma neko 32' in lines:
-        script += '-m32 '
+    script = (
+        "-Wall -Wextra -Wno-unknown-pragmas -pedantic -g -O0 -std=c11 -o a.out app.c "
+    )
 
-    if '#pragma neko gcc' not in lines:
-        if not source.endswith('\n'):
-            source += '\n'
-        compiler = 'clang '
+    lines = source.split("\n")
+
+    if "#pragma neko math" in lines:
+        script += "-lm "
+
+    if "#pragma neko pthread" in lines:
+        script += "-lpthread "
+
+    if "#pragma neko 32" in lines:
+        script += "-m32 "
+
+    if "#pragma neko gcc" not in lines:
+        if not source.endswith("\n"):
+            source += "\n"
+        compiler = "clang "
     else:
-        compiler = 'gcc '
-        
-    if '#pragma neko asm' in lines:
-        script += ' -S -Wa,-ashl'
-        execute = 'cat -n ./a.out'
+        compiler = "gcc "
+
+    if "#pragma neko asm" in lines:
+        script += " -S -Wa,-ashl"
+        execute = "cat -n ./a.out"
     else:
-        execute = './a.out'
+        execute = "./a.out"
 
     compiler_invocation = compiler + script
-    
-    main = SourceFile('app.c', source)    
-    make = SourceFile('Makefile', f'all:\n    {compiler_invocation}\n    {execute}\n')
-    
-    cc = Coliru('make -f Makefile', make, main)
-    
+
+    main = SourceFile("app.c", source)
+    make = SourceFile("Makefile", f"all:\n    {compiler_invocation}\n    {execute}\n")
+
+    cc = Coliru("make -f Makefile", make, main)
+
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
 
-@register('c++', 'cc', language='C++')
+@register("c++", "cc", language="C++")
 async def cpp(source):
     """GNU C++ compiler
 
@@ -171,42 +171,42 @@ async def cpp(source):
     - `math` - compile with `-lm`.
     - `pthread` - compile with `-lpthread`.
     """
-    script = '-Wall -Wextra -Wno-unknown-pragmas -pedantic -g -O0 -o a.out app.cpp '
-    
-    lines = source.split('\n')
-    
-    if '#pragma neko fs' in lines:
-        script += '-lstdc++fs '
-    
-    if '#pragma neko math' in lines:
-        script += '-lm '
-     
-    if '#pragma neko pthread' in lines:
-        script += '-lpthread '
-    
-    if '#pragma neko 32' in lines:
-        script += '-m32 '
-        
-    script += '-std=c++17 '
-    compiler = 'g++ '
-    
-    if '#pragma neko asm' in lines:
-        script += ' -S -Wa,-ashl'
-        execute = 'cat -n ./a.out'
+    script = "-Wall -Wextra -Wno-unknown-pragmas -pedantic -g -O0 -o a.out app.cpp "
+
+    lines = source.split("\n")
+
+    if "#pragma neko fs" in lines:
+        script += "-lstdc++fs "
+
+    if "#pragma neko math" in lines:
+        script += "-lm "
+
+    if "#pragma neko pthread" in lines:
+        script += "-lpthread "
+
+    if "#pragma neko 32" in lines:
+        script += "-m32 "
+
+    script += "-std=c++17 "
+    compiler = "g++ "
+
+    if "#pragma neko asm" in lines:
+        script += " -S -Wa,-ashl"
+        execute = "cat -n ./a.out"
     else:
-        execute = './a.out'
+        execute = "./a.out"
 
     compiler_invocation = compiler + script
-    
-    main = SourceFile('app.cpp', source)    
-    make = SourceFile('Makefile', f'all:\n    {compiler_invocation}\n    {execute}\n')
-    
-    cc = Coliru('make -f Makefile', make, main)
+
+    main = SourceFile("app.cpp", source)
+    make = SourceFile("Makefile", f"all:\n    {compiler_invocation}\n    {execute}\n")
+
+    cc = Coliru("make -f Makefile", make, main)
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
 
-@register('python2.7', 'py2', 'py2.7', language='Python2')
+@register("python2.7", "py2", "py2.7", language="Python2")
 async def python2(source):
     """Python2.7 Interpreter
 
@@ -216,12 +216,12 @@ async def python2(source):
     ```
     """
     script = 'python main.py; echo "Returned $?"'
-    cc = Coliru(script, SourceFile('main.py', source))
+    cc = Coliru(script, SourceFile("main.py", source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
 
-@register('python3', 'python3.5', 'py', 'py3', 'py3.5', language='Python')
+@register("python3", "python3.5", "py", "py3", "py3.5", language="Python")
 async def python(source):
     """Python3.5 Interpreter (complete with f-string backport support!)
 
@@ -238,28 +238,28 @@ async def python(source):
     how the f-string support is backported and implemented.
     """
     sesh = await traits.CogTraits.acquire_http()
-    
+
     source_files = [
-        SourceFile('main.py', source),
-        SourceFile('tokenize_rt.py', trt_src),
-        SourceFile('future_fstrings.py', ffstring_src)
+        SourceFile("main.py", source),
+        SourceFile("tokenize_rt.py", trt_src),
+        SourceFile("future_fstrings.py", ffstring_src),
     ]
-    
-    if any(source.strip().startswith(x) for x in ('#repl\n', '# repl\n', '#repr\n', '# repr\n')):
-        source_files.append(SourceFile('replify.py', replify_src))
-        script = 'echo "Trying experimental REPL support!"; ' \
-                 'python3.5 future_fstrings.py main.py | python3.5 replify.py; ' \
-                 'echo "Returned $?"'
+
+    if any(
+        source.strip().startswith(x)
+        for x in ("#repl\n", "# repl\n", "#repr\n", "# repr\n")
+    ):
+        source_files.append(SourceFile("replify.py", replify_src))
+        script = 'echo "Trying experimental REPL support!"; ' "python3.5 future_fstrings.py main.py | python3.5 replify.py; " 'echo "Returned $?"'
     else:
-        script = 'python3.5 future_fstrings.py main.py | python3.5; ' \
-                 'echo "Returned $?"'
-    
+        script = "python3.5 future_fstrings.py main.py | python3.5; " 'echo "Returned $?"'
+
     cc = Coliru(script, *source_files)
 
     return await cc.execute(sesh)
 
 
-@register('pl', language='PERL 5')
+@register("pl", language="PERL 5")
 async def perl(source):
     """PERL interpreter (PERL5)
 
@@ -277,12 +277,12 @@ async def perl(source):
     ```
     """
     sesh = await traits.CogTraits.acquire_http()
-    script = 'perl main.pl'
-    cc = Coliru(script, SourceFile('main.pl', source))
+    script = "perl main.pl"
+    cc = Coliru(script, SourceFile("main.pl", source))
     return await cc.execute(sesh)
 
 
-@register('irb', language='Ruby')
+@register("irb", language="Ruby")
 async def ruby(source):
     """Ruby interpreter.
 
@@ -309,13 +309,13 @@ async def ruby(source):
     puts translate 'dog' # => "ogday"
     ```
     """
-    script = 'ruby main.rb'
-    cc = Coliru(script, SourceFile('main.rb', source))
+    script = "ruby main.rb"
+    cc = Coliru(script, SourceFile("main.rb", source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
 
-@register('shell', language='Shell')
+@register("shell", language="Shell")
 async def sh(source):
     """Shell interpreter.
 
@@ -325,12 +325,12 @@ async def sh(source):
     ```
     """
     script = 'sh main.sh; echo "Returned $?"'
-    cc = Coliru(script, SourceFile('main.sh', source))
+    cc = Coliru(script, SourceFile("main.sh", source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
 
-@register(language='Bash')
+@register(language="Bash")
 async def bash(source):
     """Bash interpreter
 
@@ -340,14 +340,14 @@ async def bash(source):
     ```
     """
     script = 'bash main.sh; echo "Returned $?"'
-    cc = Coliru(script, SourceFile('main.sh', source))
+    cc = Coliru(script, SourceFile("main.sh", source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
 
 # Fortran libs are missing... go figure.
 
-#@register('gfortran', 'f08', language='Fortran 2008')
+# @register('gfortran', 'f08', language='Fortran 2008')
 async def fortran(source):
     """GNU Fortran Compiler (most recent standard)
 
@@ -375,12 +375,12 @@ async def fortran(source):
     ```
     """
     script = 'gfortran main.f08 && ./a.out; echo "Returned $?"'
-    cc = Coliru(script, SourceFile('main.f08', source))
+    cc = Coliru(script, SourceFile("main.f08", source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
 
-#@register('gfortran90', 'f90', language='Fortran 1990')
+# @register('gfortran90', 'f90', language='Fortran 1990')
 async def fortran90(source):
     """GNU Fortran Compiler (1990 Standard)
 
@@ -403,12 +403,12 @@ async def fortran90(source):
     ```
     """
     script = 'gfortran main.f90 && ./a.out; echo "Returned $?"'
-    cc = Coliru(script, SourceFile('main.f90', source))
+    cc = Coliru(script, SourceFile("main.f90", source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
 
-#@register('gfortran95', 'f95', language='Fortran 1995')
+# @register('gfortran95', 'f95', language='Fortran 1995')
 async def fortran95(source):
     """GNU Fortran Compiler (1995 Standard)
 
@@ -431,12 +431,12 @@ async def fortran95(source):
     ```
     """
     script = 'gfortran main.f95 && ./a.out; echo "Returned $?"'
-    cc = Coliru(script, SourceFile('main.f95', source))
+    cc = Coliru(script, SourceFile("main.f95", source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
 
-@register('gawk', language='GNU Awk')
+@register("gawk", language="GNU Awk")
 async def awk(source):
     """GNU AWK interpreter.
 
@@ -453,12 +453,12 @@ async def awk(source):
     ```
     """
     script = 'awk -f main.awk; echo "Returned $?"'
-    cc = Coliru(script, SourceFile('main.awk', source))
+    cc = Coliru(script, SourceFile("main.awk", source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
 
-@register(language='Lua')
+@register(language="Lua")
 async def lua(source):
     """Lua interpreter.
 
@@ -478,12 +478,12 @@ async def lua(source):
     ```
     """
     script = 'lua main.lua; echo "Returned $?"'
-    cc = Coliru(script, SourceFile('main.lua', source))
+    cc = Coliru(script, SourceFile("main.lua", source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)
 
 
-@register('makefile', language='GNU Make')
+@register("makefile", language="GNU Make")
 async def make(source):
     """GNU-make.
 
@@ -515,6 +515,6 @@ async def make(source):
     ```
     """
     script = 'make -f Makefile; echo "Returned $?"'
-    cc = Coliru(script, SourceFile('Makefile', source))
+    cc = Coliru(script, SourceFile("Makefile", source))
     sesh = await traits.CogTraits.acquire_http()
     return await cc.execute(sesh)

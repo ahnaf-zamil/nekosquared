@@ -38,38 +38,38 @@ import discord  # Discord.py
 from neko2.shared import traits  # IOBound, CpuBound, and HTTP pools.
 
 # URL endpoint to use.
-end_point = 'http://latex.codecogs.com/'
+end_point = "http://latex.codecogs.com/"
 
 # Rendering engines
-engines = {'png', 'gif', 'pdf', 'swf', 'emf', 'svg'}
+engines = {"png", "gif", "pdf", "swf", "emf", "svg"}
 
 # Additional arguments to alter font size.
 sizes = {
-    5: '\\tiny ',
-    9: '\\small ',
-    10: '',
-    12: '\\large ',
-    18: '\\LARGE ',
-    20: '\\huge '
+    5: "\\tiny ",
+    9: "\\small ",
+    10: "",
+    12: "\\large ",
+    18: "\\LARGE ",
+    20: "\\huge ",
 }
 
 # Fonts available.
 fonts = {
-    'Latin Modern': '',
-    'Verdana': '\\fn_jvn ',
-    'Comic Sans': '\\fn_cs ',
-    'Computer Modern': '\\fn_cm ',
-    'Helvetica': '\\fn_phv '
+    "Latin Modern": "",
+    "Verdana": "\\fn_jvn ",
+    "Comic Sans": "\\fn_cs ",
+    "Computer Modern": "\\fn_cm ",
+    "Helvetica": "\\fn_phv ",
 }
 
 # Background colours.
 backgrounds = {
-    'transparent': '',
-    'black': '\\bg_black ',
-    'white': '\\bg_white ',
-    'red': '\\bg_red ',
-    'green': '\\bg_green ',
-    'blue': '\\bg_blue '
+    "transparent": "",
+    "black": "\\bg_black ",
+    "white": "\\bg_white ",
+    "red": "\\bg_red ",
+    "green": "\\bg_green ",
+    "blue": "\\bg_blue ",
 }
 
 padding_pct_height = 1.5  # %/100
@@ -79,14 +79,16 @@ padding_min_width = 20  # pixels
 
 class LatexCogHelper(traits.CogTraits):
     @staticmethod
-    def generate_url(content,
-                     *,
-                     engine: str = 'png',
-                     size: int = 12,
-                     font: str = 'Latin Modern',
-                     bg_colour: str = 'transparent',
-                     fg_colour: str = 'white',
-                     dpi: int = 200) -> str:
+    def generate_url(
+        content,
+        *,
+        engine: str = "png",
+        size: int = 12,
+        font: str = "Latin Modern",
+        bg_colour: str = "transparent",
+        fg_colour: str = "white",
+        dpi: int = 200,
+    ) -> str:
         """
         Generates the URL containing the LaTeX preview for the given content.
         :param content: content to render.
@@ -108,41 +110,43 @@ class LatexCogHelper(traits.CogTraits):
         """
         if engine not in engines:
             raise ValueError(
-                f'Invalid engine {engine}. Valid engines are '
-                f'{", ".join(engines)}')
+                f"Invalid engine {engine}. Valid engines are " f'{", ".join(engines)}'
+            )
         elif size not in sizes:
             raise ValueError(
-                f'Invalid size {size}. Valid sizes are {list(sizes.keys())}')
+                f"Invalid size {size}. Valid sizes are {list(sizes.keys())}"
+            )
         elif font not in fonts:
             raise ValueError(
-                f'Invalid font {font}. Valid fonts are '
-                f'{", ".join(list(fonts))}')
+                f"Invalid font {font}. Valid fonts are " f'{", ".join(list(fonts))}'
+            )
         elif bg_colour not in backgrounds:
             raise ValueError(
-                f'Invalid background {bg_colour}. Valid colours are '
-                f'{", ".join(list(backgrounds))}')
+                f"Invalid background {bg_colour}. Valid colours are "
+                f'{", ".join(list(backgrounds))}'
+            )
         elif dpi <= 0:
-            raise ValueError('DPI must be positive.')
+            raise ValueError("DPI must be positive.")
         else:
+
             def sanitise(string):
-                string = string.replace(' ', '&space;')
-                string = string.replace('\n', '&space;')
+                string = string.replace(" ", "&space;")
+                string = string.replace("\n", "&space;")
                 return string
 
-            raw_str = ''
-            raw_str += sanitise(f'\\dpi{{{dpi}}}')
-            raw_str += sanitise(f'{backgrounds[bg_colour]}')
-            raw_str += sanitise(f'{fonts[font]}')
-            raw_str += sanitise(f'{sizes[size]}')
-            raw_str += sanitise(f'\\color{{{fg_colour}}} {content}')
+            raw_str = ""
+            raw_str += sanitise(f"\\dpi{{{dpi}}}")
+            raw_str += sanitise(f"{backgrounds[bg_colour]}")
+            raw_str += sanitise(f"{fonts[font]}")
+            raw_str += sanitise(f"{sizes[size]}")
+            raw_str += sanitise(f"\\color{{{fg_colour}}} {content}")
 
-            return f'{end_point}{engine}.latex?{raw_str}'
+            return f"{end_point}{engine}.latex?{raw_str}"
 
     @classmethod
-    async def pad_convert_image(cls,
-                                in_img: io.BytesIO,
-                                out_img: io.BytesIO,
-                                bg_colour: tuple):
+    async def pad_convert_image(
+        cls, in_img: io.BytesIO, out_img: io.BytesIO, bg_colour: tuple
+    ):
         """
         Takes input image bytes and constructs the image in memory in a
         CPU worker. We then add a padded border around the edge of the image
@@ -166,26 +170,15 @@ class LatexCogHelper(traits.CogTraits):
             new_x = int((new_w - old_img.width) / 2)
             new_y = int((new_h - old_img.height) / 2)
 
-            new_img = PIL.Image.new(
-                'RGBA',
-                (new_w, new_h),
-                (0x0, 0x0, 0x0, 0x0)
-            )
+            new_img = PIL.Image.new("RGBA", (new_w, new_h), (0x0, 0x0, 0x0, 0x0))
 
-            new_img.paste(
-                old_img,
-                (new_x, new_y),
-            )
+            new_img.paste(old_img, (new_x, new_y))
 
-            non_transparent = PIL.Image.new(
-                'RGBA',
-                (new_w, new_h),
-                bg_colour
-            )
+            non_transparent = PIL.Image.new("RGBA", (new_w, new_h), bg_colour)
 
             new_img = PIL.Image.alpha_composite(non_transparent, new_img)
 
-            new_img.save(out_img, 'PNG')
+            new_img.save(out_img, "PNG")
 
         await cls.run_in_io_executor(cpu_work)
 
@@ -193,7 +186,7 @@ class LatexCogHelper(traits.CogTraits):
     async def get_send_image(cls, ctx, content: str) -> discord.Message:
         # Append a tex newline to the start to force the content to
         # left-align.
-        url = cls.generate_url(f'\\\\{content}', size=10)
+        url = cls.generate_url(f"\\\\{content}", size=10)
 
         conn = await cls.acquire_http()
 
@@ -202,14 +195,11 @@ class LatexCogHelper(traits.CogTraits):
 
         with io.BytesIO(data) as in_data, io.BytesIO() as out_data:
             in_data.seek(0)
-            await cls.pad_convert_image(
-                in_data,
-                out_data,
-                (0x36, 0x39, 0x3E))
+            await cls.pad_convert_image(in_data, out_data, (0x36, 0x39, 0x3E))
 
             out_data.seek(0)
-            file = discord.File(out_data, 'latex.png')
+            file = discord.File(out_data, "latex.png")
 
-            msg = await ctx.send(content=f'{ctx.author}:', file=file)
+            msg = await ctx.send(content=f"{ctx.author}:", file=file)
 
             return msg

@@ -34,13 +34,12 @@ import collections
 import types
 import typing
 
-__all__ = ('AbstractIterableMachine',)
+__all__ = ("AbstractIterableMachine",)
 
-IterRetT = typing.TypeVar('IterRetT')
+IterRetT = typing.TypeVar("IterRetT")
 
 
-class AbstractIterableMachine(abc.ABC,
-                              collections.AsyncIterable):
+class AbstractIterableMachine(abc.ABC, collections.AsyncIterable):
     """
     A reusable asynchronous iterable state machine. This is a basic
     abstract implementation that should be derived from when defining simple
@@ -77,7 +76,7 @@ class AbstractIterableMachine(abc.ABC,
         """
         return self
 
-    async def __aenter__(self) -> 'AbstractIterableMachine':
+    async def __aenter__(self) -> "AbstractIterableMachine":
         """
         Acquires a lock on this iterator. This allows other co-routines
         to await our completion.
@@ -85,10 +84,12 @@ class AbstractIterableMachine(abc.ABC,
         await self._condition.acquire()
         return self
 
-    async def __aexit__(self,
-                        exc_type: typing.Optional[typing.Type[BaseException]],
-                        exc_val: typing.Optional[BaseException],
-                        exc_tb: typing.Optional[types.TracebackType]) -> None:
+    async def __aexit__(
+        self,
+        exc_type: typing.Optional[typing.Type[BaseException]],
+        exc_val: typing.Optional[BaseException],
+        exc_tb: typing.Optional[types.TracebackType],
+    ) -> None:
         """
         Releases our lock.
         :param exc_type: Exception type that was raised.

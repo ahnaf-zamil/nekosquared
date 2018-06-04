@@ -45,23 +45,21 @@ import textwrap
 
 def main():
     # How to parse each module level statement.
-    FIRST_MODE = 'exec'
+    FIRST_MODE = "exec"
     # How to parse each individual statement.
-    SECOND_MODE = 'single'
-    FILENAME = '<discord>'
+    SECOND_MODE = "single"
+    FILENAME = "<discord>"
     # Number of digits to display for the line number
     DISPLAY_HOOK_DIGITS = 5
-
 
     # Note When compiling a string with multi-line code in 'single' or 'eval'
     # mode, input must be terminated by at least one newline character. This
     # is to facilitate detection of incomplete and complete statements in
     # the code module.
-    source = ''.join(fileinput.input())
+    source = "".join(fileinput.input())
 
-    while not source.endswith('\n\n'):
-        source += '\n'
-
+    while not source.endswith("\n\n"):
+        source += "\n"
 
     # Parse the entire tree first.
     tree = ast.parse(source, FILENAME, FIRST_MODE)
@@ -70,15 +68,14 @@ def main():
     # minus the clutter we just created in this file.
     gs = globals()
     ns = dict(
-        __loader__=gs['__loader__'],
-        __name__='__main__',
+        __loader__=gs["__loader__"],
+        __name__="__main__",
         __package__=None,
         __doc__=None,
         __spec__=None,
         __annotations__={},
-        __builtins__=gs['__builtins__']
+        __builtins__=gs["__builtins__"],
     )
-
 
     # Walk each statement, and execute interactively.
     for stmt in tree.body:
@@ -101,23 +98,21 @@ def main():
         def displayhook(value):
             if value is None:
                 return
-            
+
             if not isinstance(value, str):
                 value = repr(value)
-            first, nl, rest = value.partition('\n')
+            first, nl, rest = value.partition("\n")
 
             if nl and rest:
                 rest = textwrap.indent(
                     rest,
-                    DISPLAY_HOOK_DIGITS * ' ' + ' |',
-                    lambda _: True  # Ensures empty lines get output.
+                    DISPLAY_HOOK_DIGITS * " " + " |",
+                    lambda _: True,  # Ensures empty lines get output.
                 )
 
             string = first + nl + rest
 
-            print(
-                ('#{:0%s}' % DISPLAY_HOOK_DIGITS).format(stmt.lineno),
-                string)
+            print(("#{:0%s}" % DISPLAY_HOOK_DIGITS).format(stmt.lineno), string)
 
         # Modify the except hook to cause the code to terminate. Since this
         # is an entire source code file behaving as a repl input, continuing
@@ -125,7 +120,7 @@ def main():
         # chain of errors.
         def excepthook(type, value, tb):
             traceback.print_exception(type, value, tb)
-            sys.stderr.write('I won\'t bother continuing...\n')
+            sys.stderr.write("I won't bother continuing...\n")
             exit(3)
 
         sys.displayhook = displayhook
@@ -134,5 +129,5 @@ def main():
         exec(code, ns)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

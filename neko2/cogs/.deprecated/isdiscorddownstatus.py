@@ -82,21 +82,22 @@ class IsDiscordDownStatus(traits.CogTraits):
                 # went down and it said "all systems operational" despite the
                 # main page saying "major service outage."
                 resp = await conn.get(
-                    'https://status.discordapp.com/api/v2'
-                    '/incidents/unresolved.json')
+                    "https://status.discordapp.com/api/v2" "/incidents/unresolved.json"
+                )
                 assert resp.status == 200, resp.reason
                 data = await resp.json()
 
                 # https://status.discordapp.com/api#incidents-unresolved
-                problems = data.get('incidents')
+                problems = data.get("incidents")
                 if problems:
                     problem = problems.pop(0)
-                    name = problem['name']
+                    name = problem["name"]
                     await self.bot.change_presence(
                         activity=discord.Activity(
-                            type=discord.ActivityType.watching,
-                            name=name),
-                        status=discord.Status.dnd)
+                            type=discord.ActivityType.watching, name=name
+                        ),
+                        status=discord.Status.dnd,
+                    )
                     self.discord_down = True
                 else:
                     # Only change presence if discord has just gone
@@ -106,12 +107,18 @@ class IsDiscordDownStatus(traits.CogTraits):
                         await self.bot.change_presence(
                             activity=discord.Activity(
                                 type=discord.ActivityType.watching,
-                                name=self.last_status),
-                            status=discord.Status.online)
+                                name=self.last_status,
+                            ),
+                            status=discord.Status.online,
+                        )
                         self.discord_down = False
             except BaseException as ex:
-                self.logger.warning('Background checker for Discord status: ' +
-                                    type(ex).__qualname__ + ': ' + str(ex))
+                self.logger.warning(
+                    "Background checker for Discord status: "
+                    + type(ex).__qualname__
+                    + ": "
+                    + str(ex)
+                )
             finally:
                 await asyncio.sleep(60)
 

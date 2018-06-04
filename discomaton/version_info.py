@@ -29,8 +29,8 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-__author__ = 'Neko404NotFound'
-__license__ = 'MIT License'
-__version__ = '1.2.1alpha2'
-__title__ = 'Discomaton'
-__repository__ = f'https://github.com/{__author__}/nekosquared'
+__author__ = "Neko404NotFound"
+__license__ = "MIT License"
+__version__ = "1.2.1alpha2"
+__title__ = "Discomaton"
+__repository__ = f"https://github.com/{__author__}/nekosquared"

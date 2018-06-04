@@ -33,8 +33,14 @@ import asyncio  # Future type
 import time  # Basic timestamps
 import typing  # Type checking
 
-__all__ = ('find', 'find_async', 'find_async_iterator', 'find_all',
-           'time_it', 'time_it_async')
+__all__ = (
+    "find",
+    "find_async",
+    "find_async_iterator",
+    "find_all",
+    "time_it",
+    "time_it_async",
+)
 
 
 def find(predicate, iterable, default=None):
@@ -125,4 +131,5 @@ async def time_it_async(coro, *args, **kwargs) -> (typing.Any, float):
 def rand_colour() -> int:
     """Gets a random colour."""
     from random import randint
+
     return randint(0, 0xFFFFFF)

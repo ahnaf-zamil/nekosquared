@@ -37,35 +37,43 @@ import aiofiles  # Async file IO
 
 from neko2.shared import ioutil, scribe  # IO utilities; Logger
 
-__all__ = ('CONFIG_DIRECTORY', 'ConfigFile', 'get_config_data',
-           'get_from_config_dir', 'get_config_data_async')
+__all__ = (
+    "CONFIG_DIRECTORY",
+    "ConfigFile",
+    "get_config_data",
+    "get_from_config_dir",
+    "get_config_data_async",
+)
 
 # Overwrite this variable to alter where we look for config files if you
 # need to.
-__DEFAULT_CONFIG_DIRECTORY = '../neko2config'
+__DEFAULT_CONFIG_DIRECTORY = "../neko2config"
 CONFIG_DIRECTORY = __DEFAULT_CONFIG_DIRECTORY
 
 
 def _try_import(name):
     try:
         import importlib
+
         return importlib.import_module(name)
     except:
         return None
 
 
 def deserialize_python(fp):
-    warnings.warn('Deserializing Python source by eval. This risks arbitrary '
-                  'code execution exploits being injected.')
-    string = '\n'.join(fp.readlines())
+    warnings.warn(
+        "Deserializing Python source by eval. This risks arbitrary "
+        "code execution exploits being injected."
+    )
+    string = "\n".join(fp.readlines())
     return eval(string, globals={}, locals={})
 
 
 # Functions to call to deserialize each type.
 deserializers = {
-    '.json': _try_import('json').load,
-    '.yaml': _try_import('yaml').load,
-    '.py': deserialize_python,
+    ".json": _try_import("json").load,
+    ".yaml": _try_import("yaml").load,
+    ".py": deserialize_python,
 }
 
 
@@ -97,22 +105,21 @@ class ConfigFile(scribe.Scribe):
         path, ext = self._get_extension(path, should_guess)
 
         if not path:
-            raise ValueError('Not a valid path')
+            raise ValueError("Not a valid path")
         elif not os.access(path, os.R_OK):
-            raise PermissionError(f'I do not have read access to {path!r}.')
+            raise PermissionError(f"I do not have read access to {path!r}.")
         else:
             self.path = path
             self._value = None
             try:
                 self.deserializer = deserializers[ext]
             except KeyError:
-                raise NotImplementedError(
-                    f'No deserialiser is defined for {ext}')
+                raise NotImplementedError(f"No deserialiser is defined for {ext}")
 
     @staticmethod
-    def _get_extension(base: str,
-                       should_guess: bool = True) \
-            -> typing.Optional[typing.Tuple[str, str]]:
+    def _get_extension(
+        base: str, should_guess: bool = True
+    ) -> typing.Optional[typing.Tuple[str, str]]:
         """
         Assuming that base is not found as an actual file path, attempt
         to resolve the config file by guessing the extension. We return the
@@ -127,9 +134,9 @@ class ConfigFile(scribe.Scribe):
                 return base + ext, ext
 
         if not os.path.exists(base):
-            raise FileNotFoundError(f'{base!r} does not exist.')
+            raise FileNotFoundError(f"{base!r} does not exist.")
         elif not os.path.isfile(base):
-            raise TypeError(f'{base!r} is not a valid file.')
+            raise TypeError(f"{base!r} is not a valid file.")
         else:
             return None
 
@@ -138,9 +145,11 @@ class ConfigFile(scribe.Scribe):
         if self._value is not None:
             return self._value
         else:
-            self.logger.info(f'Asynchronously deserialising {self.path} using '
-                             f'{getattr(self.deserializer, "__module__")}.'
-                             f'{self.deserializer.__name__}')
+            self.logger.info(
+                f"Asynchronously deserialising {self.path} using "
+                f'{getattr(self.deserializer, "__module__")}.'
+                f"{self.deserializer.__name__}"
+            )
             async with aiofiles.open(self.path) as fp:
                 with io.StringIO(await fp.read()) as str_io:
                     str_io.seek(0)
@@ -152,9 +161,11 @@ class ConfigFile(scribe.Scribe):
         if self._value is not None:
             return self._value
         else:
-            self.logger.info(f'Deserialising {self.path} using '
-                             f'{getattr(self.deserializer, "__module__")}.'
-                             f'{self.deserializer.__name__}')
+            self.logger.info(
+                f"Deserialising {self.path} using "
+                f'{getattr(self.deserializer, "__module__")}.'
+                f"{self.deserializer.__name__}"
+            )
 
             with open(self.path) as fp:
                 return self.deserializer(fp)

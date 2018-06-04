@@ -40,18 +40,17 @@ from neko2.shared import alg, commands, traits
 def gen_url_acronymn_finder(terms):
     terms = parse.quote(terms)
     return (
-        'https://www.acronymfinder.com/~/search/af.aspx?string=exact&Acronym='
-        + terms
+        "https://www.acronymfinder.com/~/search/af.aspx?string=exact&Acronym=" + terms
     )
 
 
 class AbbrevCog(traits.CogTraits):
     async def fail(self, ctx, query):
-        return await ctx.send(f'No results for `{query}`...', delete_after=10)
+        return await ctx.send(f"No results for `{query}`...", delete_after=10)
 
     @commands.command(
-        brief='Looks up definitions for the given abbreviations.',
-        aliases=['ab'])
+        brief="Looks up definitions for the given abbreviations.", aliases=["ab"]
+    )
     async def abbrev(self, ctx, *, query):
         url = gen_url_acronymn_finder(query)
 
@@ -64,8 +63,8 @@ class AbbrevCog(traits.CogTraits):
         soup = bs4.BeautifulSoup(html)
 
         result_tags = soup.find_all(
-            name='td',
-            attrs={'class': 'result-list__body__rank'})
+            name="td", attrs={"class": "result-list__body__rank"}
+        )
 
         if not result_tags:
             return await self.fail(ctx, query)
@@ -76,8 +75,8 @@ class AbbrevCog(traits.CogTraits):
         for tag in result_tags:
             abbrev = tag.text
             defn = tag.find_next_sibling(
-                name='td',
-                attrs={'class': 'result-list__body__meaning'})
+                name="td", attrs={"class": "result-list__body__meaning"}
+            )
 
             definition = defn.text if defn else None
             if definition:
@@ -89,9 +88,9 @@ class AbbrevCog(traits.CogTraits):
         embeds = []
 
         def new_embed():
-            embeds.append(discord.Embed(title=query,
-                                        description='',
-                                        colour=alg.rand_colour()))
+            embeds.append(
+                discord.Embed(title=query, description="", colour=alg.rand_colour())
+            )
 
         new_embed()
 
@@ -99,7 +98,7 @@ class AbbrevCog(traits.CogTraits):
             if i and i % 6:
                 new_embed()
 
-            embeds[-1].description += f'**{abbrev}**\n\t{definition}\n\n'
+            embeds[-1].description += f"**{abbrev}**\n\t{definition}\n\n"
 
         booklet = book.EmbedBooklet(pages=embeds, ctx=ctx)
         booklet.start()

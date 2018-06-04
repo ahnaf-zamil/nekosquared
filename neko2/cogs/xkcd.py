@@ -44,42 +44,38 @@ from cached_property import threaded_cached_property_with_ttl
 import discord
 import requests
 
-from neko2.shared import commands, configfiles, fuzzy, morefunctools, scribe, \
-    traits
+from neko2.shared import commands, configfiles, fuzzy, morefunctools, scribe, traits
 
 
 def most_recent_xkcd():
-    return 'https://xkcd.com/info.0.json'
+    return "https://xkcd.com/info.0.json"
 
 
 def get_xkcd(num):
     if num == 404 or num == 0:
         raise FileNotFoundError
-    return f'https://xkcd.com/{num}/info.0.json'
+    return f"https://xkcd.com/{num}/info.0.json"
 
 
 def get_alphas(string):
     # noinspection PyPep8Naming
-    a, z, A, Z = ord('a'), ord('z'), ord('A'), ord('Z')
-    return ''.join(c for c in string if a <= ord(c) <= z or A <= ord(c) <= Z)
+    a, z, A, Z = ord("a"), ord("z"), ord("A"), ord("Z")
+    return "".join(c for c in string if a <= ord(c) <= z or A <= ord(c) <= Z)
 
 
-# Revalidate cache every 2 hours 
+# Revalidate cache every 2 hours
 SLEEP_FOR = 60 * 60 * 2
 # How long to keep cache in memory for before flushing, this speeds up subsequent
 # requests, but will consume more memory while still in memory. Hence the timeout.
 # Currently 30 minutes.
 TTL_LIFESPAN = 30 * 60
 
-CACHE_FILE = os.path.join(configfiles.CONFIG_DIRECTORY, 'xkcd.json')
-
+CACHE_FILE = os.path.join(configfiles.CONFIG_DIRECTORY, "xkcd.json")
 
 # Easier to delegate this to an entirely separate thread and make it run
 # every so often. Then it cannot interfere with the bot. Also means I don't
 # need to use Asyncio.
-class XkcdCache(threading.Thread,
-                scribe.Scribe,
-                metaclass=morefunctools.SingletonMeta):
+class XkcdCache(threading.Thread, scribe.Scribe, metaclass=morefunctools.SingletonMeta):
     """
     Sequentially crawls xkcd periodically to gather metadata.
     Maintains an in-memory cache of XKCD comics and keeps it updated.
@@ -87,7 +83,7 @@ class XkcdCache(threading.Thread,
 
     def __init__(self, bot):
         # Only called the first time for a singleton.
-        setattr(bot, '__xkcd_cacher_thread', self)
+        setattr(bot, "__xkcd_cacher_thread", self)
         super().__init__(daemon=True)
 
         # Start self.
@@ -110,12 +106,13 @@ class XkcdCache(threading.Thread,
         # Wait a while before starting to let anything else set itself up
         # unless we have a specific reason to do this immediately.
         if os.path.exists(CACHE_FILE):
-            self.logger.info('xkcd cache already present. Will schedule '
-                             'a few hours later.')
+            self.logger.info(
+                "xkcd cache already present. Will schedule " "a few hours later."
+            )
             time.sleep(SLEEP_FOR / 2)
 
         while True:
-            self.logger.info('xkcd cacher thread has woken up.')
+            self.logger.info("xkcd cacher thread has woken up.")
 
             # Get old data state. This will block if in an asyncio coro.
             data = self.cached_metadata
@@ -125,38 +122,41 @@ class XkcdCache(threading.Thread,
                 # Get most recent strip.
                 most_recent = sesh.get(most_recent_xkcd()).json()
 
-                for i in range(1, most_recent['num'] + 1):
+                for i in range(1, most_recent["num"] + 1):
                     try:
                         next_comic = sesh.get(get_xkcd(i)).json()
                     except:
-                        self.logger.warning(f'Could not get xkcd no. {i}')
+                        self.logger.warning(f"Could not get xkcd no. {i}")
                         continue
                     else:
-                        self.logger.debug(f'Cached xkcd no. {i}')
+                        self.logger.debug(f"Cached xkcd no. {i}")
 
-                    data.append({
-                        'num': next_comic['num'],
-                        'title': next_comic['title'],
-                        # 2nd June 2017: attempting to reduce massive memory footprint
-                        # by reducing the information provided here.
-                        # 'alt': next_comic['alt'],
-                        # 'transcript': next_comic['transcript']
-                    })
+                    data.append(
+                        {
+                            "num": next_comic["num"],
+                            "title": next_comic["title"],
+                            # 2nd June 2017: attempting to reduce massive memory footprint
+                            # by reducing the information provided here.
+                            # 'alt': next_comic['alt'],
+                            # 'transcript': next_comic['transcript']
+                        }
+                    )
 
-            with open(CACHE_FILE, 'w') as fp:
+            with open(CACHE_FILE, "w") as fp:
                 data = data
                 json.dump(data, fp)
-                
-            del self.__dict__['cached_metadata']
 
-            self.logger.info('XKCD recache completed. Going to sleep.')
+            del self.__dict__["cached_metadata"]
+
+            self.logger.info("XKCD recache completed. Going to sleep.")
             time.sleep(SLEEP_FOR)
 
 
 class XkcdCog(traits.CogTraits):
     @commands.command(
-        brief='Gets a page from xkcd.',
-        examples=['', 'mr', 'new', 'newest', '629', 'exploits of a mom'])
+        brief="Gets a page from xkcd.",
+        examples=["", "mr", "new", "newest", "629", "exploits of a mom"],
+    )
     async def xkcd(self, ctx, *, query=None):
         """
         Returns a page from xkcd.
@@ -177,7 +177,7 @@ class XkcdCog(traits.CogTraits):
                 # (our cache can be up to 2 hours out of date).
                 resp = await conn.get(most_recent_xkcd())
                 data = await resp.json()
-                num = data['num']
+                num = data["num"]
 
                 # Certain pages don't output anything.
                 page = random.randint(1, num)
@@ -187,7 +187,7 @@ class XkcdCog(traits.CogTraits):
                     url = get_xkcd(page)
             elif query.isdigit():
                 url = get_xkcd(int(query))
-            elif query.lower() in ('mr', 'new', 'newest'):
+            elif query.lower() in ("mr", "new", "newest"):
                 url = most_recent_xkcd()
             else:
 
@@ -196,60 +196,58 @@ class XkcdCog(traits.CogTraits):
                     library = XkcdCache(ctx.bot).cached_metadata
 
                     ln = len(library)
-                    titles = {library[i]['title']: library[i]['num']
-                              for i in range(0, ln)
-                              if get_alphas(library[i]['title'])}
+                    titles = {
+                        library[i]["title"]: library[i]["num"]
+                        for i in range(0, ln)
+                        if get_alphas(library[i]["title"])
+                    }
 
                     best_result = fuzzy.extract_best(
-                        query,
-                        titles,
-                        scoring_algorithm=fuzzy.deep_ratio,
-                        min_score=50)
+                        query, titles, scoring_algorithm=fuzzy.deep_ratio, min_score=50
+                    )
 
-                    return (
-                        get_xkcd(titles[best_result[0]])
-                        if best_result
-                        else None)
+                    return get_xkcd(titles[best_result[0]]) if best_result else None
 
                 with ctx.typing():
                     url = await self.run_in_io_executor(executor)
 
             if not url:
-                return await ctx.send('Nothing to see here.')
+                return await ctx.send("Nothing to see here.")
         except FileNotFoundError:
-            return await ctx.send('But...where is it?', delete_after=10)
+            return await ctx.send("But...where is it?", delete_after=10)
         else:
             # Get the entry
             conn = await self.acquire_http()
             resp = await conn.get(url)
 
             if resp.status != 200:
-                return await ctx.send('xkcd says no.')
+                return await ctx.send("xkcd says no.")
 
             page = await resp.json()
 
             embed = discord.Embed(
                 colour=0xFFFFFF,
                 url=f'https://xkcd.com/{page["num"]}',
-                title=page['title'],
-                description=page['alt'])
+                title=page["title"],
+                description=page["alt"],
+            )
 
-            embed.set_author(name='xkcd')
+            embed.set_author(name="xkcd")
             embed.set_footer(
                 text=f'#{page["num"]} - '
-                     f'{page["day"]}/{page["month"]}/{page["year"]}')
+                f'{page["day"]}/{page["month"]}/{page["year"]}'
+            )
             # 24th May 2018: Discord seems to be ignoring this.
             # embed.set_image(url=page['img'])
-                
-            
-            async with conn.get(page['img']) as resp, ctx.typing():
+
+            async with conn.get(page["img"]) as resp, ctx.typing():
                 resp.raise_for_status()
                 bio = io.BytesIO(await resp.read())
-            
-            bio.seek(0)                
-            await ctx.send(embed=embed, file=discord.File(bio, 'xkcd.png'))
 
-                
+            bio.seek(0)
+            await ctx.send(embed=embed, file=discord.File(bio, "xkcd.png"))
+
+
 def setup(bot):
     # Ensures that cache is running.
     XkcdCache(bot)

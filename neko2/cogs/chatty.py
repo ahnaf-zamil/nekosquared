@@ -32,7 +32,7 @@ from neko2.shared import commands
 
 
 class ChattyCog:
-    @commands.command(brief='Take a wild guess.')
+    @commands.command(brief="Take a wild guess.")
     async def say(self, ctx, *, message):
         try:
             await ctx.message.delete()

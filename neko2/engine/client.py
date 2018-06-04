@@ -43,31 +43,29 @@ from discord.utils import oauth_url  # OAuth URL generator
 from neko2.engine import errorhandler  # Error handling.
 from neko2.shared import perms, scribe  # Logging
 
-__all__ = ('BotInterrupt', 'Bot')
+__all__ = ("BotInterrupt", "Bot")
 
 # Sue me.
 BotInterrupt = KeyboardInterrupt
-
 
 ###############################################################################
 # Register the termination signals to just raise a keyboard interrupt, as     #
 # I can catch this in the event loop and ensure a graceful shutdown.          #
 ###############################################################################
 def terminate(signal_no, frame):
-    raise BotInterrupt(f'Caught interrupt {signal_no} in frame {frame}')
+    raise BotInterrupt(f"Caught interrupt {signal_no} in frame {frame}")
 
 
 windows_signals = {signal.SIGABRT, signal.SIGTERM, signal.SIGSEGV}
 unix_signals = {*windows_signals, signal.SIGQUIT}
 
-signals = unix_signals if not os.name == 'nt' else windows_signals
+signals = unix_signals if not os.name == "nt" else windows_signals
 
 for s in signals:
     # Register listener
     signal.signal(s, terminate)
 
 del signals, unix_signals, windows_signals, terminate
-
 
 ###############################################################################
 # Bot class definition.                                                       #
@@ -109,24 +107,22 @@ class Bot(commands.Bot, scribe.Scribe):
             Bot constructor.
     """
 
-    def __init__(self,
-                 _unused_loop,
-                 bot_config: dict):
+    def __init__(self, _unused_loop, bot_config: dict):
         """
         Initialise the bot using the given configuration.
         """
-        commands.Bot.__init__(self, **bot_config.pop('bot', {}))
+        commands.Bot.__init__(self, **bot_config.pop("bot", {}))
 
-        auth = bot_config['auth']
-        self.token = auth['token']
-        self.client_id = auth.get('client_id', None)
-        self.debug = bot_config.pop('debug', False)
+        auth = bot_config["auth"]
+        self.token = auth["token"]
+        self.client_id = auth.get("client_id", None)
+        self.debug = bot_config.pop("debug", False)
 
         # Used to prevent recursively calling logout.
         self._logged_in = False
 
         # Load version and help commands
-        self.logger.info(f'Using command prefix: {self.command_prefix}')
+        self.logger.info(f"Using command prefix: {self.command_prefix}")
 
         self._on_exit_funcs = []
         self._on_exit_coros = []
@@ -147,7 +143,7 @@ class Bot(commands.Bot, scribe.Scribe):
 
     @cached_property.cached_property
     def invite(self):
-        perm_bits = getattr(self, 'permbits', 0)
+        perm_bits = getattr(self, "permbits", 0)
 
         permissions = perms.Permissions.to_discord_type(perm_bits)
 
@@ -157,7 +153,7 @@ class Bot(commands.Bot, scribe.Scribe):
     def uptime(self) -> float:
         """Returns how many seconds the bot has been up for."""
         curr = time.time()
-        return curr - getattr(self, 'start_time', curr)
+        return curr - getattr(self, "start_time", curr)
 
     async def get_owner(self) -> discord.User:
         """
@@ -175,10 +171,10 @@ class Bot(commands.Bot, scribe.Scribe):
 
     async def start(self, token):
         """Starts the bot with the given token."""
-        self.logger.info(f'Invite me to your server at {self.invite}')
+        self.logger.info(f"Invite me to your server at {self.invite}")
         self._logged_in = True
-        self.dispatch('start')
-        setattr(self, 'start_time', time.time())
+        self.dispatch("start")
+        setattr(self, "start_time", time.time())
         await super().start(token)
 
     # noinspection PyBroadException
@@ -190,9 +186,9 @@ class Bot(commands.Bot, scribe.Scribe):
         if not self._logged_in:
             return
         else:
-            self.dispatch('logout')
+            self.dispatch("logout")
 
-        self.logger.info('Unloading modules, then logging out')
+        self.logger.info("Unloading modules, then logging out")
 
         # We cannot iterate across the current dict object holding extensions
         # while removing items from it as Python will not allow continued
@@ -238,10 +234,10 @@ class Bot(commands.Bot, scribe.Scribe):
         not load properly. This attempts to fix this.
         """
         try:
-            self.logger.info(f'Loading cog {type(cog).__name__!r}')
+            self.logger.info(f"Loading cog {type(cog).__name__!r}")
 
             super().add_cog(cog)
-            self.dispatch('add_cog', cog)
+            self.dispatch("add_cog", cog)
         except BaseException as ex:
             try:
                 self.remove_cog(cog)
@@ -250,25 +246,25 @@ class Bot(commands.Bot, scribe.Scribe):
 
     def remove_cog(self, name):
         """Logs and removes a cog."""
-        self.logger.info(f'Removing cog {name!r}')
+        self.logger.info(f"Removing cog {name!r}")
         # Find the cog.
         cog = self.get_cog(name)
         super().remove_cog(name)
-        self.dispatch('remove_cog', cog)
+        self.dispatch("remove_cog", cog)
 
     def add_command(self, command):
         """Logs and adds a command."""
-        self.logger.info(f'Adding command {str(command)!r}')
+        self.logger.info(f"Adding command {str(command)!r}")
         super().add_command(command)
-        self.dispatch('add_command', command)
+        self.dispatch("add_command", command)
 
     def remove_command(self, name):
         """Logs and removes an existing command."""
-        self.logger.info(f'Removing command {name!r}')
+        self.logger.info(f"Removing command {name!r}")
         # Find the command
         command = self.get_command(name)
         super().remove_command(name)
-        self.dispatch('remove_command', command)
+        self.dispatch("remove_command", command)
 
     def load_extension(self, name):
         """
@@ -278,15 +274,15 @@ class Bot(commands.Bot, scribe.Scribe):
         :param name: the extension to load.
         :return: the extension that has been loaded.
         """
-        self.logger.info(f'Loading extension {name!r}')
+        self.logger.info(f"Loading extension {name!r}")
         super().load_extension(name)
         extension = self.extensions[name]
-        self.dispatch('load_extension', extension)
+        self.dispatch("load_extension", extension)
         return extension
 
     def unload_extension(self, name):
         """Logs and unloads the given extension."""
-        self.logger.info(f'Unloading extension {name!r}')
+        self.logger.info(f"Unloading extension {name!r}")
         super().unload_extension(name)
 
     # noinspection PyBroadException
@@ -306,5 +302,6 @@ class Bot(commands.Bot, scribe.Scribe):
         await self.change_presence(
             status=discord.Status.online,
             activity=discord.Activity(
-                type=discord.ActivityType.watching,
-                name=f'for {prefix}help'))
+                type=discord.ActivityType.watching, name=f"for {prefix}help"
+            ),
+        )

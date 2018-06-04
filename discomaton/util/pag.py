@@ -34,7 +34,7 @@ import typing
 import cached_property
 from discord.ext.commands import Paginator as RapptzPaginator
 
-__all__ = ('Paginator', 'RapptzPaginator')
+__all__ = ("Paginator", "RapptzPaginator")
 
 
 class DontAlter:
@@ -87,22 +87,25 @@ class Paginator:
 
     Note that the max number of lines takes into account page content only.
     """
+
     # Sentinel value to represent a place to manually break the page on.
     _page_break = object()
 
-    def __init__(self,
-                 max_chars: int = 2000,
-                 max_lines: typing.Optional[int] = 20,
-                 prefix: str = '',
-                 suffix: str = '',
-                 _unused_line_sep: str = None) -> None:
+    def __init__(
+        self,
+        max_chars: int = 2000,
+        max_lines: typing.Optional[int] = 20,
+        prefix: str = "",
+        suffix: str = "",
+        _unused_line_sep: str = None,
+    ) -> None:
 
         assert max_lines is None or 0 < max_lines <= max_chars
 
         # Holds the bits of string to put together when we generate pages.
         self._bits = []
         self._max_chars = max_chars
-        self._max_lines = max_lines if max_lines is not None else max_chars -1
+        self._max_lines = max_lines if max_lines is not None else max_chars - 1
         self._prefix = prefix
         self._suffix = suffix
 
@@ -111,16 +114,17 @@ class Paginator:
         pages = []
 
         max_len = self._max_chars - len(self._prefix) - len(self._suffix) - 2
-        max_lns = self._max_lines - (
-                self._prefix + self._suffix).count('\n') + 1
+        max_lns = self._max_lines - (self._prefix + self._suffix).count("\n") + 1
 
         if max_len <= 0:
-            raise ValueError(f'The max character count ({self._max_chars}) is '
-                             'too short to produce pages with the given '
-                             'suffix and prefix. Please choose a larger '
-                             'value.')
+            raise ValueError(
+                f"The max character count ({self._max_chars}) is "
+                "too short to produce pages with the given "
+                "suffix and prefix. Please choose a larger "
+                "value."
+            )
 
-        current_page = ''
+        current_page = ""
         current_lines = 0
 
         # Separate bits on spaces, keeping spaces.
@@ -131,8 +135,8 @@ class Paginator:
         for bit in self._bits:
             if not isinstance(bit, DontAlter) and bit is not self._page_break:
                 bit = str(bit)
-                while ' ' in bit:
-                    first_bit, space, rest = bit.partition(' ')
+                while " " in bit:
+                    first_bit, space, rest = bit.partition(" ")
                     bits.append(first_bit + space)
                     bit = rest
             bits.append(bit)
@@ -143,7 +147,7 @@ class Paginator:
 
             if current_page:
                 pages.append(current_page)
-                current_page = ''
+                current_page = ""
                 current_lines = 0
 
         for bit, strbit in map(lambda b: (b, str(b)), bits):
@@ -154,16 +158,20 @@ class Paginator:
             # We must not alter this section by splitting it.
             if isinstance(bit, DontAlter):
                 no_chars = len(strbit)
-                no_lines = strbit.count('\n')
+                no_lines = strbit.count("\n")
 
                 if no_chars > max_len:
-                    raise RuntimeError(f'Cannot fit `{strbit}` onto one page, '
-                                       'and it is marked as DontAlter. '
-                                       'TOO MANY CHARACTERS')
+                    raise RuntimeError(
+                        f"Cannot fit `{strbit}` onto one page, "
+                        "and it is marked as DontAlter. "
+                        "TOO MANY CHARACTERS"
+                    )
                 elif no_lines > max_lns:
-                    raise RuntimeError(f'Cannot fit `{strbit}` onto one page, '
-                                       'and it is marked as DontAlter. '
-                                       'TOO MANY LINES')
+                    raise RuntimeError(
+                        f"Cannot fit `{strbit}` onto one page, "
+                        "and it is marked as DontAlter. "
+                        "TOO MANY LINES"
+                    )
 
                 new_len = no_chars + len(current_page)
                 new_lns = no_lines + current_lines
@@ -174,14 +182,14 @@ class Paginator:
                     finish_page()
 
             for char in strbit:
-                if char == '\n' and current_lines == max_lns:
+                if char == "\n" and current_lines == max_lns:
                     finish_page()
 
                     # We cant safely add this character ever without
                     # hitting an infinite loop.
                     if max_lns <= 0:
                         continue
-                elif char == '\n':
+                elif char == "\n":
                     current_lines += 1
 
                 elif len(current_page) == max_len:
@@ -191,21 +199,21 @@ class Paginator:
 
         finish_page()
 
-        pages = map(lambda p: f'{self._prefix}\n{p}\n{self._suffix}', pages)
+        pages = map(lambda p: f"{self._prefix}\n{p}\n{self._suffix}", pages)
         return tuple(pages)
 
     def _invalidate(self) -> None:
         """Invalidates the pages cache if any exists."""
-        if 'pages' in self.__dict__ and self.__dict__['pages']:
-            del self.__dict__['pages']
+        if "pages" in self.__dict__ and self.__dict__["pages"]:
+            del self.__dict__["pages"]
 
     def __len__(self) -> int:
         """Returns the raw input length before pagination."""
         return sum(len(bit) for bit in self._bits)
 
-    def add_raw(self, obj: typing.Any, *,
-                to_start: bool = False,
-                dont_alter: bool = False) -> None:
+    def add_raw(
+        self, obj: typing.Any, *, to_start: bool = False, dont_alter: bool = False
+    ) -> None:
         """
         Same as `add`, but no string casting takes place.
         :param obj: the object to add.
@@ -228,9 +236,9 @@ class Paginator:
         else:
             self._bits.append(obj)
 
-    def add(self, obj: typing.Any, *,
-            to_start: bool = False,
-            dont_alter: bool = False) -> None:
+    def add(
+        self, obj: typing.Any, *, to_start: bool = False, dont_alter: bool = False
+    ) -> None:
         """
         Add a string. Content cannot be more than the max length, otherwise
         it may be mis-formatted or rejected.
@@ -247,21 +255,24 @@ class Paginator:
         string = str(obj) if obj is not self._page_break else obj
         self.add_raw(string, to_start=to_start, dont_alter=dont_alter)
 
-    def add_line(self, obj: typing.Any, *,
-                 to_start: bool = False,
-                 _unused_dont_alter: bool = False) -> None:
+    def add_line(
+        self,
+        obj: typing.Any,
+        *,
+        to_start: bool = False,
+        _unused_dont_alter: bool = False,
+    ) -> None:
         """Adds a string, and a new line."""
         if to_start:
-            self.add('\n', to_start=True)
+            self.add("\n", to_start=True)
 
             for line in reversed(str(obj).splitlines(keepends=True)):
                 self.add(line, to_start=True)
         else:
             for line in str(obj).splitlines(keepends=True):
                 self.add(line)
-            self.add('\n')
+            self.add("\n")
 
-    def add_break(self, *,
-                  to_start: bool = False) -> None:
+    def add_break(self, *, to_start: bool = False) -> None:
         """Inserts in a page break."""
         self.add(self._page_break, to_start=to_start)

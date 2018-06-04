@@ -40,16 +40,15 @@ from wordnik import WordApi, swagger
 from discomaton import book
 from neko2.shared import alg, commands, configfiles, errors, traits
 
-config_file = 'wordnik'
+config_file = "wordnik"
 
-wordnik_endpoint = 'http://api.wordnik.com/v4'
+wordnik_endpoint = "http://api.wordnik.com/v4"
 
 
 def deswagger(node):
     """Unravels the swagger types into Python primitives.."""
-    if node is not None and hasattr(node, 'swaggerTypes'):
-        data = {st: deswagger(getattr(node, st, None))
-                for st in node.swaggerTypes}
+    if node is not None and hasattr(node, "swaggerTypes"):
+        data = {st: deswagger(getattr(node, st, None)) for st in node.swaggerTypes}
         return data
     elif isinstance(node, str):
         # Remove XML.
@@ -67,11 +66,11 @@ def deswagger(node):
 
 def rank_d(name):
     """Helper for ranking dictionaries. A smaller number is better."""
-    if name == 'gcide':
+    if name == "gcide":
         return 0
-    elif name == 'wordnet':
+    elif name == "wordnet":
         return 1
-    elif name == 'ahd':
+    elif name == "ahd":
         return 3
     else:
         return 2
@@ -90,7 +89,7 @@ def sorting_key(word: dict):
 def ellipse(text: str, maximum=1024) -> typing.Optional[str]:
     if not text:
         return embeds.EmptyEmbed
-    return text[:maximum - 3] + '...' if len(text) > maximum else text
+    return text[: maximum - 3] + "..." if len(text) > maximum else text
 
 
 def quote(text: str):
@@ -102,15 +101,15 @@ def quote(text: str):
             y = x
         return text.startswith(x) and text.endswith(y)
 
-    if any(pred(x) for x in ('"', "'", ('‘', '’'), ('“', '”'))):
+    if any(pred(x) for x in ('"', "'", ("‘", "’"), ("“", "”"))):
         text = text[1:-1]
 
     # Ensure capitalised start
-    text = f'{text[0:1].upper()}{text[1:]}'
-    if not any(text.endswith(x) for x in ('!', '?', '.', ',')):
-        text += '.'
+    text = f"{text[0:1].upper()}{text[1:]}"
+    if not any(text.endswith(x) for x in ("!", "?", ".", ",")):
+        text += "."
 
-    return f'“{text}”'
+    return f"“{text}”"
 
 
 class WordnikCog(traits.CogTraits):
@@ -130,15 +129,16 @@ class WordnikCog(traits.CogTraits):
         partial = functools.partial(
             self.api.getDefinitions,
             phrase,
-            sourceDictionaries='all',
+            sourceDictionaries="all",
             includeRelated=True,
             useCanonical=True,
-            includeTags=True)
+            includeTags=True,
+        )
 
         try:
             results = await self.run_in_io_executor(partial)
             if not isinstance(results, list):
-                raise errors.NotFound('No result was found.')
+                raise errors.NotFound("No result was found.")
             else:
                 # Remove XML, convert to dict, as this is easier to look at.
                 for i, result in enumerate(results):
@@ -147,14 +147,15 @@ class WordnikCog(traits.CogTraits):
             results.sort(key=sorting_key)
 
         except urllib.error.HTTPError:
-            raise errors.NotFound('No result was found.')
+            raise errors.NotFound("No result was found.")
         else:
             return results
 
     @commands.group(
-        brief='Looks up phrases in online dictionaries',
+        brief="Looks up phrases in online dictionaries",
         invoke_without_command=True,
-        aliases=['def'])
+        aliases=["def"],
+    )
     async def define(self, ctx, *, phrase: str):
 
         try:
@@ -166,50 +167,50 @@ class WordnikCog(traits.CogTraits):
         pages = []
 
         for result in results:
-            extended_text = ellipse(result.get('extendedText', None))
-            source = result.get('attributionText', result['sourceDictionary'])
-            citations = [f'{quote(c["cite"])} - {c["source"]}'
-                         for c in result.get('citations', []) if c["cite"]]
-            citations = ellipse('\n\n'.join(citations))
-            examples = [e["text"] for e in result.get('exampleUses', [])]
+            extended_text = ellipse(result.get("extendedText", None))
+            source = result.get("attributionText", result["sourceDictionary"])
+            citations = [
+                f'{quote(c["cite"])} - {c["source"]}'
+                for c in result.get("citations", [])
+                if c["cite"]
+            ]
+            citations = ellipse("\n\n".join(citations))
+            examples = [e["text"] for e in result.get("exampleUses", [])]
             # Capitalise each example, and quote it.
             examples = [quote(e) for e in examples]
-            examples = ellipse('\n\n'.join(examples))
-            title = result['word'].upper()
-            part_of_speech = result.get('partOfSpeech', None)
-            definition = result.get('text', '_No definition_')
+            examples = ellipse("\n\n".join(examples))
+            title = result["word"].upper()
+            part_of_speech = result.get("partOfSpeech", None)
+            definition = result.get("text", "_No definition_")
             if part_of_speech:
-                definition = '**' + part_of_speech + '**: ' + definition
+                definition = "**" + part_of_speech + "**: " + definition
             definition = ellipse(definition, 2000)
 
             # Maps relation type to sets of words.
             related = {}
-            for rel_word in result.get('relatedWords', []):
-                rwl = related.setdefault(rel_word['relationshipType'], set())
-                for word in rel_word['words']:
+            for rel_word in result.get("relatedWords", []):
+                rwl = related.setdefault(rel_word["relationshipType"], set())
+                for word in rel_word["words"]:
                     rwl.add(word.title())
 
             embed = embeds.Embed(
-                title=title,
-                description=definition,
-                colour=alg.rand_colour())
+                title=title, description=definition, colour=alg.rand_colour()
+            )
 
             embed.set_footer(text=source)
 
             if extended_text:
-                embed.add_field(name='Extended definition',
-                                value=extended_text)
+                embed.add_field(name="Extended definition", value=extended_text)
 
             if citations:
-                embed.add_field(name='Citations', value=citations)
+                embed.add_field(name="Citations", value=citations)
 
             if examples:
-                embed.add_field(name='Examples', value=examples)
+                embed.add_field(name="Examples", value=examples)
 
             if related:
                 for relation, words in related.items():
-                    embed.add_field(name=f'{relation}s'.title(),
-                                    value=', '.join(words))
+                    embed.add_field(name=f"{relation}s".title(), value=", ".join(words))
 
             pages.append(embed)
 

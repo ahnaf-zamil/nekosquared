@@ -34,7 +34,7 @@ import typing
 
 from neko2.cogs.units.models import PotentialValueModel
 
-__all__ = ('tokenize',)
+__all__ = ("tokenize",)
 
 # Regex to match a unit of measurement. This essentially looks for a word
 # boundary, followed by a valid IEEE floating point representation of a number,
@@ -58,14 +58,14 @@ __all__ = ('tokenize',)
 #     EDIT 2: To simplify regex. We pad the input string by a space either
 #        side to prevent having to match start and end of string.
 raw_unit_pattern = (
-    r'(?<=\s)([-+]?(?:(?:\d+)[.]\d+|\d+)(?:[eE][-+]?\d+)?)(\s?)(.+?)(?=\s)'
+    r"(?<=\s)([-+]?(?:(?:\d+)[.]\d+|\d+)(?:[eE][-+]?\d+)?)(\s?)(.+?)(?=\s)"
 )
 
 pattern = re.compile(raw_unit_pattern, re.I)
 
 
 def tokenize(input_string: str) -> typing.Iterator[PotentialValueModel]:
-    input_string = ' ' + input_string + ' '
+    input_string = " " + input_string + " "
     matches = list(pattern.finditer(input_string))
 
     for result in matches:

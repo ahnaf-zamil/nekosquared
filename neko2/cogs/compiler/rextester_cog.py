@@ -36,14 +36,14 @@ from .toolchains import rextester
 
 
 class RextesterCog(traits.CogTraits):
-
     @commands.probably_broken
     @commands.group(
         invoke_without_command=True,
-        name='rextester',
-        aliases=['rxt'],
-        brief='Attempts to execute the code using '
-              '[rextester.](http://rextester.com)')
+        name="rextester",
+        aliases=["rxt"],
+        brief="Attempts to execute the code using "
+        "[rextester.](http://rextester.com)",
+    )
     async def rextester_group(self, ctx, *, source):
         """
         Attempts to execute some code by detecting the language in the
@@ -63,9 +63,11 @@ class RextesterCog(traits.CogTraits):
 
         if not code_block or len(code_block.groups()) < 2:
             booklet = bookbinding.StringBookBinder(ctx)
-            booklet.add_line('I couldn\'t detect a valid language in your '
-                             'syntax highlighting... try again by editing '
-                             'your initial message.')
+            booklet.add_line(
+                "I couldn't detect a valid language in your "
+                "syntax highlighting... try again by editing "
+                "your initial message."
+            )
             booklet = booklet.build()
             booklet.start()
 
@@ -77,16 +79,16 @@ class RextesterCog(traits.CogTraits):
 
         if language not in rextester.Language.__members__:
             booklet = bookbinding.StringBookBinder(ctx)
-            booklet.add_line('Doesn\'t look like I support that language. '
-                             'Run `rtx help` for a list.')
+            booklet.add_line(
+                "Doesn't look like I support that language. "
+                "Run `rtx help` for a list."
+            )
 
             booklet = booklet.build()
             booklet.start()
             return await tools.listen_to_edit(ctx, booklet)
 
-        booklet = bookbinding.StringBookBinder(ctx,
-                                               prefix='```markdown',
-                                               suffix='```')
+        booklet = bookbinding.StringBookBinder(ctx, prefix="```markdown", suffix="```")
 
         lang_no = rextester.Language.__members__[language]
 
@@ -94,28 +96,30 @@ class RextesterCog(traits.CogTraits):
         response = await rextester.execute(http, lang_no, source)
 
         if response.errors:
-            booklet.add_line('> ERRORS:')
+            booklet.add_line("> ERRORS:")
             booklet.add_line(response.errors)
 
         if response.warnings:
-            booklet.add_line('> WARNINGS:')
+            booklet.add_line("> WARNINGS:")
             booklet.add_line(response.warnings)
 
         if response.result:
-            booklet.add_line('> OUTPUT:')
+            booklet.add_line("> OUTPUT:")
             booklet.add_line(response.result)
 
         booklet.add_line(response.stats)
 
         if response.files:
-            booklet.add_line(f'- {len(response.files)} file(s) included. Bug '
-                             'Esp to implement this properly!')
+            booklet.add_line(
+                f"- {len(response.files)} file(s) included. Bug "
+                "Esp to implement this properly!"
+            )
 
         booklet = booklet.build()
         booklet.start()
         await tools.listen_to_edit(ctx, booklet)
 
-    @rextester_group.command(brief='Shows help for supported languages.')
+    @rextester_group.command(brief="Shows help for supported languages.")
     async def help(self, ctx, *, language=None):
         """
         Shows all supported languages and their markdown highlighting
@@ -123,13 +127,15 @@ class RextesterCog(traits.CogTraits):
         """
         if not language:
             booklet = bookbinding.StringBookBinder(ctx)
-            booklet.add_line('**Supported languages**')
+            booklet.add_line("**Supported languages**")
 
             for lang in sorted(rextester.Language.__members__.keys()):
                 lang = lang.lower()
-                booklet.add_line(f'- {lang.title()} -- `{ctx.prefix}rxt '
-                                 f'ˋˋˋ{lang} ...`')
+                booklet.add_line(
+                    f"- {lang.title()} -- `{ctx.prefix}rxt " f"ˋˋˋ{lang} ...`"
+                )
             booklet.start()
         else:
-            await ctx.send('There is nothing here yet. The developer has '
-                           'been shot as a result.')
+            await ctx.send(
+                "There is nothing here yet. The developer has " "been shot as a result."
+            )

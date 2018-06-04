@@ -38,14 +38,19 @@ import typing  # Type checking
 import cached_property  # Caching properties
 import discord  # Message type.
 from discord.ext import commands as discord_commands
+
 # noinspection PyUnresolvedReferences
 from discord.ext.commands.context import Context
+
 # noinspection PyUnresolvedReferences
 from discord.ext.commands.converter import *
+
 # noinspection PyUnresolvedReferences
 from discord.ext.commands.cooldowns import *
+
 # noinspection PyUnresolvedReferences
 from discord.ext.commands.core import *
+
 # noinspection PyUnresolvedReferences
 from discord.ext.commands.errors import *
 
@@ -58,6 +63,7 @@ class CommandMixin:
     """
     Basic command implementation override.
     """
+
     name: property
     aliases: property
     full_parent_name: property
@@ -67,7 +73,7 @@ class CommandMixin:
     examples: list
 
     def __init__(self, *args, **kwargs):
-        self.examples = kwargs.pop('examples', [])
+        self.examples = kwargs.pop("examples", [])
 
     @cached_property.cached_property
     def names(self) -> typing.FrozenSet[str]:
@@ -79,7 +85,7 @@ class CommandMixin:
         """Gets all qualified aliases."""
         parent_fqcn = self.full_parent_name
         if parent_fqcn:
-            parent_fqcn += ' '
+            parent_fqcn += " "
         return frozenset({parent_fqcn + alias for alias in self.aliases})
 
     @cached_property.cached_property
@@ -104,34 +110,36 @@ class Group(discord_commands.Group, CommandMixin):
         CommandMixin.__init__(self, **kwargs)
 
     def command(self, **kwargs):
-        kwargs.setdefault('cls', Command)
+        kwargs.setdefault("cls", Command)
         return super().command(**kwargs)
 
     def group(self, **kwargs):
-        kwargs.setdefault('cls', Group)
+        kwargs.setdefault("cls", Group)
         return super().group(**kwargs)
 
 
 def command(**kwargs):
     """Decorator for a command."""
     # Ensure the class is set correctly.
-    cls = kwargs.pop('cls', Command)
-    kwargs['cls'] = cls
+    cls = kwargs.pop("cls", Command)
+    kwargs["cls"] = cls
     return discord_commands.command(**kwargs)
 
 
 def group(**kwargs):
     """Decorator for a command group."""
     # Ensure the class is set correctly.
-    cls = kwargs.pop('cls', Group)
-    kwargs['cls'] = cls
+    cls = kwargs.pop("cls", Group)
+    kwargs["cls"] = cls
     return discord_commands.command(**kwargs)
 
 
-def acknowledge(ctx: Context,
-                *,
-                emoji: str = '\N{OK HAND SIGN}',
-                timeout: typing.Optional[float] = 15) -> None:
+def acknowledge(
+    ctx: Context,
+    *,
+    emoji: str = "\N{OK HAND SIGN}",
+    timeout: typing.Optional[float] = 15,
+) -> None:
     """
     Acknowledges the message in the given context. This tries to add a reaction
     and if this is not possible, it replies with a message holding the emoji
@@ -174,7 +182,8 @@ class StatusMessage:
     Wraps around a message to enable using it as a status message by using
     a unified function call
     """
-    __slots__ = ('invoked_by', 'message_to_edit')
+
+    __slots__ = ("invoked_by", "message_to_edit")
 
     def __init__(self, invoked_by: typing.Union[discord.Message, Context]):
         if isinstance(invoked_by, Context):
@@ -196,7 +205,7 @@ class StatusMessage:
 
     @property
     def current_content(self) -> str:
-        return self.message_to_edit.content if self.message_to_edit else ''
+        return self.message_to_edit.content if self.message_to_edit else ""
 
     @property
     def current_embed(self) -> typing.Optional[discord.Embed]:
@@ -229,11 +238,13 @@ async def try_delete(message: typing.Union[Context, discord.Message]):
         return False
 
 
-async def wait_for_edit(*,
-                        ctx: Context,
-                        msg: typing.Optional[discord.Message] = None,
-                        timeout: float,
-                        custom_delete=None):
+async def wait_for_edit(
+    *,
+    ctx: Context,
+    msg: typing.Optional[discord.Message] = None,
+    timeout: float,
+    custom_delete=None,
+):
     """
     Listens for the on_message_edit event for a given period of time, before
     returning. If nothing happens and the timeout is hit, we return quietly.
@@ -249,13 +260,14 @@ async def wait_for_edit(*,
     :param custom_delete: optional coroutine to handle deleting the initial
             message.
     """
-    if not hasattr(ctx.command, 'qualified_names'):
-        raise TypeError('This utility coroutine only works on command types '
-                        'that are derived from '
-                        'neko2.engine.commands.CommandMixin.')
+    if not hasattr(ctx.command, "qualified_names"):
+        raise TypeError(
+            "This utility coroutine only works on command types "
+            "that are derived from "
+            "neko2.engine.commands.CommandMixin."
+        )
 
-    def predicate(_before: discord.Message,
-                  _after: discord.Message) -> bool:
+    def predicate(_before: discord.Message, _after: discord.Message) -> bool:
         if _after.id != ctx.message.id:
             return False
         # 17th April 2017: fixed so that pinning original message ctx
@@ -266,15 +278,14 @@ async def wait_for_edit(*,
         elif not _after.content.startswith(ctx.prefix):
             return False
         else:
-            _content = _after.content[len(ctx.prefix):].lstrip()
+            _content = _after.content[len(ctx.prefix) :].lstrip()
 
-            return any(_content.startswith(a)
-                       for a in ctx.command.qualified_names)
+            return any(_content.startswith(a) for a in ctx.command.qualified_names)
 
     try:
-        _, after = await ctx.bot.wait_for('message_edit',
-                                          check=predicate,
-                                          timeout=timeout)
+        _, after = await ctx.bot.wait_for(
+            "message_edit", check=predicate, timeout=timeout
+        )
         new_ctx = await ctx.bot.get_context(after)
 
         if msg is not None:
@@ -301,13 +312,13 @@ def probably_broken(command):
     any unhandled exceptions a bit better, and not spam the bot-owner's
     inbox while applied to a command.
     """
-    assert isinstance(command, discord_commands.Command), \
-        'Re-order your decorators, yo!'
+    assert isinstance(
+        command, discord_commands.Command
+    ), "Re-order your decorators, yo!"
 
     old_callback = command.callback
 
-    async def new_callback(self, ctx: discord_commands.Context,
-                           *args, **kwargs):
+    async def new_callback(self, ctx: discord_commands.Context, *args, **kwargs):
         try:
             return await old_callback(self, ctx, *args, **kwargs)
         except BaseException:
@@ -315,22 +326,24 @@ def probably_broken(command):
 
             p = discord_commands.Paginator()
 
-            p.add_line('Uh-oh. You broke it.')
-            p.add_line('This feature is still under development, so '
-                       'hiccups like this are bound to happen. Please let the '
-                       'bot owner know about this issue, giving the following '
-                       'details!')
+            p.add_line("Uh-oh. You broke it.")
+            p.add_line(
+                "This feature is still under development, so "
+                "hiccups like this are bound to happen. Please let the "
+                "bot owner know about this issue, giving the following "
+                "details!"
+            )
             p.close_page()
 
-            p.add_line('Command invocation:')
-            p.add_line(f'\t{ctx.message.clean_content}', empty=True)
+            p.add_line("Command invocation:")
+            p.add_line(f"\t{ctx.message.clean_content}", empty=True)
 
-            p.add_line(f'Message snowflake: {ctx.message.id}')
-            p.add_line(f'Author: {ctx.author}')
-            p.add_line(f'Guild: {ctx.guild}')
-            p.add_line(f'Channel: {ctx.channel}')
-            p.add_line(f'Created on: {ctx.message.created_at}')
-            p.add_line(f'Edited on: {ctx.message.edited_at}')
+            p.add_line(f"Message snowflake: {ctx.message.id}")
+            p.add_line(f"Author: {ctx.author}")
+            p.add_line(f"Guild: {ctx.guild}")
+            p.add_line(f"Channel: {ctx.channel}")
+            p.add_line(f"Created on: {ctx.message.created_at}")
+            p.add_line(f"Edited on: {ctx.message.edited_at}")
 
             p.close_page()
 
@@ -343,14 +356,17 @@ def probably_broken(command):
     command.callback = new_callback
 
     # Set a flag.
-    setattr(command.callback, '_probably_broken', True)
+    setattr(command.callback, "_probably_broken", True)
     return command
 
 
 def not_bot():
     """Only allows the command to invoke if the author is not a bot."""
+
     def decorator(command):
         def bot_check(ctx):
             return not ctx.message.author.bot
+
         return check(bot_check)(command)
+
     return decorator

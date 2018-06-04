@@ -41,11 +41,19 @@ import heapq  # Built-in heap data-type.
 import re  # Regex to match word boundaries.
 import typing  # Type hinting.
 
-__all__ = ('tokenize_sort', 'float_to_ratio', 'ratio', 'quick_ratio',
-           'real_quick_ratio', 'deep_ratio', 'sorted_token_ratio',
-           'extract', 'extract_best')
+__all__ = (
+    "tokenize_sort",
+    "float_to_ratio",
+    "ratio",
+    "quick_ratio",
+    "real_quick_ratio",
+    "deep_ratio",
+    "sorted_token_ratio",
+    "extract",
+    "extract_best",
+)
 
-_word = re.compile(r'\w+')
+_word = re.compile(r"\w+")
 
 # Function type for a ratio helper. Takes two strings and returns an int
 # such that 0 <= int <= 100
@@ -62,7 +70,7 @@ def tokenize_sort(text: str) -> str:
     tokens = _word.findall(text)
     # In-place lexicographical sort.
     tokens.sort()
-    return ' '.join(tokens)
+    return " ".join(tokens)
 
 
 def float_to_ratio(value: float) -> int:
@@ -142,7 +150,7 @@ def best_partial(a: str, b: str) -> int:
         start = max(j - i, 0)
 
         # The substring of the longer string we are interested in.
-        sub_long = long[start:start + len(short)]
+        sub_long = long[start : start + len(short)]
 
         block_matcher = difflib.SequenceMatcher(None, short, sub_long)
 
@@ -193,11 +201,13 @@ _result_t = typing.Tuple[str, int]
 _results_t = typing.Iterable[_result_t]
 
 
-def _results_iterator(query: str,
-                      choices: typing.Iterable[str],
-                      *,
-                      scoring_algorithm: _scorer = quick_ratio,
-                      min_score: int = 0) -> _results_t:
+def _results_iterator(
+    query: str,
+    choices: typing.Iterable[str],
+    *,
+    scoring_algorithm: _scorer = quick_ratio,
+    min_score: int = 0,
+) -> _results_t:
     """
     Generates an iterator of results for the given query out of the given
     choices.
@@ -215,12 +225,14 @@ def _results_iterator(query: str,
             yield choice, score
 
 
-def extract(query: str,
-            choices: typing.Iterable[str],
-            *,
-            scoring_algorithm: _scorer = quick_ratio,
-            min_score: int = 0,
-            max_results: typing.Union[int, None] = 10) -> _results_t:
+def extract(
+    query: str,
+    choices: typing.Iterable[str],
+    *,
+    scoring_algorithm: _scorer = quick_ratio,
+    min_score: int = 0,
+    max_results: typing.Union[int, None] = 10,
+) -> _results_t:
     """
     Extracts upto ``max_results`` of the best matches for ``query`` in the
     iterable ``choices`` using the ``scoring_algorithm`` and ignoring any
@@ -228,27 +240,26 @@ def extract(query: str,
     """
 
     it = _results_iterator(
-        query,
-        choices,
-        scoring_algorithm=scoring_algorithm,
-        min_score=min_score)
+        query, choices, scoring_algorithm=scoring_algorithm, min_score=min_score
+    )
 
     def key(x):
         return x[1]
 
     # If we need the limit, construct a heap of the n largest elements first,
     # otherwise, we can just use the raw iterator.
-    results = (it if not max_results
-               else heapq.nlargest(max_results, it, key=key))
+    results = it if not max_results else heapq.nlargest(max_results, it, key=key)
 
     return sorted(results, reverse=True, key=key)
 
 
-def extract_best(query: str,
-                 choices: typing.Iterable[str],
-                 *,
-                 scoring_algorithm: _scorer = quick_ratio,
-                 min_score: int = 0) -> _result_t:
+def extract_best(
+    query: str,
+    choices: typing.Iterable[str],
+    *,
+    scoring_algorithm: _scorer = quick_ratio,
+    min_score: int = 0,
+) -> _result_t:
     """
     Extracts the best result for the query in the given choices... if there is
     one!
@@ -259,7 +270,8 @@ def extract_best(query: str,
         choices,
         scoring_algorithm=scoring_algorithm,
         min_score=min_score,
-        max_results=1)
+        max_results=1,
+    )
 
     result = list(result)
 

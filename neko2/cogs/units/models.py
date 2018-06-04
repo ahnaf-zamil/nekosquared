@@ -36,19 +36,26 @@ from dataclasses import dataclass
 
 from neko2.shared import alg
 
-__all__ = ('UnitCategoryModel', 'UnitModel', 'UnitCollectionModel',
-           'PotentialValueModel', 'ValueModel', 'pretty_print')
+__all__ = (
+    "UnitCategoryModel",
+    "UnitModel",
+    "UnitCollectionModel",
+    "PotentialValueModel",
+    "ValueModel",
+    "pretty_print",
+)
 
 
 @enum.unique
 class UnitCategoryModel(enum.Enum):
     """Holds a category of units."""
+
     DISTANCE = enum.auto()
     TIME = enum.auto()
     SPEED = enum.auto()
     VOLUME = enum.auto()
-    FORCE_MASS = enum.auto(),
-    DATA = enum.auto(),
+    FORCE_MASS = (enum.auto(),)
+    DATA = (enum.auto(),)
     TEMPERATURE = enum.auto()
 
 
@@ -81,14 +88,16 @@ class UnitModel:
     """
 
     # What 1 si of whatever this unit measures is in this specific unit.
-    def __init__(self,
-                 to_si: typing.Callable[[Decimal], Decimal],
-                 from_si: typing.Callable[[Decimal], Decimal],
-                 name: str,
-                 *other_names: str,
-                 is_si: bool = False,
-                 exclude_from_conversions=False,
-                 never_use_std_form=False):
+    def __init__(
+        self,
+        to_si: typing.Callable[[Decimal], Decimal],
+        from_si: typing.Callable[[Decimal], Decimal],
+        name: str,
+        *other_names: str,
+        is_si: bool = False,
+        exclude_from_conversions=False,
+        never_use_std_form=False,
+    ):
         self.names = (name, *other_names)
         self._to_si = to_si
         self._from_si = from_si
@@ -109,7 +118,7 @@ class UnitModel:
         """Converts this measurement from the SI equivalent to this."""
         return self._from_si(si)
 
-    def __eq__(self, other: typing.Union[str, 'UnitModel']):
+    def __eq__(self, other: typing.Union[str, "UnitModel"]):
         """Equality is defines as a string match for any name"""
         if isinstance(other, UnitModel):
             return super().__eq__(other)
@@ -125,19 +134,22 @@ class UnitModel:
 
     def __repr__(self):
         return (
-            f'<Unit name={self.name} '
-            f'aliases={f", ".join(a for a in self.names[1:])}')
+            f"<Unit name={self.name} "
+            f'aliases={f", ".join(a for a in self.names[1:])}'
+        )
 
     def _set_unit_category(self, cat: UnitCategoryModel):
         self.unit_type = cat
 
     @classmethod
-    def new_cv(cls,
-               si_per_this: typing.Union[str, Decimal],
-               name: str,
-               *other_names: str,
-               exclude_from_conversions=False,
-               never_use_std_form=False) -> "UnitModel":
+    def new_cv(
+        cls,
+        si_per_this: typing.Union[str, Decimal],
+        name: str,
+        *other_names: str,
+        exclude_from_conversions=False,
+        never_use_std_form=False,
+    ) -> "UnitModel":
         """
         Initialises a unit that is purely a multiple of the SI quantity.
 
@@ -153,28 +165,39 @@ class UnitModel:
         def from_si(c: Decimal):
             return c / si_per_this
 
-        return cls(to_si, from_si, name, *other_names,
-                   exclude_from_conversions=exclude_from_conversions,
-                   never_use_std_form=never_use_std_form)
+        return cls(
+            to_si,
+            from_si,
+            name,
+            *other_names,
+            exclude_from_conversions=exclude_from_conversions,
+            never_use_std_form=never_use_std_form,
+        )
 
     @classmethod
-    def new_si(cls, name: str, *other_names: str,
-               never_use_std_form=False) -> "UnitModel":
+    def new_si(
+        cls, name: str, *other_names: str, never_use_std_form=False
+    ) -> "UnitModel":
         """Initialises a new SI measurement."""
 
         # noinspection PyTypeChecker
         def pass_through(x):
             return x
 
-        return cls(pass_through, pass_through, name, *other_names, is_si=True,
-                   never_use_std_form=never_use_std_form)
+        return cls(
+            pass_through,
+            pass_through,
+            name,
+            *other_names,
+            is_si=True,
+            never_use_std_form=never_use_std_form,
+        )
 
 
 class UnitCollectionModel:
-    def __init__(self,
-                 category: UnitCategoryModel,
-                 si: UnitModel,
-                 *other_conversions: UnitModel):
+    def __init__(
+        self, category: UnitCategoryModel, si: UnitModel, *other_conversions: UnitModel
+    ):
         self.si = si
         self.unit_type = category
         # Obviously.
@@ -210,7 +233,7 @@ class UnitCollectionModel:
         if unit == to:
             return qty
         else:
-            return Decimal('1')
+            return Decimal("1")
 
     def find_conversions(self, qty: Decimal, unit: UnitModel):
         """
@@ -237,16 +260,18 @@ class PotentialValueModel:
     A tokenized potential measurement that matches our input regex. It has not
     yet been verified as an existing measurement in our dictionary however.
     """
+
     value: Decimal
     unit: str
 
     def __str__(self):
-        return f'{self.value} {self.unit}'
+        return f"{self.value} {self.unit}"
 
 
 @dataclass(init=False)
 class ValueModel:
     """An instance of a measurement that we have interpreted successfully."""
+
     value: Decimal
     unit: UnitModel
 
@@ -266,40 +291,42 @@ class ValueModel:
         return hash(self.value)
 
     def __str__(self):
-        return f'{round(float(self.value), 4):g} {self.unit.names[-1]}'
+        return f"{round(float(self.value), 4):g} {self.unit.names[-1]}"
 
 
 # Maps a base-10 logarithm to the suffix. For example,
 # -6 = 10^-6 = micro = µ. The mapped values are a tuple of abbreviation
 # and full name, so in this example, we expect the pair `-6: ('µ', 'micro')`
 bases = {
-    -24: ('y', 'yocto'),
-    -21: ('z', 'zepto'),
-    -18: ('a', 'atto'),
-    -15: ('f', 'femto'),
-    -12: ('p', 'pico'),
-    -9: ('n', 'nano'),
-    -6: ('µ', 'micro'),
-    -3: ('m', 'milli'),
-    -2: ('c', 'centi'),
+    -24: ("y", "yocto"),
+    -21: ("z", "zepto"),
+    -18: ("a", "atto"),
+    -15: ("f", "femto"),
+    -12: ("p", "pico"),
+    -9: ("n", "nano"),
+    -6: ("µ", "micro"),
+    -3: ("m", "milli"),
+    -2: ("c", "centi"),
     # Ignore deci, as this is not often used.
-    +0: ('', ''),
-    +3: ('k', 'kilo'),
-    +6: ('M', 'mega'),
-    +9: ('G', 'giga'),
-    +12: ('T', 'tera'),
-    +15: ('P', 'peta'),
-    +18: ('E', 'exa'),
-    +21: ('Z', 'zetta'),
-    +24: ('Y', 'yotta'),
+    +0: ("", ""),
+    +3: ("k", "kilo"),
+    +6: ("M", "mega"),
+    +9: ("G", "giga"),
+    +12: ("T", "tera"),
+    +15: ("P", "peta"),
+    +18: ("E", "exa"),
+    +21: ("Z", "zetta"),
+    +24: ("Y", "yotta"),
 }
 
 
-def pretty_print(d: Decimal,
-                 suffix_name: str,
-                 use_long_suffix=False,
-                 use_std_form=True,
-                 none_if_rounds_to_zero=False):
+def pretty_print(
+    d: Decimal,
+    suffix_name: str,
+    use_long_suffix=False,
+    use_std_form=True,
+    none_if_rounds_to_zero=False,
+):
     """
     Python is a pain when it comes to formatting decimals/floats in the
     format I want. Therefore it is probably just easier for me to write the
@@ -319,9 +346,9 @@ def pretty_print(d: Decimal,
 
     def trunc(rounded_str):
         # Remove trailing zeros if we have any.
-        if '.' in rounded_str and 'e' not in rounded_str.lower():
-            while rounded_str[-1] in ('0', '.'):
-                premature_break = rounded_str[-1] == '.'
+        if "." in rounded_str and "e" not in rounded_str.lower():
+            while rounded_str[-1] in ("0", "."):
+                premature_break = rounded_str[-1] == "."
                 rounded_str = rounded_str[:-1]
                 if premature_break:
                     break
@@ -348,12 +375,12 @@ def pretty_print(d: Decimal,
     # Divide by the chosen power of ten to get the
     # value in the base we want.
     if use_std_form:
-        if Decimal('0.00001') <= abs(d) < Decimal('1000000000') or d.is_zero():
-            rounded_str = f'{d:,.6f}'
-            return f'{trunc(rounded_str)} {suffix_name}'
+        if Decimal("0.00001") <= abs(d) < Decimal("1000000000") or d.is_zero():
+            rounded_str = f"{d:,.6f}"
+            return f"{trunc(rounded_str)} {suffix_name}"
             # return f'{d:,.4f} {suffix_name}'
         else:
-            return f'{d:,.4e} {suffix_name}'
+            return f"{d:,.4e} {suffix_name}"
             # return f'{d:,.4g} {suffix_name}'
     else:
         d /= Decimal(10 ** chosen_pot)
@@ -363,8 +390,8 @@ def pretty_print(d: Decimal,
         if rounded == Decimal(0) and none_if_rounds_to_zero:
             return None
         else:
-            rounded_str = f'{rounded:,f}'
+            rounded_str = f"{rounded:,f}"
             rounded_str = trunc(rounded_str)
             return (
-                f'{rounded_str} '
-                f'{suffix[1 if use_long_suffix else 0]}{suffix_name}')
+                f"{rounded_str} " f"{suffix[1 if use_long_suffix else 0]}{suffix_name}"
+            )

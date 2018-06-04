@@ -35,45 +35,53 @@ from neko2.shared import alg, commands, converters, perms
 
 
 class BotUtils:
-    @commands.group(name='dev', brief='A collection of useful tools for '
-                                      'bot developers.',
-                    invoke_without_command=True)
+    @commands.group(
+        name="dev",
+        brief="A collection of useful tools for " "bot developers.",
+        invoke_without_command=True,
+    )
     async def botdev_group(self, ctx, *, child):
-        ctx.message.content = f'{ctx.bot.command_prefix}help botdev'
+        ctx.message.content = f"{ctx.bot.command_prefix}help botdev"
         ctx = await ctx.bot.get_context(ctx.message)
         await ctx.bot.invoke(ctx)
 
     @botdev_group.command(
-        name='invite',
-        brief='Generates an OAuth invite URL from a given snowflake client ID',
-        help='Valid options: ```' +
-             ', '.join(perms.Permissions.__members__.keys()) +
-             '```')
+        name="invite",
+        brief="Generates an OAuth invite URL from a given snowflake client ID",
+        help="Valid options: ```"
+        + ", ".join(perms.Permissions.__members__.keys())
+        + "```",
+    )
     async def generate_invite(self, ctx, client_id: str, *permissions: str):
         perm_bits = 0
 
         for permission in permissions:
             if permission.upper() not in perms.Permissions.__members__.keys():
-                return await ctx.send(f'{permission} is not recognised.')
+                return await ctx.send(f"{permission} is not recognised.")
             else:
                 perm_bits |= perms.Permissions[permission.upper()]
 
         await ctx.send(
             utils.oauth_url(
                 client_id,
-                permissions=perm_bits if hasattr(perm_bits, 'value') else None,
-                guild=ctx.guild
-            ))    
-    @botdev_group.command(aliases=['getid', 'snowflake', 'getsf', 'getsnowflake'],
-                          description='Gets the given object\'s snowflake. If no '
-                                      'object is given, then I will output your '
-                                      'snowflake.')
-    async def id(self, ctx, object: converters.MentionConverter=None):
+                permissions=perm_bits if hasattr(perm_bits, "value") else None,
+                guild=ctx.guild,
+            )
+        )
+
+    @botdev_group.command(
+        aliases=["getid", "snowflake", "getsf", "getsnowflake"],
+        description="Gets the given object's snowflake. If no "
+        "object is given, then I will output your "
+        "snowflake.",
+    )
+    async def id(self, ctx, object: converters.MentionConverter = None):
         if object is None:
             object = ctx.author
         await ctx.message.delete()
-        await ctx.send(object.id, embed=Embed(title=f'{object} ID', 
-                                              colour=alg.rand_colour()))
+        await ctx.send(
+            object.id, embed=Embed(title=f"{object} ID", colour=alg.rand_colour())
+        )
 
 
 def setup(bot):

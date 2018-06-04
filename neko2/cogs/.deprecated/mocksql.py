@@ -37,11 +37,11 @@ import re
 
 from neko2.shared import commands
 
-regex = re.compile(r'```[a-zA-Z0-9]+\s([\s\S(^\\`{3})]*?)\s*```')
+regex = re.compile(r"```[a-zA-Z0-9]+\s([\s\S(^\\`{3})]*?)\s*```")
 
 
 class MockSqlCog:
-    @commands.command(brief='iTS pRonOunCeD sEquEl')
+    @commands.command(brief="iTS pRonOunCeD sEquEl")
     async def mocksql(self, ctx, *, markup):
         markup_scrub = regex.match(markup)
         if markup_scrub:
@@ -52,14 +52,13 @@ class MockSqlCog:
         single_comment = False
         multiline_comment = False
 
-        output = ''
+        output = ""
         index = 0
 
         while index < len(markup):
-            if any((single_quote, double_quote,
-                    single_comment, multiline_comment)):
+            if any((single_quote, double_quote, single_comment, multiline_comment)):
                 output += markup[index]
-                if single_comment and markup[index] == '\n':
+                if single_comment and markup[index] == "\n":
                     single_comment = False
                     index += 1
                 elif single_quote and markup[index] == "'":
@@ -68,9 +67,9 @@ class MockSqlCog:
                 elif double_quote and markup[index] == '"':
                     double_quote = False
                     index += 1
-                elif multiline_comment and markup[index:].startswith('*/'):
+                elif multiline_comment and markup[index:].startswith("*/"):
                     multiline_comment = False
-                    output += '/'
+                    output += "/"
                     index += 2
                 else:
                     index += 1
@@ -80,13 +79,13 @@ class MockSqlCog:
                 else:
                     output += markup[index].lower()
 
-                if markup[index:].startswith('--'):
+                if markup[index:].startswith("--"):
                     single_comment = True
-                    output += '-'
+                    output += "-"
                     index += 2
-                elif markup[index:].startswith('/*'):
+                elif markup[index:].startswith("/*"):
                     multiline_comment = True
-                    output += '*'
+                    output += "*"
                     index += 2
                 elif markup[index] == '"':
                     double_quote = True
@@ -97,7 +96,7 @@ class MockSqlCog:
                 else:
                     index += 1
 
-        await ctx.send(f'```sql\n{output}\n```\n')
+        await ctx.send(f"```sql\n{output}\n```\n")
 
 
 def setup(bot):

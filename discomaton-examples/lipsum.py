@@ -32,7 +32,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # Provides us with a large enough quantity of text to generate reasonably large
 # pagination examples.
 
-lorem_ipsum = '''
+lorem_ipsum = (
+    """
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec in condimentum 
 elit. Donec aliquet tellus at nibh lobortis pulvinar. Morbi rhoncus dui sit 
 amet auctor ornare. Donec ut fringilla magna. In in tellus vel metus 
@@ -488,7 +489,8 @@ in. Curabitur fringilla eget augue sed convallis. Fusce tellus ipsum, pretium
 non velit at, porttitor gravida augue. Praesent et tellus sed massa commodo 
 laoreet. Donec eu dignissim felis. Fusce elementum viverra metus, at tempor 
 risus porta sit amet.
-'''.lstrip()
+""".lstrip()
+)
 
 # Gets around 500 chars.
-lorem_about_500 = lorem_ipsum[:lorem_ipsum.find(' ', 500)]
+lorem_about_500 = lorem_ipsum[: lorem_ipsum.find(" ", 500)]

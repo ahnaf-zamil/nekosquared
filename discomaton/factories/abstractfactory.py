@@ -31,10 +31,10 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 import abc
 import typing
 
-__all__ = ('AbstractFactory',)
+__all__ = ("AbstractFactory",)
 
-InputT = typing.TypeVar('InputT')
-OutputT = typing.TypeVar('OutputT')
+InputT = typing.TypeVar("InputT")
+OutputT = typing.TypeVar("OutputT")
 
 
 class AbstractFactory(abc.ABC, typing.Generic[InputT, OutputT]):

@@ -31,7 +31,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 import inspect  # Stack frame inspection
 import os  # OS path utils
 
-__all__ = ('in_here', 'json', 'yaml', 'get_inode_type')
+__all__ = ("in_here", "json", "yaml", "get_inode_type")
 
 
 def in_here(*paths, nested_by=0):
@@ -53,11 +53,12 @@ def in_here(*paths, nested_by=0):
     try:
         frame = inspect.stack()[1 + nested_by]
     except IndexError:
-        raise RuntimeError('Could not find a stack record. Interpreter has '
-                           'been shot.')
+        raise RuntimeError(
+            "Could not find a stack record. Interpreter has " "been shot."
+        )
     else:
         module = inspect.getmodule(frame[0])
-        assert hasattr(module, '__file__'), 'No __file__ attr, whelp.'
+        assert hasattr(module, "__file__"), "No __file__ attr, whelp."
 
         file = module.__file__
 
@@ -65,7 +66,7 @@ def in_here(*paths, nested_by=0):
         abs_dir_name = os.path.abspath(dir_name)
 
         result = os.path.join(abs_dir_name, *paths)
-    
+
     # This is to prevent cyclic references that screw the interpreter up.
     del frame
     return result
@@ -106,10 +107,10 @@ def get_inode_type(*paths):
     if not os.path.exists(path):
         return None
     elif os.path.islink(path):
-        return 'link'
+        return "link"
     elif os.path.isfile(path):
-        return 'file'
+        return "file"
     elif os.path.isdir(path):
-        return 'dir'
+        return "dir"
     else:
-        assert False, f'Unknown inode type for {path}.'
+        assert False, f"Unknown inode type for {path}."

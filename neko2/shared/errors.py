@@ -29,7 +29,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-__all__ = ('HttpError', 'NotFound')
+__all__ = ("HttpError", "NotFound")
 
 
 class HttpError(RuntimeError):
@@ -45,7 +45,7 @@ class HttpError(RuntimeError):
         return self.response.status
 
     def __str__(self):
-        return f'{self.status}: {self.reason}'
+        return f"{self.status}: {self.reason}"
 
 
 class NotFound(RuntimeError):

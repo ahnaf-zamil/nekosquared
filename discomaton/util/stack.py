@@ -31,17 +31,17 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 import collections
 import typing
 
-__all__ = ('Stack',)
+__all__ = ("Stack",)
 
-StackType = typing.TypeVar('StackType')
+StackType = typing.TypeVar("StackType")
 
 
 class Stack(collections.Sequence, typing.Generic[StackType]):
     """Implementation of a stack."""
 
-    def __init__(self,
-                 items: typing.Optional[typing.Sequence[StackType]] = None) \
-            -> None:
+    def __init__(
+        self, items: typing.Optional[typing.Sequence[StackType]] = None
+    ) -> None:
         """
         Initialise the stack.
         :param items: the items to add to the stack initially.

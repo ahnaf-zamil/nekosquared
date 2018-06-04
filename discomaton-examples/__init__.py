@@ -50,11 +50,10 @@ def setup(bot):
     @bot.command()
     async def version(ctx):
         await ctx.send(
-            f'Created by {__author__} as an example for Discomaton '
-            f'v{__version__}. Licensed under {__license__}.'
+            f"Created by {__author__} as an example for Discomaton "
+            f"v{__version__}. Licensed under {__license__}."
         )
 
     @bot.listen()
     async def on_ready():
-        await bot.change_presence(
-            activity=discord.Game(name=__repository__[8:]))
+        await bot.change_presence(activity=discord.Game(name=__repository__[8:]))

@@ -42,11 +42,12 @@ class BangBangCog:
 
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.not_bot()
-    @commands.command(aliases=['!!'], brief='Reinvoke the last command.')
+    @commands.command(aliases=["!!"], brief="Reinvoke the last command.")
     async def bangbang(self, ctx: commands.Context):
         if ctx.author not in self.user2context:
-            await ctx.send('No command history. Perhaps the bot restarted?',
-                           delete_after=10)
+            await ctx.send(
+                "No command history. Perhaps the bot restarted?", delete_after=10
+            )
         else:
             await self.user2context[ctx.author].reinvoke(call_hooks=True)
 

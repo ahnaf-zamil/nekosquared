@@ -39,7 +39,7 @@ import async_timeout
 
 from neko2.shared import scribe  # Scribe
 
-__all__ = ('CogTraits',)
+__all__ = ("CogTraits",)
 
 
 def _magic_number(*, cpu_bound=False):
@@ -67,6 +67,7 @@ def _magic_number(*, cpu_bound=False):
 
 class CogTraits(scribe.Scribe):
     """Contains any shared resource traits we may want to acquire."""
+
     __io_pool: concurrent.futures.Executor = None
     __http_pool: aiohttp.ClientSession = None
     __loop: asyncio.AbstractEventLoop = None
@@ -74,10 +75,11 @@ class CogTraits(scribe.Scribe):
     @classmethod
     async def _alloc(cls, loop):
         cls.__loop = loop
-        cls.logger.info('Initialising IO pool.')
+        cls.logger.info("Initialising IO pool.")
         cls.__io_pool = concurrent.futures.ThreadPoolExecutor(
-            _magic_number(cpu_bound=False))
-        cls.logger.info('Initialising HTTP session.')
+            _magic_number(cpu_bound=False)
+        )
+        cls.logger.info("Initialising HTTP session.")
         cls.__http_pool = aiohttp.ClientSession(loop=loop)
 
     @classmethod
@@ -108,21 +110,19 @@ class CogTraits(scribe.Scribe):
 
     @classmethod
     def file(cls, file_name, *args, **kwargs):
-        kwargs.setdefault('executor', cls.__io_pool)
-        kwargs.setdefault('loop', cls.__loop)
+        kwargs.setdefault("executor", cls.__io_pool)
+        kwargs.setdefault("loop", cls.__loop)
 
-        return functools.partial(
-            aiofiles.open,
-            file_name,
-            *args,
-            **kwargs)()
+        return functools.partial(aiofiles.open, file_name, *args, **kwargs)()
 
     @classmethod
-    async def run_in_io_executor(cls,
-                                 call: typing.Callable,
-                                 args: typing.List = None,
-                                 kwargs: typing.Dict = None,
-                                 loop=None):
+    async def run_in_io_executor(
+        cls,
+        call: typing.Callable,
+        args: typing.List = None,
+        kwargs: typing.Dict = None,
+        loop=None,
+    ):
         if not loop:
             loop = cls.__loop
 
@@ -132,5 +132,5 @@ class CogTraits(scribe.Scribe):
             kwargs = {}
 
         return await loop.run_in_executor(
-            cls.__io_pool,
-            functools.partial(call, *args, **kwargs))
+            cls.__io_pool, functools.partial(call, *args, **kwargs)
+        )

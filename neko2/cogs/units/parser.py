@@ -41,8 +41,9 @@ def _parse(input_model: PotentialValueModel) -> typing.Optional[ValueModel]:
         return ValueModel(input_model.value, unit_type)
 
 
-def parse(input_model: PotentialValueModel,
-          *input_models: PotentialValueModel) -> typing.Iterator[ValueModel]:
+def parse(
+    input_model: PotentialValueModel, *input_models: PotentialValueModel
+) -> typing.Iterator[ValueModel]:
     """
     Takes one or more input models that may be a measurement, and attempts
     to parse them, returning an iterator across all parsed results,

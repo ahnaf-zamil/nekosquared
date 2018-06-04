@@ -29,11 +29,12 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from neko2.shared import ioutil
 
-
-with open(ioutil.in_here('modules')) as fp:
-    modules = list(filter(lambda s: s.strip() and not s.startswith('#'), fp.readlines()))
+with open(ioutil.in_here("modules")) as fp:
+    modules = list(
+        filter(lambda s: s.strip() and not s.startswith("#"), fp.readlines())
+    )
     for i in range(0, len(modules)):
-        modules[i] = modules[i].replace('*.', 'neko2.cogs.')
+        modules[i] = modules[i].replace("*.", "neko2.cogs.")
 
     modules = frozenset(map(str.strip, modules))
 del fp

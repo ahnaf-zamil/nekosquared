@@ -47,7 +47,7 @@ from . import conversions, lex, models, parser
 
 # Wait 30 minutes.
 TIME_TO_WAIT = 30 * 60
-REACTION = '\N{STRAIGHT RULER}'
+REACTION = "\N{STRAIGHT RULER}"
 
 
 class UnitCog(traits.CogTraits):
@@ -58,9 +58,9 @@ class UnitCog(traits.CogTraits):
         # Do not respond to bots
         lambda m: not m.author.bot,
         # Do not respond to code blocks
-        lambda m: '```' not in m.content,
+        lambda m: "```" not in m.content,
         # Do not respond to DMs.
-        lambda m: bool(m.guild)
+        lambda m: bool(m.guild),
     )
 
     # async def on_message(self, message):
@@ -72,9 +72,9 @@ class UnitCog(traits.CogTraits):
     #
     #         if e:
     #             await self.await_result_request(message, e)
-
-    @commands.command(brief='Performs conversions on the given input.',
-                      aliases=['conv'])
+    @commands.command(
+        brief="Performs conversions on the given input.", aliases=["conv"]
+    )
     async def convert(self, ctx, *, query=None):
         """
         If no input is given, the previous message in chat is inspected.
@@ -93,7 +93,7 @@ class UnitCog(traits.CogTraits):
                 if is_next:
                     query = message.content
                 else:
-                    raise ValueError('No valid message found in history.')
+                    raise ValueError("No valid message found in history.")
 
             e = await self.run_in_io_executor(self.worker, [query])
             await ctx.send(embed=e)
@@ -108,27 +108,28 @@ class UnitCog(traits.CogTraits):
         tokens = list(lex.tokenize(message))
 
         if not tokens:
-            raise ValueError('No potential unit matches found.')
+            raise ValueError("No potential unit matches found.")
 
         # Parse real unit measurements that we can convert.
         quantities = list(parser.parse(*tokens))
 
         if not quantities:
-            raise ValueError('No actual unit matches found.')
+            raise ValueError("No actual unit matches found.")
 
         # Get any conversions
         equivalents = collections.OrderedDict()
 
         for quantity in quantities:
             compatible = conversions.get_compatible_models(
-                quantity.unit, ignore_self=True)
+                quantity.unit, ignore_self=True
+            )
 
             # Convert to SI first.
             si = quantity.unit.to_si(quantity.value)
 
             this_equivalents = tuple(
-                models.ValueModel(c.from_si(si), c)
-                for c in compatible)
+                models.ValueModel(c.from_si(si), c) for c in compatible
+            )
 
             equivalents[quantity] = this_equivalents
 
@@ -144,7 +145,8 @@ class UnitCog(traits.CogTraits):
                     equivalent.name,
                     use_long_suffix=True,
                     use_std_form=not original.unit.never_use_std_form,
-                    none_if_rounds_to_zero=True)
+                    none_if_rounds_to_zero=True,
+                )
                 equiv_str.append(equivalent)
 
             equiv_str = list(filter(bool, equiv_str))
@@ -158,28 +160,30 @@ class UnitCog(traits.CogTraits):
                     original.name,
                     use_long_suffix=True,
                     use_std_form=not original.unit.never_use_std_form,
-                    none_if_rounds_to_zero=False),
-                value='\n'.join(equiv_str))
+                    none_if_rounds_to_zero=False,
+                ),
+                value="\n".join(equiv_str),
+            )
 
             if original.unit.unit_type == models.UnitCategoryModel.FORCE_MASS:
                 if not mass_msg_added:
                     mass_msg_added = True
                     embed.set_footer(
-                        text='This example assumes that mass measurements are '
-                             'accelerating at 1G. Likewise, acceleration '
-                             'assumes that it applies to 1kg mass.')
+                        text="This example assumes that mass measurements are "
+                        "accelerating at 1G. Likewise, acceleration "
+                        "assumes that it applies to 1kg mass."
+                    )
 
         if not len(embed.fields):
             del embed
-            raise ValueError('No valid or non-zero conversions found.')
+            raise ValueError("No valid or non-zero conversions found.")
 
         return embed
 
     async def await_result_request(self, original_message, embed):
         try:
             # Run asynchronously to be more responsive.
-            self.bot.loop.create_task(
-                original_message.add_reaction(REACTION))
+            self.bot.loop.create_task(original_message.add_reaction(REACTION))
 
             def predicate(reaction, user):
                 c1 = reaction.message.id == original_message.id
@@ -188,9 +192,9 @@ class UnitCog(traits.CogTraits):
 
                 return all((c1, c2, c3))
 
-            _, user = await self.bot.wait_for('reaction_add',
-                                              check=predicate,
-                                              timeout=TIME_TO_WAIT)
+            _, user = await self.bot.wait_for(
+                "reaction_add", check=predicate, timeout=TIME_TO_WAIT
+            )
 
             m = await original_message.channel.get_message(original_message.id)
 

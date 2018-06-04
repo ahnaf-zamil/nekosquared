@@ -20,15 +20,19 @@ from .util import validate
 from .util.helpers import attempt_delete
 from .util.stack import Stack
 
-__all__ = ('default_buttons', 'default_formatter', 'AbstractBooklet',
-           'StringBooklet', 'EmbedBooklet', 'FormatterType')
+__all__ = (
+    "default_buttons",
+    "default_formatter",
+    "AbstractBooklet",
+    "StringBooklet",
+    "EmbedBooklet",
+    "FormatterType",
+)
 
-PageType = typing.TypeVar('PageType')
-PagesType = typing.Union[
-    typing.Tuple[PageType],
-    typing.List[PageType]]
+PageType = typing.TypeVar("PageType")
+PagesType = typing.Union[typing.Tuple[PageType], typing.List[PageType]]
 CheckType = typing.Callable[[discord.Reaction, discord.User], bool]
-FormatterType = typing.Callable[['AbstractBooklet'], str]
+FormatterType = typing.Callable[["AbstractBooklet"], str]
 
 # Can be reassigned if we need to do something else for debugging.
 in_future = asyncio.ensure_future
@@ -48,28 +52,34 @@ def default_buttons() -> typing.List[Button]:
 
         return decorator
 
-    @_as_button(name='Go to the first page', reaction='⏮')
-    async def go_to_start(_unused_button: Button,
-                          machine: 'AbstractBooklet',
-                          _unused_reaction: discord.Reaction,
-                          _unused_user: discord.User) -> None:
+    @_as_button(name="Go to the first page", reaction="⏮")
+    async def go_to_start(
+        _unused_button: Button,
+        machine: "AbstractBooklet",
+        _unused_reaction: discord.Reaction,
+        _unused_user: discord.User,
+    ) -> None:
         # print('|<<')
         await machine.set_page_index(0)
 
-    @_as_button(name='Go back 10 pages', reaction='⏪')
-    async def go_back_10_pages(_unused_button: Button,
-                               machine: 'AbstractBooklet',
-                               _unused_reaction: discord.Reaction,
-                               _unused_user: discord.User) -> None:
+    @_as_button(name="Go back 10 pages", reaction="⏪")
+    async def go_back_10_pages(
+        _unused_button: Button,
+        machine: "AbstractBooklet",
+        _unused_reaction: discord.Reaction,
+        _unused_user: discord.User,
+    ) -> None:
         minimum = 0
         current = machine.page_index
         await machine.set_page_index(max(minimum, current - 10))
 
-    @_as_button(name='Previous page', reaction='◀')
-    async def previous_page(_unused_button: Button,
-                            machine: 'AbstractBooklet',
-                            _unused_reaction: discord.Reaction,
-                            _unused_user: discord.User) -> None:
+    @_as_button(name="Previous page", reaction="◀")
+    async def previous_page(
+        _unused_button: Button,
+        machine: "AbstractBooklet",
+        _unused_reaction: discord.Reaction,
+        _unused_user: discord.User,
+    ) -> None:
         # print('<-')
         await machine.move_forwards_by(-1)
 
@@ -82,14 +92,16 @@ def default_buttons() -> typing.List[Button]:
         machine.only_author = False
     """
 
-    @_as_button(name='Enter a page number', reaction='🔢')
-    async def enter_page(_unused_button: Button,
-                         machine: 'AbstractBooklet',
-                         _usused_reaction: discord.Reaction,
-                         user: discord.User) -> None:
+    @_as_button(name="Enter a page number", reaction="🔢")
+    async def enter_page(
+        _unused_button: Button,
+        machine: "AbstractBooklet",
+        _usused_reaction: discord.Reaction,
+        user: discord.User,
+    ) -> None:
         from .userinput import get_user_input
 
-        setattr(machine, '_is_showing_page_prompt', True)
+        setattr(machine, "_is_showing_page_prompt", True)
 
         def predicate(message):
             if not message.content.isdigit():
@@ -100,24 +112,24 @@ def default_buttons() -> typing.List[Button]:
                 page = int(message.content)
                 return 1 < page <= len(machine.pages)
 
-        prompt = await machine.channel.send('Enter a page number:')
+        prompt = await machine.channel.send("Enter a page number:")
         msg = None
 
         # noinspection PyProtectedMember
         async def later_callback():
             nonlocal msg
             try:
-                msg = await get_user_input((machine.channel, machine.client),
-                                           only_if=predicate,
-                                           timeout=30)
+                msg = await get_user_input(
+                    (machine.channel, machine.client), only_if=predicate, timeout=30
+                )
             except asyncio.TimeoutError:
-                await machine.channel.send('Took too long.', delete_after=10)
+                await machine.channel.send("Took too long.", delete_after=10)
             else:
                 page_number = int(msg.content)
                 await machine.set_page_number(page_number)
             finally:
                 await (attempt_delete(prompt, msg) if msg else attempt_delete(prompt))
-                setattr(machine, '_is_showing_page_prompt', False)
+                setattr(machine, "_is_showing_page_prompt", False)
                 await machine._flush_reacts()
 
         return in_future(later_callback())
@@ -160,37 +172,46 @@ def default_buttons() -> typing.List[Button]:
         setattr(machine, '_help_shown', True)
     """
 
-    @_as_button(name='Next page', reaction='▶')
-    async def next_page(_unused_button: Button,
-                        machine: 'AbstractBooklet',
-                        _unused_reaction: discord.Reaction,
-                        _unused_user: discord.User) -> None:
+    @_as_button(name="Next page", reaction="▶")
+    async def next_page(
+        _unused_button: Button,
+        machine: "AbstractBooklet",
+        _unused_reaction: discord.Reaction,
+        _unused_user: discord.User,
+    ) -> None:
         # print('->')
         await machine.move_forwards_by(1)
 
-    @_as_button(name='Go forwards 10 pages', reaction='⏩')
-    async def go_forwards_10_pages(_unused_button: Button,
-                                   machine: 'AbstractBooklet',
-                                   _unused_reaction: discord.Reaction,
-                                   _unused_user: discord.User) -> None:
+    @_as_button(name="Go forwards 10 pages", reaction="⏩")
+    async def go_forwards_10_pages(
+        _unused_button: Button,
+        machine: "AbstractBooklet",
+        _unused_reaction: discord.Reaction,
+        _unused_user: discord.User,
+    ) -> None:
         maximum = len(machine)
         current = machine.page_number
         await machine.set_page_number(min(maximum, current + 10))
 
-    @_as_button(name='Go to the last page', reaction='⏭')
-    async def go_to_end(_unused_button: Button,
-                        machine: 'AbstractBooklet',
-                        _unused_reaction: discord.Reaction,
-                        _unused_user: discord.User) -> None:
+    @_as_button(name="Go to the last page", reaction="⏭")
+    async def go_to_end(
+        _unused_button: Button,
+        machine: "AbstractBooklet",
+        _unused_reaction: discord.Reaction,
+        _unused_user: discord.User,
+    ) -> None:
         # print('>>|')
         await machine.set_page_index(-1)
 
-    @_as_button(name='Delete message',
-                reaction='\N{REGIONAL INDICATOR SYMBOL LETTER X}')
-    async def delete(_unused_button: Button,
-                     machine: 'AbstractBooklet',
-                     _unused_reaction: discord.Reaction,
-                     _unused_user: discord.User) -> None:
+    @_as_button(
+        name="Delete message", reaction="\N{REGIONAL INDICATOR SYMBOL LETTER X}"
+    )
+    async def delete(
+        _unused_button: Button,
+        machine: "AbstractBooklet",
+        _unused_reaction: discord.Reaction,
+        _unused_user: discord.User,
+    ) -> None:
         await machine.clear_stack()
         await machine.initial_message.delete()
         raise StopAsyncIteration
@@ -208,7 +229,7 @@ def default_buttons() -> typing.List[Button]:
     @enter_page.with_predicate
     @go_back_10_pages.with_predicate
     @go_forwards_10_pages.with_predicate
-    def multiple_pages_only(machine: 'AbstractBooklet') -> bool:
+    def multiple_pages_only(machine: "AbstractBooklet") -> bool:
         return len(machine) > 1
 
     """
@@ -219,23 +240,21 @@ def default_buttons() -> typing.List[Button]:
 
     @go_back_10_pages.with_predicate
     @go_forwards_10_pages.with_predicate
-    def ten_or_more_pages(machine: 'AbstractBooklet') -> bool:
+    def ten_or_more_pages(machine: "AbstractBooklet") -> bool:
         return len(machine) >= 30
 
     @enter_page.with_predicate
-    def only_one_prompt_at_once(machine: 'AbstractBooklet') -> bool:
-        return not getattr(machine, '_is_showing_page_prompt', False)
+    def only_one_prompt_at_once(machine: "AbstractBooklet") -> bool:
+        return not getattr(machine, "_is_showing_page_prompt", False)
 
     return buttons
 
 
-def default_formatter(self: 'AbstractBooklet') -> str:
-    return f'**[{self.page_number:,}/{len(self):,}]**\n'
+def default_formatter(self: "AbstractBooklet") -> str:
+    return f"**[{self.page_number:,}/{len(self):,}]**\n"
 
 
-class AbstractBooklet(AbstractIterableMachine,
-                      abc.ABC,
-                      typing.Generic[PageType]):
+class AbstractBooklet(AbstractIterableMachine, abc.ABC, typing.Generic[PageType]):
     """
     Abstract class type for a type of booklet. Most of the logic for booklets
     is defined here. The only thing that is not implemented is how to format
@@ -292,6 +311,7 @@ class AbstractBooklet(AbstractIterableMachine,
     formatter: Callable[[AbstractBooklet], str]
         The current page number formatter.
     """
+
     buttons: typing.Iterable[Button]
     pages: PagesType
     client: discord.Client
@@ -304,22 +324,20 @@ class AbstractBooklet(AbstractIterableMachine,
     iterations: int
     formatter: FormatterType
 
-    def __init__(self,
-                 *,
-                 buttons: typing.List[Button],
-                 pages: typing.List[PageType],
-                 ctx: typing.Union[
-                     discord_cmds.Context,
-                     typing.Tuple[
-                         discord.Message,
-                         discord.TextChannel,
-                         discord.Client
-                     ]],
-                 timeout: typing.Optional[float] = 300,
-                 start_page: int = 0,
-                 only_author: bool = True,
-                 formatter: FormatterType = default_formatter
-                 ) -> None:
+    def __init__(
+        self,
+        *,
+        buttons: typing.List[Button],
+        pages: typing.List[PageType],
+        ctx: typing.Union[
+            discord_cmds.Context,
+            typing.Tuple[discord.Message, discord.TextChannel, discord.Client],
+        ],
+        timeout: typing.Optional[float] = 300,
+        start_page: int = 0,
+        only_author: bool = True,
+        formatter: FormatterType = default_formatter,
+    ) -> None:
         """
         Initialise the booklet.
         """
@@ -338,9 +356,9 @@ class AbstractBooklet(AbstractIterableMachine,
             self.__page_index = 0
             self._page_index = start_page
         except IndexError:
-            raise IndexError('Expected at least one page') from None
+            raise IndexError("Expected at least one page") from None
         except TypeError:
-            raise IndexError('Expected a sequence of pages') from None
+            raise IndexError("Expected a sequence of pages") from None
 
         if isinstance(ctx, discord_cmds.Context):
             self.initial_message = ctx.message
@@ -350,8 +368,7 @@ class AbstractBooklet(AbstractIterableMachine,
             self.initial_message, self.channel, self.client = ctx
 
         if self.initial_message.guild is None:
-            raise discord_cmds.NoPrivateMessage(
-                'Cannot add buttons to a book in a DM.')
+            raise discord_cmds.NoPrivateMessage("Cannot add buttons to a book in a DM.")
 
         self.only_author = only_author
 
@@ -362,7 +379,7 @@ class AbstractBooklet(AbstractIterableMachine,
             self.buttons[button.reaction] = button
 
         self.response_stk: Stack[discord.Message] = Stack()
-           
+
     async def set_starting_page_number(self, number):
         self._page_number = number
         self.__current_page = self.pages[number]
@@ -410,7 +427,7 @@ class AbstractBooklet(AbstractIterableMachine,
         # We use the length of pages as a condition to prevent infinite looping
         # if the user changes this to have zero pages.
         if not self.pages:
-            raise ValueError('Must have at least one page.')
+            raise ValueError("Must have at least one page.")
 
         # Enables us to wrap around the front and back of the book seamlessly.
         while index < 0:
@@ -462,7 +479,7 @@ class AbstractBooklet(AbstractIterableMachine,
         if 0 < number <= len(self.pages):
             self._page_index = number - 1
         else:
-            raise IndexError(f'{number} is outside range [1,{len(self.pages)}]')
+            raise IndexError(f"{number} is outside range [1,{len(self.pages)}]")
 
     def __len__(self):
         """Gets the number of pages in this booklet."""
@@ -502,9 +519,9 @@ class AbstractBooklet(AbstractIterableMachine,
         """Gets the current page we are set to display on sync."""
         return self.__current_page
 
-    def _is_reaction_valid(self,
-                           reaction: discord.Reaction,
-                           user: discord.User) -> bool:
+    def _is_reaction_valid(
+        self, reaction: discord.Reaction, user: discord.User
+    ) -> bool:
         """
         Internal predicate used to determine whether or not to acknowledge this
         event as a potential change of state. If this returns True, then
@@ -547,8 +564,7 @@ class AbstractBooklet(AbstractIterableMachine,
         is_valid_button = reaction.emoji in self.buttons
         is_not_bot = not user.bot
 
-        return all((
-            is_same_message, is_valid_author, is_valid_button, is_not_bot))
+        return all((is_same_message, is_valid_author, is_valid_button, is_not_bot))
 
     async def clear_stack(self) -> None:
         """Clears all messages on the message stack and deletes them."""
@@ -605,7 +621,7 @@ class AbstractBooklet(AbstractIterableMachine,
             # permission.
             await root.add_reaction(reaction)
         except BaseException as ex:
-            self.logger.debug(f'IGNORING API ERROR {type(ex).__name__}: {ex}')
+            self.logger.debug(f"IGNORING API ERROR {type(ex).__name__}: {ex}")
 
     async def _maybe_clear_reactions(self) -> None:
         try:
@@ -613,7 +629,7 @@ class AbstractBooklet(AbstractIterableMachine,
             if msg:
                 await msg.clear_reactions()
         except BaseException as ex:
-            self.logger.debug(f'IGNORING API ERROR {type(ex).__name__}: {ex}')
+            self.logger.debug(f"IGNORING API ERROR {type(ex).__name__}: {ex}")
 
     async def _flush_reacts(self) -> None:
         """
@@ -625,10 +641,7 @@ class AbstractBooklet(AbstractIterableMachine,
 
         # Delay slightly to enable discord to catch up. Ensure to update the
         # root otherwise we won't know what reacts we need to clear.
-        await asyncio.gather(
-            asyncio.sleep(0.1),
-            self.__update_root()
-        )
+        await asyncio.gather(asyncio.sleep(0.1), self.__update_root())
 
         root = await self.root_resp
 
@@ -642,7 +655,7 @@ class AbstractBooklet(AbstractIterableMachine,
             if button.should_show(self):
                 targets.append(button.reaction)
 
-        assert targets, 'No buttons'
+        assert targets, "No buttons"
 
         try:
             for curr in curr_reacts:
@@ -681,27 +694,27 @@ class AbstractBooklet(AbstractIterableMachine,
             flush_future = in_future(self._flush_reacts())
 
             reaction, user = await self.client.wait_for(
-                'reaction_add',
-                check=self._is_reaction_valid,
-                timeout=self.timeout)
+                "reaction_add", check=self._is_reaction_valid, timeout=self.timeout
+            )
 
             await flush_future
             await (await self.root_resp).remove_reaction(reaction, user)
             await self.buttons[reaction.emoji](self, reaction, user)
 
         except asyncio.TimeoutError:
-            self.logger.debug('TIMEOUT HIT')
+            self.logger.debug("TIMEOUT HIT")
             raise StopAsyncIteration
         except discord.Forbidden as ex:
             # noinspection PyBroadException
             try:
                 await self.clear_stack()
                 await self.channel.send(
-                    'I am missing permissions to display this correctly...\n\n'
-                    'If you are the server owner, make sure that I can:\n'
-                    ' - React to messages (`ADD_REACTIONS`)\n'
-                    ' - Manage other users messages (`MANAGE_MESSAGES`)\n'
-                    ' - Use external emojis (`USE_EXTERNAL_EMOJIS`).')
+                    "I am missing permissions to display this correctly...\n\n"
+                    "If you are the server owner, make sure that I can:\n"
+                    " - React to messages (`ADD_REACTIONS`)\n"
+                    " - Manage other users messages (`MANAGE_MESSAGES`)\n"
+                    " - Use external emojis (`USE_EXTERNAL_EMOJIS`)."
+                )
             except BaseException:
                 traceback.print_exc()
             finally:
@@ -807,28 +820,29 @@ class StringBooklet(AbstractBooklet, typing.Generic[typing.AnyStr]):
         The current page number formatter.
     """
 
-    def __init__(self,
-                 *,
-                 buttons: typing.List[Button] = default_buttons(),
-                 pages: PagesType,
-                 ctx: typing.Union[
-                     discord_cmds.Context,
-                     typing.Tuple[
-                         discord.Message,
-                         discord.TextChannel,
-                         discord.Client
-                     ]],
-                 timeout: float = 300,
-                 start_page: int = 0,
-                 only_author: bool = True,
-                 formatter: FormatterType = default_formatter) -> None:
-        super().__init__(buttons=buttons,
-                         pages=pages,
-                         ctx=ctx,
-                         timeout=timeout,
-                         start_page=start_page,
-                         only_author=only_author,
-                         formatter=formatter)
+    def __init__(
+        self,
+        *,
+        buttons: typing.List[Button] = default_buttons(),
+        pages: PagesType,
+        ctx: typing.Union[
+            discord_cmds.Context,
+            typing.Tuple[discord.Message, discord.TextChannel, discord.Client],
+        ],
+        timeout: float = 300,
+        start_page: int = 0,
+        only_author: bool = True,
+        formatter: FormatterType = default_formatter,
+    ) -> None:
+        super().__init__(
+            buttons=buttons,
+            pages=pages,
+            ctx=ctx,
+            timeout=timeout,
+            start_page=start_page,
+            only_author=only_author,
+            formatter=formatter,
+        )
 
     async def sync(self):
         """
@@ -936,28 +950,29 @@ class EmbedBooklet(AbstractBooklet):
         The current page number formatter.
     """
 
-    def __init__(self,
-                 *,
-                 buttons: typing.List[Button] = default_buttons(),
-                 pages: PagesType,
-                 ctx: typing.Union[
-                     discord_cmds.Context,
-                     typing.Tuple[
-                         discord.Message,
-                         discord.TextChannel,
-                         discord.Client
-                     ]],
-                 timeout: float = 300,
-                 start_page: int = 0,
-                 only_author: bool = True,
-                 formatter: FormatterType = default_formatter) -> None:
-        super().__init__(buttons=buttons,
-                         pages=pages,
-                         ctx=ctx,
-                         timeout=timeout,
-                         start_page=start_page,
-                         only_author=only_author,
-                         formatter=formatter)
+    def __init__(
+        self,
+        *,
+        buttons: typing.List[Button] = default_buttons(),
+        pages: PagesType,
+        ctx: typing.Union[
+            discord_cmds.Context,
+            typing.Tuple[discord.Message, discord.TextChannel, discord.Client],
+        ],
+        timeout: float = 300,
+        start_page: int = 0,
+        only_author: bool = True,
+        formatter: FormatterType = default_formatter,
+    ) -> None:
+        super().__init__(
+            buttons=buttons,
+            pages=pages,
+            ctx=ctx,
+            timeout=timeout,
+            start_page=start_page,
+            only_author=only_author,
+            formatter=formatter,
+        )
 
     @property
     def loading_message(self):
@@ -965,37 +980,39 @@ class EmbedBooklet(AbstractBooklet):
         Embeds have to be sent differently to messages, which breaks
         stuff. For now, let's just send a silly message.
         """
-        return random.choice((
-            'Reticulating splines',
-            'Shrinking BIG DATA',
-            'Waiting for Discord to unfreeze',
-            'Waiting for Danny to release rewrite',
-            'Phubbing bot accounts',
-            'Separating reality from Wikiality',
-            'Undatafying intrusive datafication',
-            'Unemptying empty embeds automagically',
-            'Executing fast-fourier transforms in the complex plane',
-            'Updating Windows 10',
-            'Still updating Windows 10',
-            'Is Windows 10 even responding?',
-            'Leaking tokens',
-            'Leaking memory',
-            'Ensuring substitution failure is not an error',
-            'Deallocating allocators',
-            'The neutrinos coming from the sun have mutating!',
-            'Mogrifying SQL queries',
-            'Downloading 12GB of TeXLive packages',
-            'Ensuring futures',
-            'Awaiting coroutines',
-            'Some Java updater shit',
-            'Activating Adobe CS5.5',
-            'Atomically operating atomic operations',
-            'Randomly generating pseudo random number generators',
-            'Playing a game of ~~mersenne~~ twister with the bois',
-            'Compiling Boost',
-            'Looking for ways to use jQuery',
-            'Propagating properties'
-        ))
+        return random.choice(
+            (
+                "Reticulating splines",
+                "Shrinking BIG DATA",
+                "Waiting for Discord to unfreeze",
+                "Waiting for Danny to release rewrite",
+                "Phubbing bot accounts",
+                "Separating reality from Wikiality",
+                "Undatafying intrusive datafication",
+                "Unemptying empty embeds automagically",
+                "Executing fast-fourier transforms in the complex plane",
+                "Updating Windows 10",
+                "Still updating Windows 10",
+                "Is Windows 10 even responding?",
+                "Leaking tokens",
+                "Leaking memory",
+                "Ensuring substitution failure is not an error",
+                "Deallocating allocators",
+                "The neutrinos coming from the sun have mutating!",
+                "Mogrifying SQL queries",
+                "Downloading 12GB of TeXLive packages",
+                "Ensuring futures",
+                "Awaiting coroutines",
+                "Some Java updater shit",
+                "Activating Adobe CS5.5",
+                "Atomically operating atomic operations",
+                "Randomly generating pseudo random number generators",
+                "Playing a game of ~~mersenne~~ twister with the bois",
+                "Compiling Boost",
+                "Looking for ways to use jQuery",
+                "Propagating properties",
+            )
+        )
 
     async def sync(self) -> None:
         """

@@ -32,11 +32,10 @@ import asyncio
 
 import discord
 
-__all__ = ('attempt_delete',)
+__all__ = ("attempt_delete",)
 
 
-async def attempt_delete(message: discord.Message,
-                         *messages: discord.Message) -> None:
+async def attempt_delete(message: discord.Message, *messages: discord.Message) -> None:
     """Attempts to delete all messages given to the call."""
     messages = (message, *messages)
 
@@ -46,6 +45,4 @@ async def attempt_delete(message: discord.Message,
         except:
             return
 
-    await asyncio.gather(*[
-        _consume_error_delete(m) for m in [*messages]
-    ])
+    await asyncio.gather(*[_consume_error_delete(m) for m in [*messages]])

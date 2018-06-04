@@ -30,9 +30,15 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import re
 
-
-__all__ = ('remove_single_lines', 'trunc', 'plur_simple', 'plur_diff',
-           'yn', 'cap', 'pascal2title')
+__all__ = (
+    "remove_single_lines",
+    "trunc",
+    "plur_simple",
+    "plur_diff",
+    "yn",
+    "cap",
+    "pascal2title",
+)
 
 
 def remove_single_lines(string: str) -> str:
@@ -53,14 +59,14 @@ def remove_single_lines(string: str) -> str:
         if lines:
             return lines[-1]
         else:
-            return ''
+            return ""
 
     for line in string.splitlines():
         line = line.rstrip()
 
         # Empty line
         if not line:
-            lines.append('')
+            lines.append("")
 
         # Continuation
         elif line[0].isalpha():
@@ -69,7 +75,7 @@ def remove_single_lines(string: str) -> str:
             current_line = [line]
             if previous_line():
                 current_line.insert(0, previous_line())
-            current_line = ' '.join(current_line)
+            current_line = " ".join(current_line)
 
             if previous_line():
                 lines[-1] = current_line
@@ -80,7 +86,7 @@ def remove_single_lines(string: str) -> str:
         else:
             lines.append(line)
 
-    return '\n'.join(lines)
+    return "\n".join(lines)
 
 
 def trunc(text, max_length: int = 2000):
@@ -88,24 +94,24 @@ def trunc(text, max_length: int = 2000):
     if len(text) <= max_length:
         return text
     else:
-        return text[0:max_length - 3] + '...'
+        return text[0 : max_length - 3] + "..."
 
 
-def plur_simple(cardinality: int, word: str, suffix='s'):
+def plur_simple(cardinality: int, word: str, suffix="s"):
     """Pluralises words that just have a suffix if pluralised."""
     if cardinality - 1:
         word += suffix
-    return f'{cardinality} {word}'
+    return f"{cardinality} {word}"
 
 
 def plur_diff(cardinality: int, singular: str, plural: str):
     """Pluralises words that change spelling when pluralised."""
-    return f'{cardinality} {plural if cardinality - 1 else singular}'
+    return f"{cardinality} {plural if cardinality - 1 else singular}"
 
 
 def yn(boolean: bool) -> str:
     """Converts 'True' or 'False' to 'Yes' or 'No'"""
-    return 'Yes' if boolean else 'No'
+    return "Yes" if boolean else "No"
 
 
 def cap(string: str):
@@ -116,4 +122,4 @@ def cap(string: str):
 def pascal2title(string: str) -> str:
     """Splits on whitespace between capital and lowercase letters."""
     # https://stackoverflow.com/a/29922050
-    return ' '.join(re.findall(r'[A-Z](?:[a-z]+|[A-Z]*(?=[A-Z]|$))', string))
+    return " ".join(re.findall(r"[A-Z](?:[a-z]+|[A-Z]*(?=[A-Z]|$))", string))

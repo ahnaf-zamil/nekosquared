@@ -38,9 +38,12 @@ from .toolchains import r
 
 
 class RCog(traits.CogTraits):
-    @commands.command(name='r', aliases=['cranr'],
-                      brief='Executes a given R-code block, showing the output'
-                            ' and any graphs that were plotted.')
+    @commands.command(
+        name="r",
+        aliases=["cranr"],
+        brief="Executes a given R-code block, showing the output"
+        " and any graphs that were plotted.",
+    )
     async def _r(self, ctx, *, source):
         """
         Use the following to highlight your syntax:
@@ -61,24 +64,22 @@ class RCog(traits.CogTraits):
             source = code_block.group(2)
 
         with ctx.typing():
-            result = await r.eval_r(await self.acquire_http(),
-                                    source)
+            result = await r.eval_r(await self.acquire_http(), source)
 
-        binder = bookbinding.StringBookBinder(ctx,
-                                              prefix='```markdown',
-                                              suffix='```',
-                                              max_lines=40)
+        binder = bookbinding.StringBookBinder(
+            ctx, prefix="```markdown", suffix="```", max_lines=40
+        )
 
         # Last line is some error about rm not working.
-        for line in result.output.split('\n'):
-            if line == 'sh: 1: rm: Permission denied':
+        for line in result.output.split("\n"):
+            if line == "sh: 1: rm: Permission denied":
                 continue
             binder.add_line(line)
 
-        binder.add_line(f'RESULT: {result.result.title()}')
-        binder.add_line(f'STATE: {result.state.title()}')
+        binder.add_line(f"RESULT: {result.result.title()}")
+        binder.add_line(f"STATE: {result.state.title()}")
         if result.fail_reason:
-            binder.add_line(f'FAILURE REASON: {result.fail_reason}')
+            binder.add_line(f"FAILURE REASON: {result.fail_reason}")
 
         booklet = binder.build()
 
@@ -88,7 +89,7 @@ class RCog(traits.CogTraits):
 
         for i in range(0, min(6, len(result.images))):
             with io.BytesIO(result.images[i][0]) as bio:
-                f = discord.File(bio, f'output_{i+1}.png')
+                f = discord.File(bio, f"output_{i+1}.png")
                 additionals.append(await ctx.send(file=f))
 
         await tools.listen_to_edit(ctx, booklet, *additionals)

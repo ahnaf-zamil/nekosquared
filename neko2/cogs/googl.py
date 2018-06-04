@@ -42,12 +42,12 @@ import urllib.parse
 
 from neko2.shared import alg, commands, configfiles, errors, traits
 
-config_file = 'urlshorten'
-
+config_file = "urlshorten"
 
 # noinspection PyBroadException
 class UrlShortenerCog(traits.CogTraits):
     """Shortens URLS"""
+
     try:
         _key: str = configfiles.get_config_data(config_file)
     except:
@@ -64,38 +64,39 @@ class UrlShortenerCog(traits.CogTraits):
 
         conn = await cls.acquire_http()
 
-        res = await conn.post('https://www.googleapis.com/urlshortener/v1/url',
-                              params={'key': cls._key},
-                              json={'longUrl': url},
-                              headers={'content_type': 'application/json'})
+        res = await conn.post(
+            "https://www.googleapis.com/urlshortener/v1/url",
+            params={"key": cls._key},
+            json={"longUrl": url},
+            headers={"content_type": "application/json"},
+        )
 
         if res.status != 200:
             raise errors.HttpError(res)
 
-        return (await res.json())['id']
+        return (await res.json())["id"]
 
-    @commands.command(brief='Shortens the given URL.', aliases=['goo.gl'])
-    async def shorten(self, ctx, url: str, *,
-                      optional_description: str = None):
+    @commands.command(brief="Shortens the given URL.", aliases=["goo.gl"])
+    async def shorten(self, ctx, url: str, *, optional_description: str = None):
         """
         You can pass a description to put with the link if you like.
         """
         try:
             url = await self.googl(url)
             if url is None:
-                await ctx.send('I can\'t connect to goo.gl at the moment.')
+                await ctx.send("I can't connect to goo.gl at the moment.")
         except BaseException:
             traceback.print_exc()
-            await ctx.send('There was an error handling this request.')
+            await ctx.send("There was an error handling this request.")
         else:
             if not optional_description:
-                optional_description = 'shortened a URL'
+                optional_description = "shortened a URL"
 
             # Try to delete the initial message
             await commands.try_delete(ctx)
             return await ctx.send(
-                f'{ctx.author.mention} {optional_description}: '
-                f'{url}')
+                f"{ctx.author.mention} {optional_description}: " f"{url}"
+            )
 
     @staticmethod
     async def smoke_a_pipe(content, guild_members=None):
@@ -106,23 +107,22 @@ class UrlShortenerCog(traits.CogTraits):
         """
         guild_members = guild_members or []
 
-        if '|' in content:
-            query, _, mention = content.rpartition('|')
+        if "|" in content:
+            query, _, mention = content.rpartition("|")
 
             query = query.rstrip()
             mention = mention.strip()
 
-            mention_match = re.match(r'^<@!?(\d+)>$', mention)
+            mention_match = re.match(r"^<@!?(\d+)>$", mention)
             if mention_match:
                 mention = int(mention_match.group(1))
 
             if isinstance(mention, int) or mention.isdigit():
-                user = alg.find(lambda u: u.id == int(mention),
-                                guild_members)
+                user = alg.find(lambda u: u.id == int(mention), guild_members)
             elif mention:
                 user = alg.find(
-                    lambda u: u.display_name.lower() == mention.lower(),
-                    guild_members)
+                    lambda u: u.display_name.lower() == mention.lower(), guild_members
+                )
             else:
                 user = None
         else:
@@ -136,8 +136,9 @@ class UrlShortenerCog(traits.CogTraits):
     @commands.command(
         brief="Directs stupid questions to their rightful place.",
         usage="query [| @mention]",
-        examples=['how to buy lime', 'what is a discord.py? | @mention#1234'],
-        aliases=['lmgtfyd'])
+        examples=["how to buy lime", "what is a discord.py? | @mention#1234"],
+        aliases=["lmgtfyd"],
+    )
     async def lmgtfy(self, ctx, *, query):
         """
         Garbage question = garbage answer.
@@ -148,12 +149,12 @@ class UrlShortenerCog(traits.CogTraits):
         """
         query, user = await self.smoke_a_pipe(query, ctx.guild.members)
 
-        frag = urllib.parse.urlencode({'q': query})
+        frag = urllib.parse.urlencode({"q": query})
 
-        if ctx.invoked_with == 'lmgtfyd':
+        if ctx.invoked_with == "lmgtfyd":
             await ctx.message.delete()
 
-        url = f'http://lmgtfy.com?{frag}'
+        url = f"http://lmgtfy.com?{frag}"
 
         try:
             short_url = await self.googl(url)
@@ -162,18 +163,19 @@ class UrlShortenerCog(traits.CogTraits):
             pass
 
         # noinspection PyUnresolvedReferences
-        mention = user.mention + ': ' if user else ''
+        mention = user.mention + ": " if user else ""
 
-        await ctx.send(''.join((mention, f'<{url}>')))
+        await ctx.send("".join((mention, f"<{url}>")))
 
     @commands.guild_only()
     @commands.cooldown(1, 30, commands.BucketType.channel)
     @commands.cooldown(1, 30, commands.BucketType.user)
     @commands.command(
-        brief='Outputs a link to a Google search.',
+        brief="Outputs a link to a Google search.",
         usage="query [| @mention]",
-        examples=['how to buy lime', 'what is a discord.py? | @mention#1234'],
-        aliases=['googled'])
+        examples=["how to buy lime", "what is a discord.py? | @mention#1234"],
+        aliases=["googled"],
+    )
     async def google(self, ctx, *, query):
         """
         You can pipe the output to a given member.
@@ -184,12 +186,12 @@ class UrlShortenerCog(traits.CogTraits):
         """
         query, user = await self.smoke_a_pipe(query, ctx.guild.members)
 
-        frag = urllib.parse.urlencode({'q': query})
+        frag = urllib.parse.urlencode({"q": query})
 
-        if ctx.invoked_with == 'googled':
+        if ctx.invoked_with == "googled":
             await ctx.message.delete()
 
-        url = f'https://google.com/search?{frag}'
+        url = f"https://google.com/search?{frag}"
         try:
             short_url = await self.googl(url)
             url = short_url or url
@@ -197,14 +199,13 @@ class UrlShortenerCog(traits.CogTraits):
             pass
 
         # noinspection PyUnresolvedReferences
-        mention = user.mention + ': ' if user else ''
+        mention = user.mention + ": " if user else ""
 
-        await ctx.send(''.join((mention, f'<{url}>')))
+        await ctx.send("".join((mention, f"<{url}>")))
 
 
-if not getattr(UrlShortenerCog, '_key', None):
-    UrlShortenerCog.logger.info('I will attempt to continue without goo.gl '
-                                'support.')
+if not getattr(UrlShortenerCog, "_key", None):
+    UrlShortenerCog.logger.info("I will attempt to continue without goo.gl " "support.")
 
 
 def setup(bot):

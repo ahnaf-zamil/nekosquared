@@ -34,14 +34,16 @@ from .toolchains import latex
 
 class LatexCog(traits.CogTraits):
     @commands.command(
-        name='tex', aliases=['latex', 'texd', 'latexd'],
-        brief='Attempts to parse a given LaTeX string and display a preview.')
+        name="tex",
+        aliases=["latex", "texd", "latexd"],
+        brief="Attempts to parse a given LaTeX string and display a preview.",
+    )
     async def latex_cmd(self, ctx, *, content: str):
         """
         Add the `d` prefix to the command to delete your message before the
         response is shown.
         """
-        delete = ctx.invoked_with.endswith('d')
+        delete = ctx.invoked_with.endswith("d")
 
         if delete:
             await commands.try_delete(ctx)
@@ -51,4 +53,3 @@ class LatexCog(traits.CogTraits):
 
         if not delete:
             await commands.wait_for_edit(ctx=ctx, msg=msg, timeout=1800)
-

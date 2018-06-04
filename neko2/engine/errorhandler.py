@@ -43,10 +43,10 @@ from . import extrabits
 
 # Respond with a reaction.
 ignored_errors = {
-    dpyext_errors.CommandNotFound: '\N{BLACK QUESTION MARK ORNAMENT}',
-    dpyext_errors.DisabledCommand: '\N{NO ENTRY SIGN}',
-    dpyext_errors.CommandOnCooldown: '\N{SNOWFLAKE}',
-    NotImplementedError: '\N{CONSTRUCTION SIGN}'
+    dpyext_errors.CommandNotFound: "\N{BLACK QUESTION MARK ORNAMENT}",
+    dpyext_errors.DisabledCommand: "\N{NO ENTRY SIGN}",
+    dpyext_errors.CommandOnCooldown: "\N{SNOWFLAKE}",
+    NotImplementedError: "\N{CONSTRUCTION SIGN}",
 }
 
 handled_errors = {
@@ -60,7 +60,7 @@ handled_errors = {
     dpyext_errors.TooManyArguments,
     discord.Forbidden,
     discord.NotFound,
-    aiohttp.ClientError
+    aiohttp.ClientError,
 }
 
 
@@ -76,43 +76,45 @@ async def _react_for_a_little_while(me, message, reaction, time=5):
 
 async def _dm_me_error(*, bot, cog, ctx, error, event_method):
     embed = discord.Embed(
-        title=f'An error occurred: `{type(error).__qualname__}`',
+        title=f"An error occurred: `{type(error).__qualname__}`",
         description=f'Supplied error message: `{error or "—"}`',
-        colour=0xFF0000)
+        colour=0xFF0000,
+    )
 
     trace = traceback.format_tb(error.__traceback__)
-    trace = ''.join(trace)
+    trace = "".join(trace)
     should_pag = len(trace) > 1010
 
     if not should_pag:
-        trace = f'```\n{trace}\n```'
-        embed.add_field(name='Traceback', value=trace, inline=False)
+        trace = f"```\n{trace}\n```"
+        embed.add_field(name="Traceback", value=trace, inline=False)
 
     if ctx:
         whom_info = (
-            f'{ctx.command.qualified_name} invoked as {ctx.invoked_with}\n'
-            f'Invoked by: {ctx.author} (`{ctx.author.id}`)\n'
+            f"{ctx.command.qualified_name} invoked as {ctx.invoked_with}\n"
+            f"Invoked by: {ctx.author} (`{ctx.author.id}`)\n"
             f'{"Guild: " + str(ctx.guild) if ctx.guild else "in DMs"}\n'
-            f'Channel: #{ctx.channel}\n'
-            f'When: {ctx.message.created_at}')
+            f"Channel: #{ctx.channel}\n"
+            f"When: {ctx.message.created_at}"
+        )
         body = ctx.message.content
-        body = body.replace('`', '’')
+        body = body.replace("`", "’")
         if len(body) > 1000:
-            body = f'{body[:997]}...'
-        body = f'```\n{body}\n```'
-        embed.add_field(name='Command info', value=whom_info)
-        embed.add_field(name='Command body', value=body)
+            body = f"{body[:997]}..."
+        body = f"```\n{body}\n```"
+        embed.add_field(name="Command info", value=whom_info)
+        embed.add_field(name="Command body", value=body)
     if cog:
-        embed.add_field(name='Cog', value=str(cog))
+        embed.add_field(name="Cog", value=str(cog))
     if event_method:
-        embed.add_field(name='Event method', value=str(event_method))
+        embed.add_field(name="Event method", value=str(event_method))
 
     owner = bot.get_user(bot.owner_id)
     await owner.send(embed=embed)
 
     if should_pag:
         p = Paginator()
-        for line in trace.split('\n'):
+        for line in trace.split("\n"):
             p.add_line(line)
         for page in p.pages:
             # Send the last 15 only. Prevents a hell of a lot
@@ -125,35 +127,31 @@ class ErrorHandler(extrabits.InternalCogType):
         super().__init__(bot)
         self.should_dm_on_error = should_dm_on_error
 
-    async def handle_error(self, *, bot, cog=None, ctx=None, error,
-                           event_method=None):
+    async def handle_error(self, *, bot, cog=None, ctx=None, error, event_method=None):
         """Send your errors here to be handled properly."""
         # Discard any errors as a result of handling this error.
         try:
             await self.__handle_error(
-                bot=bot,
-                cog=cog,
-                ctx=ctx,
-                error=error,
-                event_method=event_method)
+                bot=bot, cog=cog, ctx=ctx, error=error, event_method=event_method
+            )
 
         except BaseException as ex:
             ex.__cause__ = error
             traceback.print_exception(type(ex), ex, ex.__traceback__)
 
-    async def __handle_error(self, *, bot, cog=None, ctx=None, error,
-                             event_method=None):
+    async def __handle_error(
+        self, *, bot, cog=None, ctx=None, error, event_method=None
+    ):
         # Print the traceback first. This means I still see the TB even if
         # something else breaks when outputting results to discord.
-        tb = traceback.format_exception(
-            type(error), error, error.__traceback__)
+        tb = traceback.format_exception(type(error), error, error.__traceback__)
 
         if cog:
             rel_log = logging.getLogger(type(cog).__name__)
         else:
             rel_log = self.logger
 
-        rel_log.warning('An error was handled.\n' + ''.join(tb).strip())
+        rel_log.warning("An error was handled.\n" + "".join(tb).strip())
 
         cause = error.__cause__ or error
 
@@ -161,36 +159,39 @@ class ErrorHandler(extrabits.InternalCogType):
         if type(cause) in handled_errors:
             reply = string.cap(str(cause))
         elif type(cause) in ignored_errors:
-            return _react_for_a_little_while(ctx.bot.user,
-                                             ctx.message,
-                                             ignored_errors[type(cause)])
+            return _react_for_a_little_while(
+                ctx.bot.user, ctx.message, ignored_errors[type(cause)]
+            )
         else:
             reply = (
-                '\N{SQUARED SOS} Something serious went wrong... '
-                'note that Neko³ is currently being written to address any '
-                'issues and to perform much more smoothly. Please be patient, '
-                'and sorry for any inconvenience caused!\nIf it keeps '
-                'happening, please either notify the bot owner, or '
-                '**add an issue** on GitHub. Run `n.git` for a link! '
-                '\n\n**Error**: '
+                "\N{SQUARED SOS} Something serious went wrong... "
+                "note that Neko³ is currently being written to address any "
+                "issues and to perform much more smoothly. Please be patient, "
+                "and sorry for any inconvenience caused!\nIf it keeps "
+                "happening, please either notify the bot owner, or "
+                "**add an issue** on GitHub. Run `n.git` for a link! "
+                "\n\n**Error**: "
             )
 
             reply += excuses.get_excuse()
-            reply += '\n-----------------------------------------------------'
+            reply += "\n-----------------------------------------------------"
 
             if bot.debug:
                 reply += (
-                    '\nThe following is included while debug mode is '
-                    'on. As a result, I won\'t bother DMing '
-                    f'<@{ctx.bot.owner_id}> about it.\n\n ')
-                reply += ''.join(traceback.format_exception(
-                    type(cause), cause, cause.__traceback__))
+                    "\nThe following is included while debug mode is "
+                    "on. As a result, I won't bother DMing "
+                    f"<@{ctx.bot.owner_id}> about it.\n\n "
+                )
+                reply += "".join(
+                    traceback.format_exception(type(cause), cause, cause.__traceback__)
+                )
 
             if self.should_dm_on_error and not bot.debug:
-                reply += '\n\nEspy has been sent a DM about this issue.'
+                reply += "\n\nEspy has been sent a DM about this issue."
                 # DM me some information about what went wrong.
-                await _dm_me_error(bot=bot, ctx=ctx, cog=cog, error=cause,
-                                   event_method=event_method)
+                await _dm_me_error(
+                    bot=bot, ctx=ctx, cog=cog, error=cause, event_method=event_method
+                )
 
         destination = ctx if ctx else bot.get_owner()
 
@@ -224,8 +225,7 @@ class ErrorHandler(extrabits.InternalCogType):
         """
         # noinspection PyBroadException
         try:
-            await self.handle_error(
-                bot=self.bot, ctx=context, error=exception)
+            await self.handle_error(bot=self.bot, ctx=context, error=exception)
         except BaseException:
             traceback.print_exc()
 
@@ -236,7 +236,6 @@ class ErrorHandler(extrabits.InternalCogType):
         # noinspection PyBroadException
         try:
             _, err, _ = sys.exc_info()
-            await self.handle_error(
-                bot=self.bot, event_method=event_method, error=err)
+            await self.handle_error(bot=self.bot, event_method=event_method, error=err)
         except BaseException:
             traceback.print_exc()

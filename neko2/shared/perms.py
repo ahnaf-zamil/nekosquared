@@ -33,7 +33,7 @@ import typing
 
 import discord
 
-__all__ = ('Permissions',)
+__all__ = ("Permissions",)
 
 
 class Permissions(enum.IntFlag):
@@ -45,6 +45,7 @@ class Permissions(enum.IntFlag):
     There is an additional utility method to convert to the Discord.py variant
     included here for ease of use.
     """
+
     NONE = 0x00000000
     CREATE_INSTANT_INVITE = 0x00000001
     KICK_MEMBERS = 0x00000002
