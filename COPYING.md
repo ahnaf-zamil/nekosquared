@@ -9,10 +9,12 @@ then you must include either the license header present above every
 source code file in this project. If you need to just reference it in
 a short amount of text... I will accept the following:
 
+`
 """
 (c) 2018 Neko404NotFound. Licensed under the MIT license. See
 github.com/neko404notfound/nekosquared for full licensing details.
 """
+`
 
 ...or words to that effect.
 
