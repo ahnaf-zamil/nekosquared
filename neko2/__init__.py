@@ -60,7 +60,7 @@ import neko2.shared
 
 __author__ = "Neko404NotFound"
 __license__ = "MIT License"
-__url__ = "https://github.com/neko404notfound/nekosquared"
+__url__ = "https://neko404notfound.github.io/nekosquared/"
 __version__ = "2.14.4-BLEEDING"
 __repository__ = __url__
 __trello__ = "https://trello.com/b/gKTl1rMO"
