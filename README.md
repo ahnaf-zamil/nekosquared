@@ -1,4 +1,4 @@
-# Nekosquared
+# nekosquared
 
 [![mit](https://img.shields.io/badge/Licensed%20under-MIT-red.svg?style=flat-square)](./LICENSE)
 [![made-with-python](https://img.shields.io/badge/Made%20with-Python%203.6.5-ffde57.svg?&colorB=4584b6&style=flat-square&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAPBSURBVFhHtVdNaBNBFJ5Nqz3VRsWDF1E8iaCNFhKFaquCBxFT7EFBaQOCKLW0HixUsL15KVVEwYNIC+qhJf0JKoJgCxabUMFUPYlie1E8JejBmjYzfm9nf2aTze4i8aXfvjfvvXnfy2RnZ6uxgBLrTzUzJvYzzluFxnYxwbcwwcKMcbhFAfgGI4t4avFh78hK7ocwpnqKbwOx66kwiHpQ/CpI6gUG0BKS3LBVP2nemRk+P0o1vCRk6MoiyQdQ8Df0fcaLH/zJdYxEe0fjVMJL/BtgYq8szC6mb7Zdgj7kT464tDtgeEqAFeAohY/gO43x1nJC1bbISW/HxVN8G5B1qCAbivaNz2D0xkmo2gq5FfOWAD+BsdxStwC481UC0hQrIYctdO0tARpgCRSLoF4EtoRuw6f7ed5upJSc4C3WNoz1T2O78dOY02xtNV2bK2D4yu0zQJ0a08mlnX1+bqx9c3jdgoxzVlwTczUhMaztfjmLBNkAyHGziHHMbbLI9QIGuSxWYrs3ZpNTnJkNfLZyDBRWi+11kVdJ8ye4heQqkxtazVGwvkZ7IN4fCYdi/VNxOOJVJ/cDw80sRGcIc9v+C7nMWdrcUFtv+Uy/MR/zWkK47LGDVSUnPQp9uMxvQEMMK1DcJINVJc/jMpi5PDUL+6jiL0VYi/YlYfmSU8F30F+hf5px+pg2LvjTc5c1oT1Jd03giGYDcPRYOS5AA+P0VaTDvWAKg470lQnynYR7h5XjyLWAVRXbgDYM6EZTY2XQotfGcjAqPF7FEgaRdPdkJ2wcyUZBJ6E7guQA1C0tr+20yaGKj9PdE3QcDwJVJwe+owGeshwKOdmaFnrLi+I4xg16zK9wkByCmcdEhp6E8jmtT7TJSfO1P79C9P4XtKibvxRqHhPJUGbo7CPsApxoTvIyuxIo51/IhVjE8Kk8C+iOLU0wba/iXjEVlOfMza6uiYQWTeet4xgvkI0I0J3eSMn0kOHFwoWFnmddGNB5oRbADMt+4fCbcG+Obvp5BG8TOfH6vpaLTycmMcnZgFI8ly8c2LihdsURt5HXmuZoK1cU/zcitSARl3wzkM9D01PSBj01JSb1Gh4SvAH3JXWC6c+UrNPnLcEa8CO34iyh7XuN90SRsGPeEqSBJauYG0xyqfX3POgvdtxbfBvAu9s9q1gpylaGz4iFg7ST7sgxm5ZVKovvLiARH4/R/wO0G4KeB4ILcRff7oYWy+jbrZIEasAUvtgax4RTIMAzg1Mz6nG7jL5yMOgmTGKfzxnTPISxv/JfZTs2HsqNAAAAAElFTkSuQmCC
@@ -17,6 +17,8 @@ to manage Discord guilds are also being implemented, and are a
 work-in-progress.
 
 Oh, and I cannot evaluate the price of lime.
+
+<img src="pfp.png" style="float: left; max-height:10vw;" />
 
 ## Installation
 
