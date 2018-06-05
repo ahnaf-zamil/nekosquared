@@ -5,6 +5,10 @@
 )](https://www.python.org/)
 [![Code style: black](https://img.shields.io/badge/Code%20Style-black-000000.svg?style=flat-square)](https://github.com/ambv/black)
 [![Discord](https://img.shields.io/discord/265828729970753537.svg?logo=discord&label=Sebi%27s+Bot+Tutorial&style=flat-square)](https://discord.gg/GWdhBSp)
+[![HitCount](http://hits.dwyl.io/neko404notfound/nekosquared.svg)](http://hits.dwyl.io/neko404notfound/nekosquared)
+![](https://tokei.rs/b1/github/neko404notfound/nekosquared?category=lines)
+![](https://tokei.rs/b1/github/neko404notfound/nekosquared?category=files)
+
 
 The second iteration of Nekozilla. A developer-oriented and utility-oriented
 Discord bot.
