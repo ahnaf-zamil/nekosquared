@@ -18,33 +18,19 @@ work-in-progress.
 
 Oh, and I cannot evaluate the price of lime.
 
-<img src="pfp.png" style="float: left; max-height:10vw;" />
+<img src="pfp.png" style="float: right; max-height:20vw; padding: 3em" />
 
 ## Installation
 
-```python
-# Using cURL
-curl https://raw.githubusercontent.com/neko404notfound/nekosquared/master/install.py | python3.6
-# Using wget
-wget -qO- https://raw.githubusercontent.com/neko404notfound/nekosquared/master/install.py | python3.6
-```
-
-This downloads the installation script in the root of the repository, and
-executes it. This script will clone the repository for you, set up a virtual
-environment, install all virtual environment dependencies including discord.py
-rewrite, and generate shell scripts for running, and updating the bot.
-
-A sample systemd service file is also produced, as I find this useful.
-
-You need to have `git`, `python3.6` ~~or `python3.7`~~\*, and `pip` installed,
-and have the `python3-virtualenv package installed.`
-
-<small> \* There are reports that asyncio is not working correctly on Python3.7 at this
-    time, so support is purely 3.6 for the time being.</small>
-
-### Non-python stuff
-
-You will need `libjpeg8` installed to access any modules using imaging.
+0. Install Python3.6
+1. Install `virtualenv` from `pip`.
+2. Clone this repo: `git clone https://github.com/neko404notfound/nekosquared`.
+3. Enter the directory: `cd nekosquared`.
+4. Set up a virtual environment and enter it: `python3.6 -m venv venv; source ./venv/bin/activate`.
+5. Install `libjpeg8` for your system from your distro package manager.
+6. Install the dependencies: `python3.6 -m pip install -U -r requirements.txt`.
+7. If YARL errors, or aiohttp complains, run `python3.6 -m pip install -U --force-reinstall aiohttp`.
+8. Follow the configuration instructions further down on this page.
 
 ## Running
 
